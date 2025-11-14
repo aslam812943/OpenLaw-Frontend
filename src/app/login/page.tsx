@@ -1,10 +1,14 @@
+'use client'
+
+
 import { useState,useEffect } from 'react';
 import { Scale, Mail, Lock, ArrowRight, Shield, Users, Gavel, FileText, Award, BookOpen } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from "next/navigation";
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { setUserData } from '../redux/userSlice';
-import {showToast} from '../utils/alerts'
+import { setUserData } from '../../redux/userSlice';
+import {setLawyerData} from '../../redux/lawyerSlice'
+import {showToast} from '../../utils/alerts'
 const validateEmail = (email: string): boolean => {
   return /\S+@\S+\.\S+/.test(email);
 };
@@ -21,7 +25,8 @@ const LoginPage = () => {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const router = useRouter();
   const dispatch = useDispatch();
-  const fullText = 'LegalConnect';
+ const fullText = 'OpenLaw';
+
 
 
   const [displayed,setDisplayed] = useState(fullText)
@@ -106,31 +111,52 @@ const typingSpeed = 150;         // time between each letter
     }
 
     setLoading(true);
-    try {
-      let response = await axios.post('http://localhost:8080/api/user/login', form, { withCredentials: true });
-     showToast('success', 'Login successful.');
-      const { user } = response.data;
-      dispatch(setUserData({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        phone: user.phone,
-        role: user.role
-      }))
-      if (user.role === 'lawyer') {
-        if(user.hasSubmittedVerification){
-   router.push('/lawyer/dashbord');
-        }else{
- router.push('/lawyer/verification');
-        }
-       
-      } else {
-        router.push('/home');
-      }
-    } catch (err:any) {
-      console.log(err);
+ try {
+  let response = await axios.post(
+    "http://localhost:8080/api/user/login",
+    form,
+    { withCredentials: true }
+  );
+
+  showToast("success", response?.data?.message || "Login successful");
+
+  const { user } = response.data;
+
+  if (user.role === "lawyer") {
+    // Store lawyer data in lawyerSlice
+    dispatch(setLawyerData({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      phone: user.phone,
+      role: user.role,
+      hasSubmittedVerification: user.hasSubmittedVerification
+    }));
+
+    if (user.hasSubmittedVerification) {
+      router.push("/lawyer/dashboard");
+    } else {
+      router.push("/lawyer/verification");
+    }
+
+  } else if (user.role === "user") {
+    // Store user data in userSlice
+    dispatch(setUserData({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      phone: user.phone,
+      role: user.role
+    }));
+
+    router.push("/");
+  }
+} 
+
+     catch (err:any) {
+     
     
-      showToast('error',err.message)
+      showToast('error',err.response?.data?.message)
       setLoading(false);
     }
   };
@@ -347,7 +373,7 @@ const typingSpeed = 150;         // time between each letter
                   <button
                     type="button"
                     className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline transition-all duration-300"
-                    onClick={() => router.push('/forgot-password')}
+                    onClick={() => router.push('/forgotPassword')}
                   >
                     Forgot Password?
                   </button>
@@ -379,7 +405,8 @@ const typingSpeed = 150;         // time between each letter
                     <div className="w-full border-t border-gray-200"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-500">New to LegalConnect?</span>
+        <span className="px-4 bg-white text-gray-500">New to OpenLaw?</span>
+
                   </div>
                 </div>
                 {/* Sign Up Link */}
@@ -387,7 +414,7 @@ const typingSpeed = 150;         // time between each letter
                   <button
                     type="button"
                     className="text-green-600 font-semibold hover:text-green-700 transition-colors duration-300 hover:underline"
-                    onClick={() => router.push('/register')}
+                    onClick={() => router.push('/sign-up')}
                   >
                     Create an account
                   </button>

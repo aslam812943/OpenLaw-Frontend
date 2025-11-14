@@ -1,6 +1,8 @@
+'use client'
+
 import React from "react";
-import Header from "../../components/LawyersHeader";
-import Sidebar from "../../components/LawyerSidebar";
+import Header from "../../../components/LawyersHeader";
+import Sidebar from "../../../components/LawyerSidebar";
 
 const DashboardLayout: React.FC = () => {
   return (

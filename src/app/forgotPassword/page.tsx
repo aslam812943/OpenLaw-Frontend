@@ -1,32 +1,53 @@
+'use client'
+
 import { useState } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router';
+import { useRouter } from "next/navigation";
 import { Mail, Shield, Scale } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
 
 const ForgotPasswordPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // ✅ Email validation function
+  const validateEmail = (email: string) =>
+    /\S+@\S+\.\S+/.test(email) ? '' : 'Please enter a valid email address';
+
+  // ✅ Handle change with live validation
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    setError(validateEmail(value));
+  };
+
+  // ✅ Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
     setLoading(true);
     try {
       await axios.post('http://localhost:8080/api/user/forget-password', { email });
 
-      showToast('success','Password reset OTP sent! Please check your email.')
-      router.push('/reset-password');
-    } catch (err) {
-     
-      showToast('error','Failed to send password reset email.')
+      showToast('success', 'Password reset OTP sent! Please check your email.');
+      router.push('/resetPassword');
+    } catch (err:any) {
+      showToast('error', err.response?.data?.message||'Failed to send password reset email.');
     }
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-green-200 p-4 overflow-hidden relative">
-      {/* Background icons (for model look) */}
+      {/* Background icons */}
       <div className="absolute top-20 left-16 animate-float animation-delay-1000">
         <Shield className="w-12 h-12 text-emerald-200" />
       </div>
@@ -36,9 +57,10 @@ const ForgotPasswordPage = () => {
       <div className="absolute bottom-32 left-1/2 -translate-x-1/2 animate-float animation-delay-2000">
         <Mail className="w-10 h-10 text-emerald-200" />
       </div>
-      <div className="z-10 flex flex-col items-center w-full max-w-md  transition-colors duration-300">
+
+      <div className="z-10 flex flex-col items-center w-full max-w-md transition-colors duration-300">
         <form
-        noValidate
+          noValidate
           onSubmit={handleSubmit}
           className="w-full bg-white/80 shadow-xl backdrop-blur-lg rounded-3xl px-8 py-10 border border-green-100"
         >
@@ -47,10 +69,15 @@ const ForgotPasswordPage = () => {
               <Mail className="w-9 h-9 text-white" />
             </div>
           </div>
-          <h2 className="text-2xl mb-4 font-bold text-center text-gray-900">Forgot Password</h2>
+
+          <h2 className="text-2xl mb-4 font-bold text-center text-gray-900">
+            Forgot Password
+          </h2>
           <p className="text-center text-gray-500 mb-8 text-sm">
             Enter your registered email address to receive a password reset OTP.
           </p>
+
+          {/* ✅ Email Input with validation */}
           <div className="mb-5">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Email Address
@@ -58,15 +85,20 @@ const ForgotPasswordPage = () => {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleChange}
               placeholder="Enter your registered email"
               required
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-400 text-md bg-white/80 outline-none transition-all duration-300"
+              className={`w-full px-4 py-3 rounded-xl border-2 ${
+                error ? 'border-red-400' : 'border-gray-200'
+              } focus:border-green-400 text-md bg-white/80 outline-none transition-all duration-300`}
             />
+            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
           </div>
+
+          {/* ✅ Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!error || !email}
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
           >
             {loading ? (
@@ -81,20 +113,20 @@ const ForgotPasswordPage = () => {
               </>
             )}
           </button>
+
           <div className="mt-6 flex justify-center">
-  <button
-    type="button"
-    className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline transition-all duration-300"
-    onClick={() => router.push('/login')}
-  >
-    Back to Sign In
-  </button>
-</div>
-
+            <button
+              type="button"
+              className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline transition-all duration-300"
+              onClick={() => router.push('/login')}
+            >
+              Back to Sign In
+            </button>
+          </div>
         </form>
- 
-
       </div>
+
+      {/* Floating animations */}
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0);}

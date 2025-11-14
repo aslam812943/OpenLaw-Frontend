@@ -1,5 +1,8 @@
+
+'use client'
+
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from "next/navigation";
 import axios from 'axios';
 import { Scale, Mail, Lock, ArrowRight, Shield, Users, Gavel, FileText, Award, BookOpen, User, Phone, CheckCircle } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
@@ -32,7 +35,8 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
- const fullText = 'LegalConnect'
+const fullText = 'OpenLaw'
+
 const [displayed,setDisplayed] = useState(fullText)
 
 
@@ -151,8 +155,9 @@ const typingSpeed = 150;         // time between each letter
 
       showToast('success','Registration successful! OTP sent to your email/phone.')
       
-      router.push('/verify-otp');
+      router.push('/verifyOtp');
     } catch (err: any) {
+      showToast('error',err.response?.data?.message||'Failed to register')
       let msg = 'Failed to register';
       if (err.response?.data?.message) {
         msg = err.response.data.message;

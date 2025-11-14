@@ -1,32 +1,30 @@
-import {configureStore,combineReducers} from '@reduxjs/toolkit'
-import {persistStore,persistReducer} from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
-import userReducer from './userSlice';
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import { persistStore, persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
 
-
-
+import userReducer from "./userSlice";
+import lawyerReducer from "./lawyerSlice";
 
 const persistConfig = {
-    key:'root',
-    storage,
-    whitelist:['user'],
+  key: "root",
+  storage,
+  whitelist: ["user", "lawyer"], // persist both
 };
 
-
+// Combine reducers
 const rootReducer = combineReducers({
-    user:userReducer,
-})
+  user: userReducer,
+  lawyer: lawyerReducer,
+});
 
-
-const persistedReducer = persistReducer(persistConfig,rootReducer);
-
-
+// Wrap with persist
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
-  middleware: getDefaultMiddleware =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, 
+      serializableCheck: false,
     }),
 });
 

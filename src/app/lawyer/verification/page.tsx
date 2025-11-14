@@ -1,8 +1,11 @@
+'use client'
+
 import { useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import {  useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { showToast } from "@/utils/alerts";
 import {
   Scale,
   CheckCircle2,
@@ -35,8 +38,7 @@ import {
 
 const LawyerSignup = () => {
   const router = useRouter();
-  const dispatch = useDispatch()
-  const user = useSelector((state:RootState)=>state.user)
+  const user = useSelector((state: RootState) => state.user);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     barNumber: "",
@@ -136,6 +138,7 @@ const LawyerSignup = () => {
 
     if (errorMsg) {
       setUploadMessage(errorMsg);
+      showToast("error", errorMsg);
       setTimeout(() => setUploadMessage(""), 3000);
     } else {
       const updatedFiles = [...files, ...validFiles];
@@ -144,6 +147,7 @@ const LawyerSignup = () => {
       if (errors.files) {
         setErrors((prev) => ({ ...prev, files: "" }));
       }
+      showToast("success", "File(s) uploaded successfully.");
     }
   };
 
@@ -153,6 +157,7 @@ const LawyerSignup = () => {
     if (errors.files) {
       setErrors((prev) => ({ ...prev, files: "" }));
     }
+    showToast("info", "File removed.");
   };
 
   const validateStep = (step: number) => {
@@ -188,46 +193,56 @@ const LawyerSignup = () => {
     if (validateStep(currentStep)) {
       setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast("success", "Step completed successfully.");
+    } else {
+      showToast("error", "Please fill all required fields before proceeding.");
     }
   };
 
   const handlePrevious = () => {
     setCurrentStep((prev) => prev - 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    showToast("info", "Moved to previous step.");
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(3)) return;
+    if (!validateStep(3)) {
+      showToast("error", "Please fix validation errors before submitting.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formDataToSend = new FormData();
-
       formDataToSend.append("barNumber", formData.barNumber);
       formDataToSend.append("barAdmissionDate", formData.barAdmissionDate);
       formDataToSend.append("yearsOfPractice", formData.yearsOfPractice);
       formDataToSend.append("practiceAreas", JSON.stringify(formData.practiceAreas));
       formDataToSend.append("languages", JSON.stringify(formData.languages));
-      formDataToSend.append('userId',JSON.stringify(user.id))
-      // formDataToSend.append('email',JSON.stringify(user.email))
-      //       formDataToSend.append('fullname',JSON.stringify(user.name))
-                  // formDataToSend.append('phone',JSON.stringify(user.phone))
+      formDataToSend.append("userId", JSON.stringify(user.id));
       files.forEach((file) => formDataToSend.append("documents", file));
 
       await axios.post("http://localhost:8080/api/lawyer/verifyDetils", formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      showToast("success", "Verification details submitted successfully!");
       setIsSubmitted(true);
     } catch (error: any) {
-      setErrors({ submit: error.response?.data?.message || "Failed to submit form. Please try again." });
+      const message = error.response?.data?.message || "Failed to submit form. Please try again.";
+      setErrors({ submit: message });
+      showToast("error", message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (isSubmitted) {
-    router.push('/lawyer/dashbord');
+  
+    router.push("/lawyer/dashbord");
   }
 
+ 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 via-white to-green-50">
       <div className="max-w-4xl mx-auto">
@@ -325,8 +340,10 @@ const LawyerSignup = () => {
                   name="yearsOfPractice"
                   value={formData.yearsOfPractice}
                   onChange={handleInputChange}
+        
                   placeholder="e.g., 5"
-                  min="0"
+                  min={0}
+                  max={99}
                   className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${
                     errors.yearsOfPractice ? "border-red-500" : "border-gray-200"
                   }`}

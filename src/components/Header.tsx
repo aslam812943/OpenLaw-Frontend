@@ -1,24 +1,40 @@
-"use client";
+'use client'
+
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bell, Menu, X, User, Search } from "lucide-react";
+import { Bell, Menu, X, User, Search, Scale } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
-// import Cookies from "js-cookie";
-// import { logoutUser } from "@/redux/slices/userSlice";
+import { useRouter } from "next/navigation";
+import { showToast } from "@/utils/alerts";
+import { logoutUser } from "@/service/userService";
+import { clearUserData } from "@/redux/userSlice";
 
 const UserHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const user = useSelector((state: RootState) => state.user);
 
-  // const handleLogout = () => {
-  //   Cookies.remove("token");
-  //   dispatch(logoutUser());
-  // };
+  const handleLogout = async () => {
+    try {
+      const result = await logoutUser();
+
+      if (result.success) {
+        dispatch(clearUserData());
+        localStorage.removeItem("userData");
+        showToast("success", result.message);
+      } else {
+        showToast("error", result.message);
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      showToast("error", "Logout failed. Please try again later.");
+    }
+  };
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -30,105 +46,119 @@ const UserHeader = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/70 border-b border-emerald-100 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all">
-      {/* Gradient Top Accent */}
-      {/* <div className="h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-400"></div> */}
-
+    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-gradient-to-br from-emerald-50/90 via-white/90 to-green-50/90 border-b border-green-200 shadow-[0_4px_20px_rgba(16,185,129,0.08)] transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-        {/* Logo Section */}
-        <Link href="/" className="flex items-center space-x-2 group">
-          <div className="bg-gradient-to-br from-emerald-500 to-cyan-500 p-2 rounded-md text-white font-bold text-lg shadow-md transition-transform group-hover:scale-110">
-            ⚖️
+        <Link href="/" className="flex items-center space-x-3 group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl blur-md opacity-60 group-hover:opacity-100 transition-all duration-300"></div>
+            <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 p-2.5 rounded-xl text-white font-bold shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-3">
+              <Scale className="w-5 h-5" />
+            </div>
           </div>
-          <span className="font-semibold text-xl bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent tracking-tight">
-            LegalConnect
-          </span>
+          <div className="flex flex-col">
+            <span className="font-bold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent tracking-tight">
+              LegalConnect
+            </span>
+            <span className="text-[10px] font-medium text-green-600 -mt-1">Legal Platform</span>
+          </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-gray-700">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center space-x-1">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
-              className="relative text-sm font-medium text-gray-700 hover:text-emerald-600 transition group"
+              className="relative px-3 py-2 text-sm font-medium text-gray-700 hover:text-green-600 transition-colors group"
             >
               {link.name}
-              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute left-3 right-3 bottom-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></span>
             </Link>
           ))}
         </nav>
 
         {/* Right Side */}
-        <div className="flex items-center space-x-4">
-          {/* Search Bar (Desktop Only) */}
-          <div className="hidden lg:flex items-center bg-white/80 border border-emerald-100 rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition">
-            <Search className="w-4 h-4 text-gray-500" />
+        <div className="flex items-center space-x-3">
+          <div className="hidden lg:flex items-center bg-white/60 backdrop-blur-sm border border-green-200 rounded-full px-4 py-2 shadow-sm hover:shadow-md hover:border-green-300 transition-all group">
+            <Search className="w-4 h-4 text-green-500 group-hover:text-green-600 transition-colors" />
             <input
               type="text"
-              placeholder="Search..."
-              className="bg-transparent border-none outline-none text-sm text-gray-700 ml-2 placeholder-gray-400 w-32 focus:w-44 transition-all"
+              placeholder="Search lawyers..."
+              className="bg-transparent border-none outline-none text-sm text-gray-700 ml-2 placeholder-gray-500 w-32 focus:w-44 transition-all focus:placeholder-gray-400"
             />
           </div>
 
-          {/* Notification Bell */}
-          <div className="relative cursor-pointer">
-            <Bell className="w-5 h-5 text-gray-700 hover:text-emerald-600 transition-transform hover:scale-110" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full w-3.5 h-3.5 flex items-center justify-center shadow-sm">
-              2
-            </span>
+          <div className="relative cursor-pointer group">
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-lg blur opacity-0 group-hover:opacity-30 transition-all"></div>
+            <div className="relative p-2.5 rounded-lg hover:bg-green-100/50 transition-colors">
+              <Bell className="w-5 h-5 text-gray-700 group-hover:text-green-600 transition-colors" />
+              <span className="absolute top-1.5 right-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
+                2
+              </span>
+            </div>
           </div>
 
-          {/* User Dropdown */}
+          {/* User Section */}
           {user?.name ? (
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-white/70 border border-emerald-100 rounded-full text-gray-700 hover:text-emerald-600 hover:border-emerald-300 transition shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-sm border border-green-200 rounded-full text-gray-700 hover:text-green-600 hover:border-green-400 hover:bg-white/80 transition-all shadow-sm hover:shadow-md group"
               >
-                <User className="w-5 h-5" />
-                <span className="text-sm font-medium">{user.name}</span>
+                <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  {user.name.charAt(0)}
+                </div>
+                <span className="text-sm font-semibold text-gray-800">{user.name}</span>
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-3 w-44 bg-white border border-gray-100 rounded-lg shadow-lg overflow-hidden animate-slideDown z-50">
+                <div className="absolute right-0 mt-3 w-48 bg-white/95 backdrop-blur-sm border border-green-200 rounded-2xl shadow-xl overflow-hidden animate-slideDown z-50">
+                  <div className="px-4 py-3 border-b border-green-100">
+                    <p className="text-xs text-gray-600">Logged in as</p>
+                    <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
+                  </div>
                   <Link
                     href="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700"
+                    className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
                     onClick={() => setDropdownOpen(false)}
                   >
+                    <User className="w-4 h-4" />
                     Profile
                   </Link>
                   <button
-                    // onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors border-t border-green-100"
                   >
+                    <X className="w-4 h-4" />
                     Logout
                   </button>
                 </div>
               )}
             </div>
           ) : (
-            <div className="flex space-x-3">
+            <div className="flex space-x-2">
               <Link
                 href="/login"
-                className="px-4 py-1.5 border border-emerald-500 text-emerald-600 rounded-full hover:bg-emerald-50 font-medium text-sm transition"
+                className="px-5 py-2 border-2 border-green-500 text-green-600 rounded-full hover:bg-green-50 font-semibold text-sm transition-all hover:border-green-600"
               >
                 Login
               </Link>
               <Link
-                href="/signup"
-                className="px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-full font-medium text-sm hover:shadow-lg hover:scale-105 transition"
+                href="/register"
+                className="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-green-500/30 hover:scale-105 transition-all"
               >
                 Signup
               </Link>
             </div>
           )}
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-gray-700"
+            className="md:hidden p-2 text-gray-700 hover:bg-green-100 rounded-lg transition-colors"
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -137,12 +167,12 @@ const UserHeader = () => {
 
       {/* Mobile Nav */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 py-3 px-6 space-y-3 animate-slideDown">
+        <div className="md:hidden bg-white/80 backdrop-blur-sm border-t border-green-200 py-4 px-6 space-y-2 animate-slideDown">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
-              className="block text-gray-700 font-medium hover:text-emerald-600 transition"
+              className="block px-3 py-2 text-gray-700 font-medium hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               {link.name}
@@ -151,7 +181,6 @@ const UserHeader = () => {
         </div>
       )}
 
-      {/* Animations */}
       <style>{`
         @keyframes slideDown {
           0% { opacity: 0; transform: translateY(-8px); }
