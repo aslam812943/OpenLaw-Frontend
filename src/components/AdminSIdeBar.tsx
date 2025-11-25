@@ -59,7 +59,7 @@ export default function AdminSidebar({
   const pathname = usePathname();
   
 
-  // ✅ Automatically detect current active route
+ 
   useEffect(() => {
     const currentItem = items.find(item => pathname.startsWith(item.href));
     if (currentItem) {

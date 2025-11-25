@@ -13,10 +13,11 @@ export function showToast(
       sign = "✔️";
       bgColor = "linear-gradient(90deg, #088937ff, #16a34a)";
       break;
-    case "error":
-      sign = "✖️";
-      bgColor = "linear-gradient(90deg, #070707ff, #030303ff)";
-      break;
+ case "error":
+  sign = "✖️";
+  bgColor = "linear-gradient(90deg, #f66666ff, #f85c5cff)"; 
+  break;
+
     case "warning":
       sign = "❕";
       bgColor = "linear-gradient(90deg, #23bb0fff, #359b06ff)";
