@@ -6,7 +6,7 @@ import { API_ROUTES ,BASE_URL} from "../constants/routes";
 export async function fetchUsers(page = 1, limit = 5): Promise<any> {
   try {
     const response = await axios.get(
-      `http://localhost:8080${API_ROUTES.ADMIN.FETCH_USERS}?page=${page}&limit=${limit}`,
+      `${BASE_URL}${API_ROUTES.ADMIN.FETCH_USERS}?page=${page}&limit=${limit}`,
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
@@ -15,7 +15,7 @@ export async function fetchUsers(page = 1, limit = 5): Promise<any> {
 
     return response.data; 
   } catch (err: any) {
-    console.error("Error fetching users:", err.message);
+ 
     throw new Error(err.response?.data?.message || "Failed to load users");
   }
 }
@@ -49,7 +49,6 @@ export const logoutUser = async () => {
       { withCredentials: true }
     );
 
-    // Handle success
     if (response.data?.success) {
       return {
         success: true,
@@ -67,7 +66,7 @@ export const logoutUser = async () => {
 
    
     if (error.response) {
-      // Server responded with error
+   
       return {
         success: false,
         message:
@@ -89,3 +88,59 @@ export const logoutUser = async () => {
     }
   }
 };
+
+export const getprofile = async () => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}${API_ROUTES.USER.GETPROFILE}`,
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+   
+    throw new Error(error.response?.data?.message || "Failed to get profile");
+  }
+};
+
+export const updateProfileInfo = async (formData: FormData) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}${API_ROUTES.USER.UPDATE_PROFILE_INFO}`,
+      formData,
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+
+    throw new Error(error.response?.data?.message || "Failed to update profile");
+  }
+};
+
+export const changePassword = async (payload: {
+  oldPassword: string;
+  newPassword: string;
+}) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}${API_ROUTES.USER.CHANGE_PASSWORD}`,
+      payload,
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+ 
+    throw new Error(error.response?.data?.message || "Password update failed");
+  }
+};
+
+
+

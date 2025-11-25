@@ -1,7 +1,11 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, Edit, Trash2 } from 'lucide-react';
+import { scheduleCreate, scheduleUpdate, fetchAllRules, deleteRule } from '@/service/lawyerService';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
+import { showToast } from '@/utils/alerts';
 
 interface SchedulingRule {
   id: string;
@@ -39,22 +43,51 @@ function isSameOrNextMonthAllowed(start: Date, end: Date) {
 }
 
 export default function App() {
-  const [rules, setRules] = useState<SchedulingRule[]>([
-    {
-      id: '1',
-      title: 'Regular Office Hours',
-      startTime: '09:00',
-      endTime: '17:00',
-      startDate: '2025-01-01',
-      endDate: '2025-01-31',
-      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-      bufferTime: '15',
-      slotDuration: '60',
-      maxBookings: '1',
-      sessionType: 'Online Video Call',
-      exceptionDays: []
+  const [rules, setRules] = useState<SchedulingRule[]>([]);
+  const lawyerId = useSelector((state: RootState) => state.lawyer?.id);
+  useEffect(() => {
+    async function loadRules() {
+      try {
+        if (!lawyerId) {
+          showToast('info', 'lawyer id missing')
+          return
+        }
+        const response = await fetchAllRules(lawyerId);
+
+        if (!response?.data) return;
+
+        // Handle the nested structure from backend
+        const rulesData = Array.isArray(response.data) ? response.data : [];
+
+        const mappedRules = rulesData.map((item: any) => {
+
+          const rule = item['0'] || item;
+
+          return {
+            id: rule.id || rule._id,
+            title: rule.title,
+            startTime: rule.startTime,
+            endTime: rule.endTime,
+            startDate: rule.startDate,
+            endDate: rule.endDate,
+            availableDays: rule.availableDays || [],
+            bufferTime: String(rule.bufferTime),
+            slotDuration: String(rule.slotDuration),
+            maxBookings: String(rule.maxBookings),
+            sessionType: rule.sessionType,
+            exceptionDays: rule.exceptionDays || []
+          };
+        });
+
+        setRules(mappedRules);
+      } catch (err) {
+        console.error(err);
+        showToast("error", "Failed to fetch rules");
+      }
     }
-  ]);
+
+    loadRules();
+  }, []);
 
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -105,23 +138,23 @@ export default function App() {
 
   const validateEndDate = (value: string, startDate: string) => {
     if (!value) return 'End date is required';
-    
+
     const start = new Date(startDate);
     const end = new Date(value);
-    
+
     if (+end < +start) {
       return 'End date must be same or after start date';
     }
-    
+
     const daysDiff = daysBetween(start, end) + 1;
     if (daysDiff > 31) {
       return 'Rule duration may not exceed 31 days';
     }
-    
+
     if (!isSameOrNextMonthAllowed(start, end)) {
       return 'End date must be in same month or same day of next month';
     }
-    
+
     return '';
   };
 
@@ -260,8 +293,13 @@ export default function App() {
   }
 
   const handleCreateRule = async () => {
+    if (!lawyerId) {
+      showToast('error', 'Lawyer ID missing. Please login again.');
+      return;
+    }
+
     if (!validateAll()) {
-      alert('Please fix validation errors first.');
+      showToast('error', 'Please fix validation errors first.');
       return;
     }
 
@@ -271,12 +309,37 @@ export default function App() {
     };
 
     try {
-      alert('Rule created successfully');
-      setRules(prev => [...prev, newRule]);
+      const res = await scheduleCreate(newRule, lawyerId);
+      showToast('success', res?.data?.message || 'Rule created successfully');
+
+
+      const response = await fetchAllRules(lawyerId);
+      if (response?.data) {
+        const rulesData = Array.isArray(response.data) ? response.data : [];
+        const mappedRules = rulesData.map((item: any) => {
+          const rule = item['0'] || item;
+          return {
+            id: rule.id || rule._id,
+            title: rule.title,
+            startTime: rule.startTime,
+            endTime: rule.endTime,
+            startDate: rule.startDate,
+            endDate: rule.endDate,
+            availableDays: rule.availableDays || [],
+            bufferTime: String(rule.bufferTime),
+            slotDuration: String(rule.slotDuration),
+            maxBookings: String(rule.maxBookings),
+            sessionType: rule.sessionType,
+            exceptionDays: rule.exceptionDays || []
+          };
+        });
+        setRules(mappedRules);
+      }
+
       resetForm();
     } catch (err: any) {
-      console.error('Create rule failed', err);
-      alert('Failed to create rule');
+     
+      showToast('error', err.message|| 'Failed to create rule');
     }
   };
 
@@ -299,14 +362,32 @@ export default function App() {
     setEditingId(null);
   };
 
-  const handleUpdateRule = () => {
+  const handleUpdateRule = async () => {
     if (!editingId) return;
+
     if (!validateAll()) {
-      alert('Please fix validation errors first.');
+      showToast('error', 'Please fix validation errors');
       return;
     }
-    setRules(rules.map(rule => rule.id === editingId ? { id: editingId, ...formData } : rule));
-    resetForm();
+
+    try {
+
+      await scheduleUpdate(formData, editingId);
+
+      showToast('success', 'Rule updated successfully');
+
+
+      setRules(prev =>
+        prev.map(rule =>
+          rule.id === editingId ? { id: editingId, ...formData } : rule
+        )
+      );
+
+      resetForm();
+    } catch (err: any) {
+      console.error('Update rule failed', err);
+      showToast('error', err?.response?.data?.message || 'Update failed');
+    }
   };
 
   const handleEditRule = (rule: SchedulingRule) => {
@@ -320,16 +401,18 @@ export default function App() {
       availableDays: rule.availableDays,
       bufferTime: rule.bufferTime,
       slotDuration: rule.slotDuration,
-      maxBookings: '1',
-      sessionType: 'Online Video Call',
+      maxBookings: rule.maxBookings,
+      sessionType: rule.sessionType,
       exceptionDays: rule.exceptionDays
     });
     setIsCreating(true);
   };
 
-  const handleDeleteRule = (id: string) => {
-    setRules(rules.filter(rule => rule.id !== id));
-    alert('Rule removed from UI');
+  const handleDeleteRule = async (id: string) => {
+     setRules(rules.filter(rule => rule.id !== id));
+    await deleteRule(id)
+    // await fetchAllRules(lawyerId);
+  showToast('success', 'Rule delete successfully');
   };
 
   return (
@@ -374,9 +457,9 @@ export default function App() {
                       value={formData.title}
                       onChange={(e) => {
                         const value = e.target.value;
-                        setFormData({...formData, title: value});
+                        setFormData({ ...formData, title: value });
                         const error = validateTitle(value);
-                        setErrors((prev) => ({...prev, title: error}));
+                        setErrors((prev) => ({ ...prev, title: error }));
                       }}
                       placeholder="e.g., Regular Office Hours"
                       className={`w-full px-3 py-2 border ${errors.title ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -395,9 +478,9 @@ export default function App() {
                         value={formData.startTime}
                         onChange={(e) => {
                           const value = e.target.value;
-                          setFormData({...formData, startTime: value});
+                          setFormData({ ...formData, startTime: value });
                           const error = validateStartTime(value);
-                          setErrors((prev) => ({...prev, startTime: error}));
+                          setErrors((prev) => ({ ...prev, startTime: error }));
                         }}
                         className={`w-full px-3 py-2 border ${errors.startTime ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
@@ -414,9 +497,9 @@ export default function App() {
                         value={formData.endTime}
                         onChange={(e) => {
                           const value = e.target.value;
-                          setFormData({...formData, endTime: value});
+                          setFormData({ ...formData, endTime: value });
                           const error = validateEndTime(value);
-                          setErrors((prev) => ({...prev, endTime: error}));
+                          setErrors((prev) => ({ ...prev, endTime: error }));
                         }}
                         className={`w-full px-3 py-2 border ${errors.endTime ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
@@ -435,12 +518,12 @@ export default function App() {
                         value={formData.startDate}
                         onChange={(e) => {
                           const value = e.target.value;
-                          setFormData({...formData, startDate: value});
+                          setFormData({ ...formData, startDate: value });
                           const error = validateStartDate(value);
-                          setErrors((prev) => ({...prev, startDate: error}));
+                          setErrors((prev) => ({ ...prev, startDate: error }));
                           if (formData.endDate) {
                             const endError = validateEndDate(formData.endDate, value);
-                            setErrors((prev) => ({...prev, endDate: endError}));
+                            setErrors((prev) => ({ ...prev, endDate: endError }));
                           }
                         }}
                         className={`w-full px-3 py-2 border ${errors.startDate ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -458,9 +541,9 @@ export default function App() {
                         value={formData.endDate}
                         onChange={(e) => {
                           const value = e.target.value;
-                          setFormData({...formData, endDate: value});
+                          setFormData({ ...formData, endDate: value });
                           const error = validateEndDate(value, formData.startDate);
-                          setErrors((prev) => ({...prev, endDate: error}));
+                          setErrors((prev) => ({ ...prev, endDate: error }));
                         }}
                         className={`w-full px-3 py-2 border ${errors.endDate ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
@@ -497,9 +580,9 @@ export default function App() {
                         value={formData.bufferTime}
                         onChange={(e) => {
                           const value = e.target.value;
-                          setFormData({...formData, bufferTime: value});
+                          setFormData({ ...formData, bufferTime: value });
                           const error = validateBufferTime(value);
-                          setErrors(prev => ({...prev, bufferTime: error}));
+                          setErrors(prev => ({ ...prev, bufferTime: error }));
                         }}
                         placeholder="e.g., 15"
                         className={`w-full px-3 py-2 border ${errors.bufferTime ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -518,9 +601,9 @@ export default function App() {
                         value={formData.slotDuration}
                         onChange={(e) => {
                           const value = e.target.value;
-                          setFormData({...formData, slotDuration: value});
+                          setFormData({ ...formData, slotDuration: value });
                           const error = validateSlotDuration(value);
-                          setErrors(prev => ({...prev, slotDuration: error}));
+                          setErrors(prev => ({ ...prev, slotDuration: error }));
                         }}
                         placeholder="e.g., 60"
                         className={`w-full px-3 py-2 border ${errors.slotDuration ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -629,9 +712,9 @@ export default function App() {
                       </span>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleEditRule(rule)} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                      {/* <button onClick={() => handleEditRule(rule)} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors">
                         <Edit size={16} />
-                      </button>
+                      </button> */}
                       <button onClick={() => handleDeleteRule(rule.id)} className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
                         <Trash2 size={16} />
                       </button>
