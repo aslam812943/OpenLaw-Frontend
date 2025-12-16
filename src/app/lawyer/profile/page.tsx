@@ -37,6 +37,7 @@ export default function GetProfile() {
         phone: string | number;
         profileImage?: string;
         bio?: string;
+        isPassword?:boolean
     }
 
     const [data, setData] = useState<ProfileData>({
@@ -58,7 +59,7 @@ export default function GetProfile() {
     const [isEditing, setIsEditing] = useState(false)
     const [saving, setSaving] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
-
+    const [showChengePassword,setShowChengePassword] = useState(true)
 
     const [formData, setFormData] = useState({
         name: '',
@@ -82,33 +83,34 @@ export default function GetProfile() {
     const fetchProfile = async () => {
         try {
             const response = await getprofile();
-            const profileData = response.data;
+            const profileData = response?.data;
             setData({
-                barNumber: profileData.barNumber,
-                barAdmissionDate: profileData.barAdmissionDate,
-                yearsOfPractice: profileData.yearsOfPractice,
-                practiceAreas: profileData.practiceAreas || [],
-                languages: profileData.languages || [],
-                documentUrls: profileData.documentUrls || [],
-                address: profileData.address || [],
-                name: profileData.name,
-                email: profileData.email,
-                phone: profileData.phone,
-                profileImage: profileData.profileImage,
-                bio: profileData.bio || ''
+                barNumber: profileData?.barNumber,
+                barAdmissionDate: profileData?.barAdmissionDate,
+                yearsOfPractice: profileData?.yearsOfPractice,
+                practiceAreas: profileData?.practiceAreas || [],
+                languages: profileData?.languages || [],
+                documentUrls: profileData?.documentUrls || [],
+                address: profileData?.address || [],
+                name: profileData?.name,
+                email: profileData?.email,
+                phone: profileData?.phone,
+                profileImage: profileData?.profileImage,
+                bio: profileData?.bio || ''
             })
+            setShowChengePassword(profileData.isPassword)
 
 
-            const addressArray = profileData.address || [];
+            const addressArray = profileData?.address || [];
             setFormData({
-                name: profileData.name || '',
-                phone: profileData.phone || '',
-                street: addressArray[0] || '',
-                city: addressArray[1] || '',
-                state: addressArray[2] || '',
-                pincode: addressArray[3] || '',
+                name: profileData?.name || '',
+                phone: profileData?.phone || '',
+                street: addressArray[0]?? '',
+                city: addressArray[1]?? '',
+                state: addressArray[2]?? '',
+                pincode: addressArray[3]?? '',
                 profileImage: null,
-                bio: profileData.bio || ''
+                bio: profileData?.bio || ''
             })
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -538,7 +540,9 @@ export default function GetProfile() {
                         </div>
 
                         {/* Change Password Section */}
+                       
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                             {showChengePassword&&(
                             <button
                                 onClick={() => setShowPasswordSection(!showPasswordSection)}
                                 className="w-full flex items-center justify-between text-lg font-semibold text-gray-900 mb-4"
@@ -549,6 +553,7 @@ export default function GetProfile() {
                                 </div>
                                 {showPasswordSection ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                             </button>
+                            )}
 
                             {showPasswordSection && (
                                 <div className="space-y-4 mt-4">

@@ -225,7 +225,7 @@ export const fetchAllRules = async () => {
       }
     );
 
-    console.log("Fetched Rules:", response.data);
+
     return response.data;
   } catch (err: any) {
     const msg =
@@ -242,14 +242,17 @@ export const fetchAllRules = async () => {
 export const deleteRule = async (ruleId: string) => {
   try {
     const response = await axios.delete(
-      `${BASE_URL}${API_ROUTES.LAWYER.DELETE_SCHEDULE_RULE}/${ruleId}`
+      `${BASE_URL}${API_ROUTES.LAWYER.DELETE_SCHEDULE_RULE}/${ruleId}`,
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
     );
 
 
     return response.data;
   } catch (error: any) {
-    const msg =
-      error.response?.data?.message || "Failed to delete schedule rule.";
+    const msg = "Failed to delete schedule rule.";
 
     throw new Error(msg);
   }
@@ -313,3 +316,81 @@ export const changePassword = async (oldPassword: string, newPassword: string) =
     throw new Error(msg);
   }
 };
+
+
+
+
+
+export const getallLawyers = async (params?: any) => {
+  try {
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.USER.GETALL_LAWYERS}`, {
+      params,
+      withCredentials: true,
+      headers: { "Content-Type": "application/json" },
+    });
+
+    return response
+  } catch (err) {
+
+  }
+};
+
+
+
+export const getSingleLawyer = async (id: string) => {
+  console.log(id)
+  try {
+    const response = await axios.get(
+      `${BASE_URL}${API_ROUTES.USER.SINGLE_LAWYER(id)}`, {
+      withCredentials: true,
+      headers: { "Content-Type": "application/json" },
+    }
+    );
+    return response.data;
+  } catch (error: any) {
+   
+    throw error;
+  }
+};
+
+
+export const getallslots = async (id: string) => {
+  try {
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.USER.GETSLOTS(id)}`, {
+      withCredentials: true,
+      headers: { "Content-Type": "application/json" },
+    })
+
+    return response.data
+  } catch (error) {
+
+  }
+}
+
+
+
+
+export const getAppoiments = async () => {
+  try {
+
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.APPOIMENTS}`, { withCredentials: true })
+    return response.data
+  } catch (err) {
+
+  }
+}
+
+export const updateAppointmentStatus = async (id: string, status: string) => {
+  try {
+    const response = await axios.patch(
+      `${BASE_URL}${API_ROUTES.LAWYER.APPOIMENTS_UPDATE_STATUS(id)}`,
+      { status },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.message || "Failed to update appointment status.";
+    throw new Error(msg);
+  }
+}
+

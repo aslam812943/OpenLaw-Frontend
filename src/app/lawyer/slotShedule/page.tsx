@@ -1,5 +1,6 @@
 'use client'
 
+
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, Edit, Trash2 } from 'lucide-react';
 import { scheduleCreate, scheduleUpdate, fetchAllRules, deleteRule } from '@/service/lawyerService';
@@ -19,6 +20,7 @@ interface SchedulingRule {
   slotDuration: string;
   maxBookings: string;
   sessionType: string;
+  consultationFee :number;
   exceptionDays: string[];
 }
 
@@ -52,12 +54,13 @@ export default function App() {
           showToast('info', 'lawyer id missing')
           return
         }
-        const response = await fetchAllRules(lawyerId);
+        const response = await fetchAllRules();
 
         if (!response?.data) return;
 
-        // Handle the nested structure from backend
+       
         const rulesData = Array.isArray(response.data) ? response.data : [];
+
 
         const mappedRules = rulesData.map((item: any) => {
 
@@ -73,6 +76,7 @@ export default function App() {
             availableDays: rule.availableDays || [],
             bufferTime: String(rule.bufferTime),
             slotDuration: String(rule.slotDuration),
+            ConsultationFee :Number(rule.consultationFee),
             maxBookings: String(rule.maxBookings),
             sessionType: rule.sessionType,
             exceptionDays: rule.exceptionDays || []
@@ -81,7 +85,7 @@ export default function App() {
 
         setRules(mappedRules);
       } catch (err) {
-        console.error(err);
+     
         showToast("error", "Failed to fetch rules");
       }
     }
@@ -103,7 +107,8 @@ export default function App() {
     slotDuration: '',
     maxBookings: '1',
     sessionType: 'Online Video Call',
-    exceptionDays: []
+    exceptionDays: [],
+    consultationFee:0
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -235,7 +240,7 @@ export default function App() {
     if (!formData.slotDuration) e.slotDuration = 'Slot duration is required';
     if (!formData.maxBookings) e.maxBookings = 'Max bookings required';
     if (!formData.sessionType) e.sessionType = 'Session type required';
-
+  if(!formData.consultationFee) e.consultationFee = 'Consultation Fee required'
     const now = new Date();
     let start: Date | null = null;
     let end: Date | null = null;
@@ -309,13 +314,14 @@ export default function App() {
     };
 
     try {
-      const res = await scheduleCreate(newRule, lawyerId);
+      const res = await scheduleCreate(newRule);
       showToast('success', res?.data?.message || 'Rule created successfully');
 
 
-      const response = await fetchAllRules(lawyerId);
+      const response = await fetchAllRules();
       if (response?.data) {
         const rulesData = Array.isArray(response.data) ? response.data : [];
+
         const mappedRules = rulesData.map((item: any) => {
           const rule = item['0'] || item;
           return {
@@ -330,16 +336,18 @@ export default function App() {
             slotDuration: String(rule.slotDuration),
             maxBookings: String(rule.maxBookings),
             sessionType: rule.sessionType,
-            exceptionDays: rule.exceptionDays || []
+            exceptionDays: rule.exceptionDays || [],
+            consultationFee:rule.consultationFee||0
           };
         });
         setRules(mappedRules);
       }
 
       resetForm();
+
     } catch (err: any) {
-     
-      showToast('error', err.message|| 'Failed to create rule');
+
+      showToast('error', err.message || 'Failed to create rule');
     }
   };
 
@@ -355,7 +363,8 @@ export default function App() {
       slotDuration: '',
       maxBookings: '1',
       sessionType: 'Online Video Call',
-      exceptionDays: []
+      exceptionDays: [],
+      consultationFee:0
     });
     setErrors({});
     setIsCreating(false);
@@ -384,6 +393,7 @@ export default function App() {
       );
 
       resetForm();
+
     } catch (err: any) {
       console.error('Update rule failed', err);
       showToast('error', err?.response?.data?.message || 'Update failed');
@@ -403,16 +413,16 @@ export default function App() {
       slotDuration: rule.slotDuration,
       maxBookings: rule.maxBookings,
       sessionType: rule.sessionType,
-      exceptionDays: rule.exceptionDays
+      exceptionDays: rule.exceptionDays,
+      consultationFee:rule.consultationFee??0
     });
     setIsCreating(true);
   };
 
   const handleDeleteRule = async (id: string) => {
-     setRules(rules.filter(rule => rule.id !== id));
+    setRules(rules.filter(rule => rule.id !== id));
     await deleteRule(id)
-    // await fetchAllRules(lawyerId);
-  showToast('success', 'Rule delete successfully');
+    showToast('success', 'Rule delete successfully');
   };
 
   return (
@@ -629,6 +639,8 @@ export default function App() {
                       {errors.maxBookings && <p className="text-red-500 text-sm mt-1">{errors.maxBookings}</p>}
                     </div>
 
+                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Session Type
@@ -640,8 +652,30 @@ export default function App() {
                         title="Locked to Online Video Call"
                         className="w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md"
                       />
+                      
                       {errors.sessionType && <p className="text-red-500 text-sm mt-1">{errors.sessionType}</p>}
                     </div>
+
+                            <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Conselting Fee
+                      </label>
+                      <input
+                             type="number"
+                        value={formData.consultationFee}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setFormData({ ...formData, consultationFee:Number( value) });
+                          // const error = validateBufferTime(value);
+                          // setErrors(prev => ({ ...prev, bufferTime: error }));
+                        }}
+                        title="Locked to Online Video Call"
+                        className="w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md"
+                      />
+                      
+                      {errors.sessionType && <p className="text-red-500 text-sm mt-1">{errors.sessionType}</p>}
+                    </div>
+                    
                   </div>
 
                   <div>

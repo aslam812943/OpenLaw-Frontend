@@ -38,7 +38,7 @@ const UserHeader = () => {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "Find Lawyers", href: "/find-lawyers" },
+    { name: "Find Lawyers", href: "/user/lawyers" },
     { name: "Bookings", href: "/bookings" },
     { name: "Messages", href: "/messages" },
     { name: "About", href: "/about" },
@@ -118,7 +118,7 @@ const UserHeader = () => {
                     <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
                   </div>
                   <Link
-                    href="/profile"
+                    href="/user/profile"
                     className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -147,7 +147,7 @@ const UserHeader = () => {
                 Login
               </Link>
               <Link
-                href="/register"
+                href="/sign-up"
                 className="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-green-500/30 hover:scale-105 transition-all"
               >
                 Signup

@@ -84,7 +84,7 @@ export default function AdminSidebar({
       showToast("error", result.message);
     }
   } catch (error) {
-    console.error("Logout error:", error);
+    
     showToast("error", "Logout failed. Please try again later.");
   }
 };

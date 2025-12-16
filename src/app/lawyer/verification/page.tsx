@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; 
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import {  useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { showToast } from "@/utils/alerts";
 import {
@@ -38,7 +38,7 @@ import {
 
 const LawyerSignup = () => {
   const router = useRouter();
-  const user = useSelector((state: RootState) => state.user);
+  const lawyer = useSelector((state: RootState) => state.lawyer);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     barNumber: "",
@@ -68,12 +68,12 @@ const LawyerSignup = () => {
     { value: "international", label: "International", icon: Globe },
     { value: "immigration", label: "Immigration", icon: Plane },
     { value: "securities", label: "Securities", icon: TrendingUp },
-    { value: "environmental", label: "Environmental", icon: Leaf },
+    { value: "environmental", label: "Environmental Law", icon: Leaf },
     { value: "healthcare", label: "Healthcare", icon: Cross },
     { value: "civil-rights", label: "Civil Rights", icon: UserCheck },
-    { value: "entertainment", label: "Entertainment", icon: Music },
-    { value: "maritime", label: "Maritime", icon: Ship },
-    { value: "bankruptcy", label: "Bankruptcy", icon: DollarSign },
+    { value: "entertainment", label: "Entertainment Law", icon: Music },
+    { value: "maritime", label: "Maritime Law", icon: Ship },
+    { value: "bankruptcy", label: "Bankruptcy Law", icon: DollarSign },
     { value: "estate", label: "Estate Planning", icon: ScrollText },
     { value: "other", label: "Other", icon: Book },
   ];
@@ -219,12 +219,17 @@ const LawyerSignup = () => {
       formDataToSend.append("yearsOfPractice", formData.yearsOfPractice);
       formDataToSend.append("practiceAreas", JSON.stringify(formData.practiceAreas));
       formDataToSend.append("languages", JSON.stringify(formData.languages));
-      formDataToSend.append("userId", JSON.stringify(user.id));
+      formDataToSend.append("userId", JSON.stringify(lawyer.id));
+    
       files.forEach((file) => formDataToSend.append("documents", file));
 
-      await axios.post("http://localhost:8080/api/lawyer/verifyDetils", formDataToSend, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await axios.post(
+  "http://localhost:8080/api/lawyer/verifyDetils",
+  formDataToSend,
+  {
+    withCredentials: true,
+  }
+);
 
       showToast("success", "Verification details submitted successfully!");
       setIsSubmitted(true);
@@ -237,12 +242,12 @@ const LawyerSignup = () => {
     }
   };
 
-  if (isSubmitted) {
-  
-    router.push("/lawyer/dashbord");
-  }
+  useEffect(() => {
+    if (isSubmitted) {
+      router.push("/lawyer/dashboard");
+    }
+  }, [isSubmitted, router]); 
 
- 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 via-white to-green-50">
       <div className="max-w-4xl mx-auto">
@@ -264,18 +269,16 @@ const LawyerSignup = () => {
               <div key={step} className="flex items-center flex-1">
                 <div className="flex flex-col items-center flex-1">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${
-                      currentStep >= step
-                        ? "bg-green-600 text-white shadow-lg shadow-green-500/30"
-                        : "bg-gray-200 text-gray-500"
-                    }`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${currentStep >= step
+                      ? "bg-green-600 text-white shadow-lg shadow-green-500/30"
+                      : "bg-gray-200 text-gray-500"
+                      }`}
                   >
                     {step}
                   </div>
                   <span
-                    className={`text-xs mt-2 font-medium ${
-                      currentStep >= step ? "text-green-600" : "text-gray-500"
-                    }`}
+                    className={`text-xs mt-2 font-medium ${currentStep >= step ? "text-green-600" : "text-gray-500"
+                      }`}
                   >
                     {step === 1 && "Professional"}
                     {step === 2 && "Expertise"}
@@ -284,9 +287,8 @@ const LawyerSignup = () => {
                 </div>
                 {step < 3 && (
                   <div
-                    className={`h-1 flex-1 mx-2 transition-all duration-300 ${
-                      currentStep > step ? "bg-green-600" : "bg-gray-200"
-                    }`}
+                    className={`h-1 flex-1 mx-2 transition-all duration-300 ${currentStep > step ? "bg-green-600" : "bg-gray-200"
+                      }`}
                   />
                 )}
               </div>
@@ -308,9 +310,8 @@ const LawyerSignup = () => {
                   value={formData.barNumber}
                   onChange={handleInputChange}
                   placeholder="Enter your bar number"
-                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${
-                    errors.barNumber ? "border-red-500" : "border-gray-200"
-                  }`}
+                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${errors.barNumber ? "border-red-500" : "border-gray-200"
+                    }`}
                 />
                 {errors.barNumber && <p className="mt-1.5 text-sm text-red-500">{errors.barNumber}</p>}
               </div>
@@ -323,9 +324,8 @@ const LawyerSignup = () => {
                   name="barAdmissionDate"
                   value={formData.barAdmissionDate}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${
-                    errors.barAdmissionDate ? "border-red-500" : "border-gray-200"
-                  }`}
+                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${errors.barAdmissionDate ? "border-red-500" : "border-gray-200"
+                    }`}
                 />
                 {errors.barAdmissionDate && (
                   <p className="mt-1.5 text-sm text-red-500">{errors.barAdmissionDate}</p>
@@ -340,13 +340,12 @@ const LawyerSignup = () => {
                   name="yearsOfPractice"
                   value={formData.yearsOfPractice}
                   onChange={handleInputChange}
-        
+
                   placeholder="e.g., 5"
                   min={0}
                   max={99}
-                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${
-                    errors.yearsOfPractice ? "border-red-500" : "border-gray-200"
-                  }`}
+                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${errors.yearsOfPractice ? "border-red-500" : "border-gray-200"
+                    }`}
                 />
                 {errors.yearsOfPractice && (
                   <p className="mt-1.5 text-sm text-red-500">{errors.yearsOfPractice}</p>
@@ -371,19 +370,17 @@ const LawyerSignup = () => {
                         key={area.value}
                         type="button"
                         onClick={() => togglePracticeArea(area.value)}
-                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${
-                          isSelected
-                            ? "border-green-500 bg-green-50 shadow-md shadow-green-500/20"
-                            : "border-gray-200 bg-white hover:border-green-300 hover:shadow-md"
-                        }`}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${isSelected
+                          ? "border-green-500 bg-green-50 shadow-md shadow-green-500/20"
+                          : "border-gray-200 bg-white hover:border-green-300 hover:shadow-md"
+                          }`}
                       >
                         <Icon
                           className={`w-6 h-6 mb-2 ${isSelected ? "text-green-600" : "text-gray-500"}`}
                         />
                         <span
-                          className={`text-xs font-medium text-center ${
-                            isSelected ? "text-green-700" : "text-gray-700"
-                          }`}
+                          className={`text-xs font-medium text-center ${isSelected ? "text-green-700" : "text-gray-700"
+                            }`}
                         >
                           {area.label}
                         </span>
@@ -408,11 +405,10 @@ const LawyerSignup = () => {
                         key={lang.value}
                         type="button"
                         onClick={() => selectLanguage(lang.value)}
-                        className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${
-                          isSelected
-                            ? "border-green-500 bg-green-50 shadow-md shadow-green-500/20"
-                            : "border-gray-200 bg-white hover:border-green-300 hover:shadow-md"
-                        }`}
+                        className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${isSelected
+                          ? "border-green-500 bg-green-50 shadow-md shadow-green-500/20"
+                          : "border-gray-200 bg-white hover:border-green-300 hover:shadow-md"
+                          }`}
                       >
                         <span className={`font-medium ${isSelected ? "text-green-700" : "text-gray-700"}`}>
                           {lang.label}

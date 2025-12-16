@@ -1,5 +1,6 @@
+
 import axios from "axios";
-import { API_ROUTES ,BASE_URL} from "../constants/routes";
+import { API_ROUTES, BASE_URL } from "../constants/routes";
 
 
 
@@ -13,23 +14,24 @@ export async function fetchUsers(page = 1, limit = 5): Promise<any> {
       }
     );
 
-    return response.data; 
+    return response.data;
+
   } catch (err: any) {
- 
+
     throw new Error(err.response?.data?.message || "Failed to load users");
   }
 }
 
 export const blockUser = async (id: string) => {
-    try{
-const response = await axios.patch(`${BASE_URL}${API_ROUTES.ADMIN.BLOCK_USERS(id)}`, {}, {
-    withCredentials: true,
-  });
-  return response.data.message;
-    }catch(err){
-        console.log(err)
-    }
-  
+  try {
+    const response = await axios.patch(`${BASE_URL}${API_ROUTES.ADMIN.BLOCK_USERS(id)}`, {}, {
+      withCredentials: true,
+    });
+    return response.data.message;
+  } catch (err) {
+    console.log(err)
+  }
+
 };
 
 export const unBlockUser = async (id: string) => {
@@ -61,12 +63,13 @@ export const logoutUser = async () => {
       };
     }
 
+
   } catch (error: any) {
 
 
-   
+
     if (error.response) {
-   
+
       return {
         success: false,
         message:
@@ -74,13 +77,13 @@ export const logoutUser = async () => {
           `Logout failed with status ${error.response.status}.`,
       };
     } else if (error.request) {
-   
+
       return {
         success: false,
         message: "No response from server. Please check your internet connection.",
       };
     } else {
-   
+
       return {
         success: false,
         message: error.message || "An unexpected error occurred during logout.",
@@ -99,8 +102,9 @@ export const getprofile = async () => {
       }
     );
     return response.data;
+
   } catch (error: any) {
-   
+
     throw new Error(error.response?.data?.message || "Failed to get profile");
   }
 };
@@ -116,6 +120,7 @@ export const updateProfileInfo = async (formData: FormData) => {
       }
     );
     return response.data;
+
   } catch (error: any) {
 
     throw new Error(error.response?.data?.message || "Failed to update profile");
@@ -136,11 +141,60 @@ export const changePassword = async (payload: {
       }
     );
     return response.data;
+
   } catch (error: any) {
- 
+
     throw new Error(error.response?.data?.message || "Password update failed");
   }
 };
 
 
 
+export const handlepayAndBook = async (data: any) => {
+  try {
+    return await axios.post(`${BASE_URL}${API_ROUTES.PAYMENT.PAYMENT}`, data, { withCredentials: true })
+  } catch (error) {
+
+    throw error;
+  }
+}
+
+export const confirmBooking = async (sessionId: string) => {
+  try {
+    const response = await axios.post(`${BASE_URL}${API_ROUTES.PAYMENT.CONFIRM}`, { sessionId }, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+
+    throw error;
+  }
+}
+
+
+
+
+export const getUserAppointments = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/booking/appointments`, {
+      withCredentials: true
+    });
+
+
+
+    return response.data
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const cancelAppointment = async (id: string, reason: string) => {
+  try {
+    const response = await axios.patch(`${BASE_URL}/api/booking/appointments/${id}/cancel`,
+      { reason },
+      { withCredentials: true }
+    );
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

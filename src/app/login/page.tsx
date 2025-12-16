@@ -1,14 +1,18 @@
+
 'use client'
 
 
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Scale, Mail, Lock, ArrowRight, Shield, Users, Gavel, FileText, Award, BookOpen } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { setUserData } from '../../redux/userSlice';
-import {setLawyerData} from '../../redux/lawyerSlice'
-import {showToast} from '../../utils/alerts'
+import { setLawyerData } from '../../redux/lawyerSlice'
+import { showToast } from '../../utils/alerts'
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import RoleSelectionModal from '../../components/RoleSelectionModal';
+
 const validateEmail = (email: string): boolean => {
   return /\S+@\S+\.\S+/.test(email);
 };
@@ -23,21 +27,24 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+
   const router = useRouter();
   const dispatch = useDispatch();
- const fullText = 'OpenLaw';
+  const fullText = 'OpenLaw';
 
 
 
-  const [displayed,setDisplayed] = useState(fullText)
+  const [displayed, setDisplayed] = useState(fullText)
 
-const typingSpeed = 150;         // time between each letter
+  const typingSpeed = 150;         // time between each letter
   const holdAfterTyping = 1500;    // time to hold full text before clearing
   const holdBeforeRestart = 3000;  // ⏳ extra delay before typing again
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    let timeoutIds: NodeJS.Timeout[] = [];
+    const timeoutIds: NodeJS.Timeout[] = [];
 
     const startAnimation = () => {
       setDisplayed(""); // reset before typing
@@ -99,9 +106,94 @@ const typingSpeed = 150;         // time between each letter
     setErrors(prev => ({ ...prev, [name]: error }));
   };
 
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      const token = credentialResponse.credential;
+
+      if (!token) {
+        showToast("error", "No credential received from Google");
+        return;
+      }
+
+      await processGoogleLogin(token);
+    } catch (error) {
+
+      showToast("error", "Google Login failed");
+    }
+  };
+
+  const processGoogleLogin = async (token: string, role?: string) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/user/google",
+        { token, role },
+        { withCredentials: true }
+      );
+
+      if (response.data.needsRoleSelection) {
+        setGoogleToken(token);
+        setShowRoleModal(true);
+        return;
+      }
+
+      handleLoginSuccess(response.data);
+    } catch (error: any) {
+      showToast("error", error.response?.data?.message || "Google Login failed");
+    }
+  };
+
+  const handleRoleSelect = (role: 'user' | 'lawyer') => {
+    setShowRoleModal(false);
+    if (googleToken) {
+      processGoogleLogin(googleToken, role);
+    }
+  };
+
+  const handleLoginSuccess = (data: any) => {
+    showToast("success", data.message || "Login successful");
+    const { user } = data;
+
+    if (user.role === "lawyer") {
+      dispatch(setLawyerData({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        hasSubmittedVerification: user.hasSubmittedVerification
+      }));
+
+
+      if(user.verificationStatus=='Rejected'){
+      showToast("error", "Admin rejected your verification. Please submit valid information again.");
+      router.push("/lawyer/verification");
+      return
+      }
+
+      if (data.needsVerificationSubmission) {
+        router.push("/lawyer/verification");
+      } else if (user.hasSubmittedVerification) {
+        router.push("/lawyer/dashboard");
+      } else {
+        router.push("/lawyer/verification");
+      }
+
+    } else if (user.role === "user") {
+      dispatch(setUserData({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        role: user.role
+      }));
+
+      router.push("/");
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Final validation before submit
+ 
     const emailError = !validateEmail(form.email) ? "Please enter a valid email address" : "";
     const passwordError = !validatePassword(form.password) ? "Password must be at least 6 characters" : "";
     setErrors({ email: emailError, password: passwordError });
@@ -111,58 +203,31 @@ const typingSpeed = 150;         // time between each letter
     }
 
     setLoading(true);
- try {
-  let response = await axios.post(
-    "http://localhost:8080/api/user/login",
-    form,
-    { withCredentials: true }
-  );
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/user/login",
+        form,
+        { withCredentials: true }
+      );
 
-  showToast("success", response?.data?.message || "Login successful");
-
-  const { user } = response.data;
-
-  if (user.role === "lawyer") {
-    // Store lawyer data in lawyerSlice
-    dispatch(setLawyerData({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      role: user.role,
-      hasSubmittedVerification: user.hasSubmittedVerification
-    }));
-
-    if (user.hasSubmittedVerification) {
-      router.push("/lawyer/dashboard");
-    } else {
-      router.push("/lawyer/verification");
+      handleLoginSuccess(response.data);
     }
 
-  } else if (user.role === "user") {
-    // Store user data in userSlice
-    dispatch(setUserData({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      role: user.role
-    }));
+    catch (err: unknown) {
 
-    router.push("/");
-  }
-} 
 
-     catch (err:any) {
-     
-    
-      showToast('error',err.response?.data?.message)
+      showToast('error', (err as any).response?.data?.message)
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4 overflow-hidden relative">
+      <RoleSelectionModal
+        isOpen={showRoleModal}
+        onSelect={handleRoleSelect}
+        onClose={() => setShowRoleModal(false)}
+      />
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none ">
         <div className="absolute top-20 left-10 w-72 h-72 bg-green-100 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
@@ -399,13 +464,26 @@ const typingSpeed = 150;         // time between each letter
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                 </button>
+
+                {/* Google Login Button */}
+                <div className="flex justify-center mt-4">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => showToast("error", "Google Login Failed")}
+                    useOneTap={false}
+                    shape="pill"
+                    size="large"
+                    width="100%"
+                  />
+                </div>
+
                 {/* Divider */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-        <span className="px-4 bg-white text-gray-500">New to OpenLaw?</span>
+                    <span className="px-4 bg-white text-gray-500">New to OpenLaw?</span>
 
                   </div>
                 </div>

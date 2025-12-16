@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import { Bell, Settings, LogOut, ChevronDown, User, HelpCircle, Shield } from 'lucide-react';
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/redux/store";
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   lawyerName: string;
@@ -16,7 +19,8 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-
+const router = useRouter()
+ const lawyer = useSelector((state: RootState) => state.lawyer);
   const notifications = [
     { id: 1, text: "New case assigned: Johnson v. Smith", time: "5 min ago", unread: true },
     { id: 2, text: "Court hearing scheduled for tomorrow", time: "1 hour ago", unread: true },
@@ -122,7 +126,7 @@ onClick={() => setShowProfileMenu(prev => !prev)}
                 </div>
               )}
               <div className="text-left">
-                <p className="text-sm font-semibold text-gray-800">{lawyerName}</p>
+                <p className="text-sm font-semibold text-gray-800">{lawyer.name}</p>
                 <p className="text-xs text-gray-500">{role}</p>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -136,20 +140,21 @@ onClick={() => setShowProfileMenu(prev => !prev)}
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
                 <div className="py-2">
-                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3">
+                  <button   onClick={() => router.push("/lawyer/profile")}
+  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3">
                     <User className="w-4 h-4" />
-                    <span>My Profile</span>
-                  </button>
+                    <span>  My Profile</span>
+                  </button >
                   <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3">
                     <Settings className="w-4 h-4" />
                     <span>Settings</span>
                   </button>
                 </div>
                 <div className="border-t border-gray-200 py-2">
-                  <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3">
+                  {/* <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3">
                     <LogOut className="w-4 h-4" />
                     <span>Logout</span>
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}

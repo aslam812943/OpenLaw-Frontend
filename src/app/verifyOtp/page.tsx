@@ -15,7 +15,7 @@ const OtpVerifyPage = () => {
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
 
-  // ✅ Timer countdown logic
+  
   useEffect(() => {
     if (timer <= 0) {
       setCanResend(true);
@@ -27,7 +27,7 @@ const OtpVerifyPage = () => {
 
   // ✅ Real-time validation for OTP
   const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // only digits
+    const value = e.target.value.replace(/\D/g, ''); 
     setOtp(value);
 
     if (value.length === 0) {
