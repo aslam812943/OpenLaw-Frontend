@@ -12,15 +12,29 @@ interface HeaderProps {
   role?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  lawyerName = "Sarah Johnson", 
+const Header: React.FC<HeaderProps> = ({
+  lawyerName = "Sarah Johnson",
   profilePic,
   role = "Senior Attorney"
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-const router = useRouter()
- const lawyer = useSelector((state: RootState) => state.lawyer);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const router = useRouter()
+  const lawyer = useSelector((state: RootState) => state.lawyer);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
+
   const notifications = [
     { id: 1, text: "New case assigned: Johnson v. Smith", time: "5 min ago", unread: true },
     { id: 2, text: "Court hearing scheduled for tomorrow", time: "1 hour ago", unread: true },
@@ -31,7 +45,7 @@ const router = useRouter()
   const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50 border-b border-gray-200">
+    <header className="sticky top-0 left-0 right-0 bg-white shadow-sm z-30 border-b border-gray-200">
       <div className="flex justify-between items-center px-6 py-3 h-16">
         {/* Logo / Brand */}
         <div className="flex items-center space-x-3">
@@ -55,8 +69,8 @@ const router = useRouter()
 
           {/* Notification Dropdown */}
           <div className="relative">
-            <button 
-             onClick={() => setShowProfileMenu(prev => !prev)}
+            <button
+              onClick={() => setShowProfileMenu(prev => !prev)}
               className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <Bell className="w-5 h-5 text-gray-600" />
@@ -78,11 +92,10 @@ const router = useRouter()
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.map((notif) => (
-                    <div 
+                    <div
                       key={notif.id}
-                      className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        notif.unread ? 'bg-blue-50' : ''
-                      }`}
+                      className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${notif.unread ? 'bg-blue-50' : ''
+                        }`}
                     >
                       <p className="text-sm text-gray-800">{notif.text}</p>
                       <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
@@ -107,9 +120,9 @@ const router = useRouter()
           <div className="w-px h-8 bg-gray-300 mx-2" />
 
           {/* Profile Dropdown */}
-          <div className="relative">
-            <button 
-onClick={() => setShowProfileMenu(prev => !prev)}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowProfileMenu(prev => !prev)}
 
 
               className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -140,8 +153,8 @@ onClick={() => setShowProfileMenu(prev => !prev)}
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
                 <div className="py-2">
-                  <button   onClick={() => router.push("/lawyer/profile")}
-  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3">
+                  <button onClick={() => { setShowProfileMenu(false); router.push("/lawyer/profile"); }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3">
                     <User className="w-4 h-4" />
                     <span>  My Profile</span>
                   </button >

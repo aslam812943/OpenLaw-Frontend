@@ -20,7 +20,7 @@ interface SchedulingRule {
   slotDuration: string;
   maxBookings: string;
   sessionType: string;
-  consultationFee :number;
+  consultationFee: number;
   exceptionDays: string[];
 }
 
@@ -58,7 +58,7 @@ export default function App() {
 
         if (!response?.data) return;
 
-       
+
         const rulesData = Array.isArray(response.data) ? response.data : [];
 
 
@@ -76,7 +76,7 @@ export default function App() {
             availableDays: rule.availableDays || [],
             bufferTime: String(rule.bufferTime),
             slotDuration: String(rule.slotDuration),
-            ConsultationFee :Number(rule.consultationFee),
+            ConsultationFee: Number(rule.consultationFee),
             maxBookings: String(rule.maxBookings),
             sessionType: rule.sessionType,
             exceptionDays: rule.exceptionDays || []
@@ -85,7 +85,7 @@ export default function App() {
 
         setRules(mappedRules);
       } catch (err) {
-     
+
         showToast("error", "Failed to fetch rules");
       }
     }
@@ -108,7 +108,7 @@ export default function App() {
     maxBookings: '1',
     sessionType: 'Online Video Call',
     exceptionDays: [],
-    consultationFee:0
+    consultationFee: 0
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -151,14 +151,14 @@ export default function App() {
       return 'End date must be same or after start date';
     }
 
-    const daysDiff = daysBetween(start, end) + 1;
-    if (daysDiff > 31) {
-      return 'Rule duration may not exceed 31 days';
-    }
+    // const daysDiff = daysBetween(start, end) + 1;
+    // if (daysDiff > 31) {
+    //   return 'Rule duration may not exceed 31 days';
+    // }
 
-    if (!isSameOrNextMonthAllowed(start, end)) {
-      return 'End date must be in same month or same day of next month';
-    }
+    // if (!isSameOrNextMonthAllowed(start, end)) {
+    //   return 'End date must be in same month or same day of next month';
+    // }
 
     return '';
   };
@@ -195,23 +195,23 @@ export default function App() {
     if (!date) return;
     const d = new Date(date);
     if (isNaN(d.getTime())) {
-      alert('Invalid exception date');
+      showToast('error', 'Invalid exception date');
       return;
     }
     if (!formData.startDate || !formData.endDate) {
-      alert('Set start and end dates before adding exception days');
+      showToast('error', 'Set start and end dates before adding exception days');
       return;
     }
 
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     if (+d < +start || +d > +end) {
-      alert('Exception date must be inside start and end date range');
+      showToast('error', 'Exception date must be inside start and end date range');
       return;
     }
 
     if (formData.exceptionDays.includes(date)) {
-      alert('This exception date is already added');
+      showToast('error', 'This exception date is already added');
       return;
     }
 
@@ -240,7 +240,9 @@ export default function App() {
     if (!formData.slotDuration) e.slotDuration = 'Slot duration is required';
     if (!formData.maxBookings) e.maxBookings = 'Max bookings required';
     if (!formData.sessionType) e.sessionType = 'Session type required';
-  if(!formData.consultationFee) e.consultationFee = 'Consultation Fee required'
+    if (!formData.consultationFee || formData.consultationFee <= 0) {
+      e.consultationFee = 'Consultation Fee must be greater than 0';
+    }
     const now = new Date();
     let start: Date | null = null;
     let end: Date | null = null;
@@ -255,15 +257,15 @@ export default function App() {
       e.endDate = 'End date must be same or after start date';
     }
 
-    if (start && end) {
-      const daysDiff = daysBetween(start, end) + 1;
-      if (daysDiff > 31) {
-        e.endDate = 'Rule duration may not exceed 31 days';
-      }
-      if (!isSameOrNextMonthAllowed(start, end)) {
-        e.endDate = 'End date must be in same month or same day of next month ';
-      }
-    }
+    // if (start && end) {
+    //   const daysDiff = daysBetween(start, end) + 1;
+    //   if (daysDiff > 31) {
+    //     e.endDate = 'Rule duration may not exceed 31 days';
+    //   }
+    //   if (!isSameOrNextMonthAllowed(start, end)) {
+    //     e.endDate = 'End date must be in same month or same day of next month ';
+    //   }
+    // }
 
     const bufferNum = Number(formData.bufferTime);
     if (isNaN(bufferNum) || bufferNum < 5 || bufferNum > 60) {
@@ -337,7 +339,7 @@ export default function App() {
             maxBookings: String(rule.maxBookings),
             sessionType: rule.sessionType,
             exceptionDays: rule.exceptionDays || [],
-            consultationFee:rule.consultationFee||0
+            consultationFee: rule.consultationFee || 0
           };
         });
         setRules(mappedRules);
@@ -364,7 +366,7 @@ export default function App() {
       maxBookings: '1',
       sessionType: 'Online Video Call',
       exceptionDays: [],
-      consultationFee:0
+      consultationFee: 0
     });
     setErrors({});
     setIsCreating(false);
@@ -414,7 +416,7 @@ export default function App() {
       maxBookings: rule.maxBookings,
       sessionType: rule.sessionType,
       exceptionDays: rule.exceptionDays,
-      consultationFee:rule.consultationFee??0
+      consultationFee: rule.consultationFee ?? 0
     });
     setIsCreating(true);
   };
@@ -639,7 +641,7 @@ export default function App() {
                       {errors.maxBookings && <p className="text-red-500 text-sm mt-1">{errors.maxBookings}</p>}
                     </div>
 
-                    
+
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -652,30 +654,30 @@ export default function App() {
                         title="Locked to Online Video Call"
                         className="w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md"
                       />
-                      
+
                       {errors.sessionType && <p className="text-red-500 text-sm mt-1">{errors.sessionType}</p>}
                     </div>
 
-                            <div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Conselting Fee
+                        Consultation Fee
                       </label>
                       <input
-                             type="number"
+                        type="number"
                         value={formData.consultationFee}
                         onChange={(e) => {
                           const value = e.target.value;
-                          setFormData({ ...formData, consultationFee:Number( value) });
+                          setFormData({ ...formData, consultationFee: Number(value) });
                           // const error = validateBufferTime(value);
                           // setErrors(prev => ({ ...prev, bufferTime: error }));
                         }}
-                        title="Locked to Online Video Call"
+                        title="Consultation Fee"
                         className="w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md"
                       />
-                      
-                      {errors.sessionType && <p className="text-red-500 text-sm mt-1">{errors.sessionType}</p>}
+
+                      {errors.consultationFee && <p className="text-red-500 text-sm mt-1">{errors.consultationFee}</p>}
                     </div>
-                    
+
                   </div>
 
                   <div>

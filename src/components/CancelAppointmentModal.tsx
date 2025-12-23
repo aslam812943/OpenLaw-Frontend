@@ -20,7 +20,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({ isOpen,
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
                 <h2 className="text-xl font-bold mb-4">Cancel Appointment</h2>
                 <p className="mb-4 text-gray-600">Please provide a reason for cancellation:</p>

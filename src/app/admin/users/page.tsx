@@ -20,7 +20,6 @@ export default function AdminUsersPage() {
   const [limit] = useState(5);
   const [collapsed, setCollapsed] = useState(false);
 
-  // ✅ Fetch users
   const loadUsers = async (pageNum: number) => {
     try {
       setLoading(true);
@@ -39,7 +38,7 @@ export default function AdminUsersPage() {
     loadUsers(page);
   }, [page]);
 
-  // ✅ Handle Block/Unblock with confirmation (smaller alert)
+  //  Handle Block/Unblock with confirmation (smaller alert)
   const handleAction = async (type: string, id: string) => {
     try {
       const user = users.find((u) => u._id === id);
@@ -90,22 +89,12 @@ if (!confirmed) return;
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* ✅ Sidebar */}
-      <AdminSidebar
-        title="Admin Dashboard"
-        className="fixed left-0 top-0"
-        collapsed={collapsed}
-        onToggle={() => setCollapsed(!collapsed)}
-      />
-
-      {/* ✅ Main Content Area */}
+    <div>
+     
       <div
-        className={`flex-1 transition-all duration-300 ${
-          collapsed ? "ml-20" : "ml-64"
-        } p-8`}
+     
       >
-        <h1 className="text-2xl font-semibold mb-6">User Management</h1>
+        <h1 className="text-2xl text-white font-semibold mb-6">User Management</h1>
 
         {/* ✅ Table */}
         {loading ? (

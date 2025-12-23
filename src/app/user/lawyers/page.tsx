@@ -4,6 +4,7 @@ import { getallLawyers } from "@/service/lawyerService";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Search,
   MapPin,
@@ -14,7 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   LayoutGrid,
-  List
+  List,
+  ChevronRight,
+  ShieldCheck,
+  Phone
 } from "lucide-react";
 
 interface Lawyer {
@@ -33,11 +37,16 @@ interface Lawyer {
   // reviewCount?: number; // Mocked for now
 }
 
+import Pagination from "@/components/common/Pagination";
+
 const AllLawyers = () => {
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("");
   const [filterPracticeArea, setFilterPracticeArea] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
 
   // Additional filters state (visual for now, can be hooked up if API supports)
   const [locationFilter, setLocationFilter] = useState("");
@@ -60,9 +69,13 @@ const AllLawyers = () => {
   };
 
   const clickHandle = (id: string) => {
-
     router.push(`/user/lawyers/${id}`);
   };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, sort, filterPracticeArea]);
 
   useEffect(() => {
     async function fetchUpdated() {
@@ -70,80 +83,156 @@ const AllLawyers = () => {
         search: debouncedSearch,
         sort,
         practiceArea: filterPracticeArea,
+        page: currentPage,
+        limit,
       });
 
       const list = res?.data?.response?.lawyers;
-      if (Array.isArray(list)) setLawyers(list);
-    }
+      const total = res?.data?.response?.totalCount || 0;
 
-    fetchUpdated();
-  }, [debouncedSearch, sort, filterPracticeArea]);
-
-  useEffect(() => {
-    async function fetchLawyers() {
-      const res = await getallLawyers();
-      const list = res?.data?.response?.lawyers;
       if (Array.isArray(list)) {
         setLawyers(list);
+        setTotalItems(total);
       }
     }
 
-    fetchLawyers();
-  }, []);
+    fetchUpdated();
+  }, [debouncedSearch, sort, filterPracticeArea, currentPage]);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Top Bar */}
-      <div className="bg-white border-b sticky top-0 z-30 px-6 py-4 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
+    <div className="min-h-screen bg-slate-50 font-sans">
 
-          {/* Search Bar */}
-          <div className="relative w-full md:max-w-2xl">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+      {/* High Impact Hero Section */}
+      <div className="relative bg-slate-900 text-white overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0 select-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-900/20 z-10" />
+          <img
+            src="/lawyerssearch.jpg"
+            alt="Legal Team"
+            className="w-full h-full object-cover object-top opacity-200"
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 relative z-20 py-20 md:py-32 flex flex-col items-start gap-8">
+          {/* Top Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-3"
+          >
+            <span className="text-teal-500 font-bold tracking-widest uppercase text-sm">Open Law | Legal Group</span>
+            <div className="h-px w-12 bg-teal-800"></div>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="max-w-3xl"
+          >
+            <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight font-serif text-white">
+              The experts that <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 italic font-serif pr-2">
+                stand behind you.
+              </span>
+            </h1>
+          </motion.div>
+
+          {/* CTA & Trust Badges */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="flex flex-col md:flex-row gap-8 items-start md:items-center mt-6"
+          >
+            <button className="group relative px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold uppercase tracking-wider text-sm transition-all duration-300 overflow-hidden shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.5)]">
+              <span className="relative z-10 flex items-center gap-2">
+                Get Your Free Consultation
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </button>
+
+            <div className="flex items-center gap-4 text-slate-300">
+              <div className="flex -space-x-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-xs text-slate-400">
+                    <UserIcon /> {/* Placeholder for user avatars */}
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col text-sm">
+                <span className="text-teal-400 font-bold">#1 Rated Firm</span>
+                <span className="text-xs text-slate-400">Criminal & Civil Defense</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Award Badge Floating */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ delay: 0.8, type: "spring" }}
+            className="hidden lg:flex absolute right-0 bottom-10 bg-gradient-to-br from-slate-800 to-slate-900 p-4 border border-slate-700 shadow-2xl rounded-lg items-center gap-4 max-w-xs"
+          >
+            <div className="bg-teal-900/50 p-3 rounded-full border border-teal-500/30">
+              <ShieldCheck className="w-8 h-8 text-teal-400" />
+            </div>
+            <div>
+              <p className="text-white font-bold text-lg">Region's Best</p>
+              <p className="text-slate-400 text-xs">Voted #1 for Client Satisfaction three years in a row.</p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Search & Filter Bar Section */}
+      <div className="sticky top-20 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+
+          {/* Search Input */}
+          <div className="relative w-full md:max-w-xl">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-slate-400" />
             </div>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00b33c] focus:border-[#00b33c] sm:text-sm transition-shadow shadow-sm hover:shadow-md"
-              placeholder="Search by lawyer name, specialization, or location..."
+              className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all shadow-sm hover:bg-white hover:shadow-md"
+              placeholder="Find your legal expert by name or area..."
             />
           </div>
 
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <span className="text-sm text-gray-500 whitespace-nowrap hidden md:block">Sort by:</span>
-            <div className="relative w-full md:w-48">
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2.5 text-base border border-gray-300 focus:outline-none focus:ring-[#00b33c] focus:border-[#00b33c] sm:text-sm rounded-lg shadow-sm cursor-pointer appearance-none bg-white"
-              >
-                <option value="">Relevance</option>
-                <option value="experience-desc">Experience: High to Low</option>
-                <option value="experience-asc">Experience: Low to High</option>
-                {/* <option value="fee-asc">Fee: Low to High</option>
-                <option value="fee-desc">Fee: High to Low</option> */}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <LayoutGrid size={16} className="hidden" /> {/* Just a placeholder for icon if needed */}
-                <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+          {/* Quick Filters / Sort */}
+          <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="block w-full md:w-48 pl-4 pr-10 py-3 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer hover:border-teal-500 transition-colors"
+            >
+              <option value="">Sort: Relevance</option>
+              <option value="experience-desc">Experience: High to Low</option>
+              <option value="experience-asc">Experience: Low to High</option>
+            </select>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col lg:flex-row gap-10">
 
           {/* Sidebar Filters */}
-          <div className="w-full lg:w-64 flex-shrink-0 space-y-6">
+          <div className="w-full lg:w-72 flex-shrink-0 space-y-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Filter className="w-5 h-5 text-teal-600" />
+                Filters
+              </h2>
               <button
                 onClick={() => {
                   setSearch("");
@@ -153,206 +242,170 @@ const AllLawyers = () => {
                   setExperienceFilter("");
                   setFeeFilter("");
                 }}
-                className="text-sm text-[#00b33c] hover:text-[#00992e] font-medium"
+                className="text-sm text-teal-600 hover:text-teal-800 font-semibold transition-colors"
               >
-                Clear All
+                Reset All
               </button>
             </div>
 
             {/* Specialization Filter */}
-            <div className="border-b border-gray-200 pb-4">
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
               <button
                 onClick={() => toggleFilter('specialization')}
-                className="flex items-center justify-between w-full text-left mb-2 group"
+                className="flex items-center justify-between w-full text-left mb-4 group"
               >
-                <span className="font-semibold text-gray-700 group-hover:text-[#00b33c] transition-colors">Specialization</span>
-                {expandedFilters.specialization ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                <span className="font-bold text-slate-800 group-hover:text-teal-600 transition-colors">Specialization</span>
+                {expandedFilters.specialization ? <ChevronUp size={18} className="text-slate-400 group-hover:text-teal-600" /> : <ChevronDown size={18} className="text-slate-400 group-hover:text-teal-600" />}
               </button>
+
               {expandedFilters.specialization && (
-                <div className="space-y-2 mt-2">
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="space-y-3">
                   {['Criminal Law', 'Family Law', 'Corporate Law', 'Property Law', 'Immigration Law', 'Personal Injury'].map((area) => (
-                    <label key={area} className="flex items-center cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="specialization"
-                        checked={filterPracticeArea === area.split(' ')[0].toLowerCase()}
-                        onChange={() => setFilterPracticeArea(area.split(' ')[0].toLowerCase())}
-                        className="h-4 w-4 text-[#00b33c] focus:ring-[#00b33c] border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">{area}</span>
+                    <label key={area} className="flex items-center cursor-pointer group hover:bg-slate-50 p-2 rounded-lg -mx-2 transition-colors">
+                      <div className="relative flex items-center">
+                        <input
+                          type="radio"
+                          name="specialization"
+                          checked={filterPracticeArea === area.split(' ')[0].toLowerCase()}
+                          onChange={() => setFilterPracticeArea(area.split(' ')[0].toLowerCase())}
+                          className="peer h-4 w-4 border-2 border-slate-300 text-teal-600 focus:ring-teal-600 rounded-full cursor-pointer checked:border-teal-600"
+                        />
+                      </div>
+                      <span className="ml-3 text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{area}</span>
                     </label>
                   ))}
-                </div>
+                </motion.div>
               )}
             </div>
 
-            {/* <div className="border-b border-gray-200 pb-4">
-              <button
-                onClick={() => toggleFilter('location')}
-                className="flex items-center justify-between w-full text-left mb-2 group"
-              >
-                <span className="font-semibold text-gray-700 group-hover:text-[#00b33c] transition-colors">Location</span>
-                {expandedFilters.location ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </button>
-              {expandedFilters.location && (
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    placeholder="Enter city or state"
-                    className="w-full p-2 border border-gray-300 rounded text-sm focus:border-[#00b33c] focus:ring-1 focus:ring-[#00b33c] outline-none bg-gray-50"
-                  />
-                </div>
-              )} */}
-            {/* </div> */}
-
-            {/* Experience Filter */}
-            <div className="border-b border-gray-200 pb-4">
-              {/* <button
-                onClick={() => toggleFilter('experience')}
-                className="flex items-center justify-between w-full text-left mb-2 group"
-              >
-                <span className="font-semibold text-gray-700 group-hover:text-[#00b33c] transition-colors">Experience</span>
-                {expandedFilters.experience ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </button> */}
-              {/* {expandedFilters.experience && (
-                <div className="space-y-2 mt-2">
-                  {['0-5 years', '5-10 years', '10-20 years', '20+ years'].map((exp) => (
-                    <label key={exp} className="flex items-center cursor-pointer group">
-                      <input type="checkbox" className="h-4 w-4 text-[#00b33c] focus:ring-[#00b33c] border-gray-300 rounded" />
-                      <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">{exp}</span>
-                    </label>
-                  ))}
-                </div>
-              )} */}
-            </div>
-
-            {/* Consultation Fee Filter */}
-            {/* <div className="border-b border-gray-200 pb-4">
-              <button
-                onClick={() => toggleFilter('fee')}
-                className="flex items-center justify-between w-full text-left mb-2 group"
-              >
-                <span className="font-semibold text-gray-700 group-hover:text-[#00b33c] transition-colors">Consultation Fee</span>
-                {expandedFilters.fee ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </button>
-              {expandedFilters.fee && (
-                <div className="space-y-2 mt-2">
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>$0</span>
-                    <span>$500+</span>
-                  </div>
-                  <input type="range" min="0" max="500" className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#00b33c]" />
-                  <div className="text-center text-sm font-medium text-[#00b33c] bg-[#e6ffe6] py-1 rounded">Up to $500</div>
-                </div>
-              )}
-            </div> */}
-
+            {/* Additional placeholders (Location/Exp) could go here with similar Teal styling */}
           </div>
 
           {/* Main Content - Lawyer List */}
           <div className="flex-1">
             {lawyers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl shadow-sm border border-gray-200">
-                <Search className="h-12 w-12 text-gray-300 mb-4" />
-                <p className="text-gray-500 text-lg">No lawyers found matching your criteria.</p>
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm border border-slate-100 text-center px-4">
+                <div className="bg-slate-50 p-6 rounded-full mb-6">
+                  <Search className="h-12 w-12 text-slate-300" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">No professionals found</h3>
+                <p className="text-slate-500 max-w-sm mx-auto mb-6">We couldn't find any lawyers matching your current filters. Try adjusting your search criteria.</p>
                 <button
                   onClick={() => {
                     setSearch("");
                     setSort("");
                     setFilterPracticeArea("");
                   }}
-                  className="mt-4 text-[#00b33c] font-medium hover:underline"
+                  className="px-6 py-2.5 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20"
                 >
-                  Clear all filters
+                  Clear All Filters
                 </button>
               </div>
             ) : (
               <div className="space-y-6">
-                {lawyers.map((lawyer) => (
-                  <div
+                {lawyers.map((lawyer, index) => (
+                  <motion.div
                     key={lawyer.id}
-                    className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col md:flex-row gap-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
+                    className="group bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-teal-100 transition-all duration-300"
                   >
-                    {/* Avatar Section */}
-                    <div className="flex-shrink-0 flex justify-center md:justify-start">
-                      <img
-                        src={lawyer.profileImage || "/default.jpg"}
-                        alt={lawyer.name}
-                        className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-gray-50 shadow-sm"
-                      />
-                    </div>
+                    <div className="flex flex-col md:flex-row gap-8">
+                      {/* Avatar Column */}
+                      <div className="flex-shrink-0 flex flex-col items-center md:items-start gap-4">
+                        <div className="relative">
+                          <img
+                            src={lawyer.profileImage || "/default.jpg"}
+                            alt={lawyer.name}
+                            className="w-28 h-28 md:w-32 md:h-32 rounded-xl object-cover shadow-lg group-hover:shadow-teal-100 transition-all"
+                          />
+                          <div className="absolute -bottom-3 -right-3 bg-white p-1.5 rounded-full shadow-md">
+                            <ShieldCheck className="w-6 h-6 text-teal-500 fill-teal-50" />
+                          </div>
+                        </div>
+                        <div className="flex gap-1 text-amber-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={14} fill={i < 4 ? "currentColor" : "currentColor"} className={i < 4 ? "" : "text-amber-200"} />
+                          ))}
+                        </div>
+                      </div>
 
-                    {/* Info Section */}
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-xl font-bold text-gray-900">{lawyer.name}</h3>
-                            {/* Mock Top Lawyer Badge */}
-                            <span className="bg-[#e6ffe6] text-[#00b33c] text-xs font-bold px-2 py-0.5 rounded-full">
-                              Top Lawyer
+                      {/* Content Column */}
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2">
+                            <div>
+                              <h3 className="text-xl font-bold text-slate-900 group-hover:text-teal-700 transition-colors">{lawyer.name}</h3>
+                              <p className="text-sm text-slate-500 font-medium">{lawyer.city || "New York"}, {lawyer.state || "NY"}</p>
+                            </div>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-100">
+                              <Star className="w-3 h-3 fill-current" />
+                              Top Rated
                             </span>
                           </div>
-                        </div>
 
-                        <p className="text-[#00b33c] font-bold text-sm mb-3 uppercase tracking-wide">
-                          {lawyer.practiceAreas?.[0] || "Legal Consultant"}
-                        </p>
+                          <p className="text-teal-600 font-bold text-sm mb-4 uppercase tracking-wide flex items-center gap-2">
+                            {lawyer.practiceAreas?.[0] || "Legal Consultant"}
+                          </p>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm text-gray-600 mb-4">
-                          <div className="flex items-center gap-2">
-                            <Clock size={16} className="text-gray-400" />
-                            <span>{lawyer.yearsOfPractice || 5}+ years experience</span>
-                          </div>
-                          {/* <div className="flex items-center gap-2">
-                            <MapPin size={16} className="text-gray-400" />
-                            <span>{lawyer.city || "New York"}, {lawyer.state || "NY"}</span>
-                          </div> */}
-                          {/* <div className="flex items-center gap-2">
-                            <div className="flex text-yellow-400">
-                              {[...Array(5)].map((_, i) => (
-                                <Star key={i} size={14} fill={i < 4 ? "currentColor" : "none"} />
-                              ))}
+                          <div className="grid grid-cols-2 gap-4 text-sm text-slate-600 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <div className="flex items-center gap-2">
+                              <Clock size={16} className="text-teal-500" />
+                              <span className="font-medium">{lawyer.yearsOfPractice || 5}+ Years Exp.</span>
                             </div>
-                            <span className="font-medium text-gray-900">4.8</span>
-                            <span className="text-gray-400">(120 reviews)</span>
-                          </div> */}
+                            <div className="flex items-center gap-2">
+                              <DollarSign size={16} className="text-teal-500" />
+                              <span className="font-medium">${lawyer.consultationFee || 200} / hr</span>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* <div className="flex items-center gap-2 mb-4">
-                          <DollarSign size={18} className="text-[#00b33c]" />
-                          <span className="text-lg font-bold text-gray-900">
-                            ${lawyer.consultationFee || 200}
-                          </span>
-                          <span className="text-gray-500 text-sm">consultation fee</span>
-                        </div> */}
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                        <button
-                          onClick={() => { clickHandle(lawyer.userId) }}
-                          className="flex-1 py-2.5 px-4 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                        >
-                          View Profile
-                        </button>
-                        <button
-                          onClick={() => clickHandle(lawyer.userId)}
-                          className="flex-1 py-2.5 px-4 bg-[#00b33c] text-white font-bold rounded-lg hover:bg-[#00992e] shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                        >
-                          Book Appointment
-                        </button>
+                        <div className="flex gap-3 mt-auto">
+                          <button
+                            onClick={() => { clickHandle(lawyer.userId) }}
+                            className="flex-1 py-3 px-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all text-sm uppercase tracking-wide"
+                          >
+                            View Profile
+                          </button>
+                          <button
+                            onClick={() => clickHandle(lawyer.userId)}
+                            className="flex-1 py-3 px-4 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 shadow-md hover:shadow-teal-200 transition-all text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                          >
+                            Book Now
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
+
+            {/* Pagination Control */}
+            <div className="mt-12">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                limit={limit}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+// Helper for user icon in hero
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full p-2">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    </svg>
+  )
+}
 
 export default AllLawyers;

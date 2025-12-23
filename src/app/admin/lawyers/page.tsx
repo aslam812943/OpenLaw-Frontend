@@ -26,7 +26,6 @@ export default function LawyersPage() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
-  // ✅ Fetch lawyers
   const loadLawyers = async (pageNum: number) => {
     try {
       setLoading(true);
@@ -46,7 +45,6 @@ export default function LawyersPage() {
 
   const totalPages = Math.ceil(total / limit);
 
-  // ✅ Handle all actions with confirmation
   const handleAction = async (
     type: string,
     id: string,
@@ -56,44 +54,38 @@ export default function LawyersPage() {
     try {
       let confirmed = false;
 
-      // ✅ Show confirmation before any action
       if (type === "Block") {
         confirmed = await confirmAction(
           "Block Lawyer?",
           "Are you sure you want to block this lawyer? They will lose access to their account.",
           "Yes, Block",
-          "warning",
-          "#dc2626"
+          "warning"
         );
       } else if (type === "Unblock") {
         confirmed = await confirmAction(
           "Unblock Lawyer?",
           "Are you sure you want to unblock this lawyer? They will regain access to their account.",
           "Yes, Unblock",
-          "warning",
-          "#10b981"
+          "warning"
         );
       } else if (type === "Approve") {
         confirmed = await confirmAction(
           "Approve Lawyer?",
           "Confirm approval for this lawyer’s verification request.",
           "Yes, Approve",
-          "success",
-          "#10b981"
+          "success"
         );
       } else if (type === "Reject") {
         confirmed = await confirmAction(
           "Reject Lawyer?",
           "Are you sure you want to reject this lawyer’s application?",
           "Yes, Reject",
-          "warning",
-          "#dc2626"
+          "warning"
         );
       }
 
       if (!confirmed) return;
 
-      // ✅ Perform action after confirmation
       if (type === "Block") {
         await blockLawyer(id);
         showToast("success", "Lawyer blocked successfully.");
@@ -113,7 +105,7 @@ export default function LawyersPage() {
           setSelectedLawyer((prev) => (prev ? { ...prev, isBlock: false } : prev));
 
       } else if (type === "Approve") {
-        await approveLawyer(id,email!);
+        await approveLawyer(id, email!);
         showToast("success", "Lawyer approved successfully.");
         setLawyers((prev) =>
           prev.map((l) =>
@@ -149,19 +141,18 @@ export default function LawyersPage() {
     }
   };
 
-  // ✅ Handle reject modal open
+
   const handleRejectClick = async () => {
     const confirmed = await confirmAction(
       "Reject Lawyer?",
       "Do you really want to reject this lawyer? You’ll need to provide a reason.",
       "Continue to Reject",
-      "warning",
-      "#dc2626"
+      "warning"
     );
     if (confirmed) setShowRejectModal(true);
   };
 
-  // ✅ Confirm rejection with reason
+  //  Confirm rejection with reason
   const handleRejectConfirm = async () => {
     if (!rejectReason.trim()) {
       showToast("error", "Please enter a rejection reason.");
@@ -181,22 +172,12 @@ export default function LawyersPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* ✅ Sidebar */}
-      <AdminSidebar
-        title="Admin Dashboard"
-        className="fixed left-0 top-0"
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+    <div >
 
-      {/* ✅ Main Content */}
       <div
-        className={`flex-1 transition-all duration-300 ${
-          sidebarCollapsed ? "ml-20" : "ml-64"
-        } p-8`}
+
       >
-        <h1 className="text-2xl font-semibold mb-6">Lawyer Management</h1>
+        <h1 className="text-2xl font-semibold mb-6 text-white">Lawyer Management</h1>
 
         {loading ? (
           <p className="text-center text-gray-500">Loading lawyers...</p>
@@ -331,11 +312,10 @@ export default function LawyersPage() {
                   onClick={() =>
                     handleAction(selectedLawyer.isBlock ? "Unblock" : "Block", selectedLawyer.id)
                   }
-                  className={`px-4 py-2 rounded-lg ${
-                    selectedLawyer.isBlock
+                  className={`px-4 py-2 rounded-lg ${selectedLawyer.isBlock
                       ? "bg-green-500 hover:bg-green-600 text-white"
                       : "bg-red-500 hover:bg-red-600 text-white"
-                  }`}
+                    }`}
                 >
                   {selectedLawyer.isBlock ? "Unblock" : "Block"}
                 </button>
@@ -350,7 +330,7 @@ export default function LawyersPage() {
                     </button>
 
                     <button
-                      onClick={() => handleAction("Approve", selectedLawyer.id,selectedLawyer.email)}
+                      onClick={() => handleAction("Approve", selectedLawyer.id, selectedLawyer.email)}
                       className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
                     >
                       Approve

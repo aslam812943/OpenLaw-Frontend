@@ -1,50 +1,34 @@
-'use client'
+"use client";
 
 import { useParams } from "next/navigation";
-
 import { useEffect, useState } from "react";
-
 import { useSelector } from "react-redux";
-
 import { RootState } from "@/redux/store";
-
 import { getSingleLawyer, getallslots } from "@/service/lawyerService";
-
 import { handlepayAndBook } from "@/service/userService";
-
-
-import { Mail, Phone, MapPin, Award, Menu, ArrowRight, Scale, Calendar, Globe, CheckCircle, BookOpen, Briefcase, Languages, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Mail, Phone, MapPin, Award, Scale, Calendar,
+  BookOpen, Briefcase, Languages, ExternalLink,
+  ChevronLeft, ChevronRight, Star, ShieldCheck, Clock, DollarSign
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 interface LawyerData {
-
   id: string;
-
   barNumber: string;
-
   barAdmissionDate: string;
-
   yearsOfPractice: number;
-
   practiceAreas: string[];
-
   languages: string[];
-
   address: string;
-
   city: string;
-
   state: string;
-
   name: string;
-
   email: string;
-
   phone: string;
-
   profileImage: string;
-
   bio: string;
-
+  consultationFee?: number;
 }
 
 export default function LawyersSinglePage() {
@@ -52,7 +36,7 @@ export default function LawyersSinglePage() {
   const user = useSelector((state: RootState) => state.user);
   const [calendarDays, setCalendarDays] = useState<{ date: string, available: boolean }[]>([]);
   const [selectedTime, setSelectedTime] = useState<{ start: string; end: string } | null>(null);
-const [selectedSlotId,setSelectedSlotId] = useState<string|null>(null)
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [lawyer, setLawyer] = useState<LawyerData | null>(null);
   const [slots, setSlots] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -68,9 +52,7 @@ const [selectedSlotId,setSelectedSlotId] = useState<string|null>(null)
   useEffect(() => {
     async function fetchLawyer() {
       try {
-       
         const response = await getSingleLawyer(`${id}`);
-        
         setLawyer(response.data as unknown as LawyerData);
       } catch (error) {
         console.error("Failed to fetch lawyer", error);
@@ -87,13 +69,20 @@ const [selectedSlotId,setSelectedSlotId] = useState<string|null>(null)
   const isPastDate = (date: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const passedDate = new Date(date);
     return passedDate < today;
   };
 
 
 
+  const isPastSlot = (date: string, startTime: string) => {
+    const now = new Date();
+
+
+    const slotDateTime = new Date(`${date}T${startTime}`);
+
+    return slotDateTime <= now;
+  };
 
   function generateMonthDays(year: number, month: number, availableDates: string[]) {
     const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
@@ -129,7 +118,6 @@ const [selectedSlotId,setSelectedSlotId] = useState<string|null>(null)
   function updateCalendar(slotsData: any[]) {
     const uniqueDates = [...new Set(slotsData.map((slot: any) => slot.date))];
     const calendar = generateMonthDays(currentYear, currentMonth, uniqueDates as string[]);
-
     setCalendarDays(calendar.days);
   }
 
@@ -151,25 +139,24 @@ const [selectedSlotId,setSelectedSlotId] = useState<string|null>(null)
       endTime: selectedTime.end,
       consultationFee: consultationFee,
       description,
-      slotId:selectedSlotId
-    }
+      slotId: selectedSlotId
+    };
 
     try {
-      const response = await handlepayAndBook(obj)
+      const response = await handlepayAndBook(obj);
       if (response?.data?.url) {
-        window.location.href = response.data.url
+        window.location.href = response.data.url;
       } else {
         alert("Failed to initiate payment. Please try again.");
       }
     } catch (error) {
-      console.error("Payment initiation failed", error);
+
       alert("Payment failed. Please check console for details.");
     }
-  }
+  };
 
   const handlePrevMonth = () => {
     const today = new Date();
-
     if (currentYear > today.getFullYear() || (currentYear === today.getFullYear() && currentMonth > today.getMonth())) {
       if (currentMonth === 0) {
         setCurrentMonth(11);
@@ -191,531 +178,416 @@ const [selectedSlotId,setSelectedSlotId] = useState<string|null>(null)
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1A1A1A]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00b33c]"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
       </div>
     );
   }
 
   if (!lawyer) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1A1A1A]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <p className="text-xl text-white">Lawyer not found.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans">
-      <div className="bg-[#1A1A1A] text-white pt-10 pb-0 overflow-hidden relative">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
-            {/* Left: Text Content */}
-            <div className="pb-16 md:pb-24 z-10">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#00b33c] mb-4 leading-tight">
-                {lawyer.name}
-              </h1>
-              <p className="text-white text-lg font-medium mb-8">
-                Attorney at Law • {lawyer.yearsOfPractice} Years Experience
-              </p>
+    <div className="min-h-screen bg-slate-50 font-sans">
 
+      {/* 1. HIGH IMPACT HERO SECTION */}
+      <div className="relative bg-slate-900 text-white overflow-hidden pb-12 pt-24 md:pt-32">
+        {/* Background Elements */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 opacity-90" />
+          <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-teal-900/10 to-transparent pointer-events-none" />
+        </div>
 
-              {/* Contact Icons Row */}
-              <div className="flex flex-col sm:flex-row gap-6 text-sm font-medium tracking-wide">
-                {/* Email */}
-                <div className="flex items-center gap-3 group">
-                  <div className="p-2 rounded-full border border-white/30 group-hover:border-[#00b33c] transition-colors">
-                    <Mail size={16} />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          {/* Breadcrumb / Back (Optional, keeps it clean) */}
+          {/* <div className="absolute top-0 left-6 md:left-0 mb-8">
+              <button onClick={() => window.history.back()} className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors">
+                 <ChevronLeft size={16} /> Back to Search
+              </button>
+           </div> */}
+
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-end">
+
+            {/* Profile Image - Cleaner Look */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="relative group flex-shrink-0"
+            >
+              {/* Subtle ring instead of blur */}
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-b from-teal-500 to-teal-800 opacity-50 blur-[2px]"></div>
+              <img
+                src={lawyer.profileImage || "/default.jpg"}
+                alt={lawyer.name}
+                className="relative w-48 h-48 md:w-64 md:h-64 object-cover rounded-2xl shadow-2xl ring-1 ring-slate-700/50"
+              />
+              <div className="absolute -bottom-3 -right-3 bg-slate-900 p-2 rounded-xl border border-slate-700 shadow-xl">
+                <ShieldCheck className="w-6 h-6 text-teal-500" />
+              </div>
+            </motion.div>
+
+            {/* Text Content */}
+            <div className="flex-1 text-center md:text-left pb-2 w-full">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="flex items-center justify-center md:justify-start gap-4 mb-3">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-300 text-[11px] font-bold tracking-wider uppercase">
+                    <ShieldCheck size={12} /> Verified Attorney
+                  </span>
+                  <div className="flex gap-0.5 text-amber-400">
+                    {[1, 2, 3, 4, 5].map(i => <Star key={i} size={14} fill="currentColor" />)}
                   </div>
-                  <a href={`mailto:${lawyer.email}`} className="border-b border-transparent group-hover:border-[#00b33c] transition-all">
-                    {lawyer.email}
+                </div>
+
+                <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-2 tracking-tight leading-none">
+                  {lawyer.name}
+                </h1>
+                <p className="text-lg md:text-xl text-slate-400 font-light mb-6 flex flex-col md:flex-row items-center md:items-start gap-2">
+                  <span>Attorney at Law</span>
+                  <span className="hidden md:inline text-slate-600">•</span>
+                  <span className="text-slate-300">{lawyer.yearsOfPractice} Years of Excellence</span>
+                </p>
+
+                <div className="flex flex-wrap justify-center md:justify-start gap-3 text-sm text-slate-300">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm">
+                    <MapPin size={14} className="text-teal-400" />
+                    <span>{lawyer.city}, {lawyer.state}</span>
+                  </div>
+                  <a href={`mailto:${lawyer.email}`} className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm hover:bg-slate-800 transition-colors">
+                    <Mail size={14} className="text-teal-400" />
+                    <span>{lawyer.email}</span>
                   </a>
                 </div>
-                {/* Phone */}
-                <div className="flex items-center gap-3 group">
-                  <div className="p-2 rounded-full border border-white/30 group-hover:border-[#00b33c] transition-colors">
-                    <Phone size={16} />
-                  </div>
-                  <a href={`tel:${lawyer.phone}`} className="border-b border-transparent group-hover:border-[#00b33c] transition-all">
-                    {lawyer.phone}
-                  </a>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="flex items-center gap-3 mt-6 text-[#00b33c]">
-                <MapPin size={18} fill="currentColor" stroke="none" />
-                <span className="text-gray-300 font-medium">
-                  {lawyer.city}, {lawyer.state}
-                </span>
-              </div>
+              </motion.div>
             </div>
 
-            {/* Right: Lawyer Image */}
-            <div className="relative h-full min-h-[400px] flex items-end justify-center md:justify-end">
-              <img
-                src={lawyer.profileImage || "https://via.placeholder.com/400"}
-                alt={lawyer.name}
-                className="w-full max-w-sm md:max-w-md object-cover rounded-t-xl md:rounded-t-none shadow-2xl md:shadow-none"
-                style={{ maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)' }}
-              />
+            {/* Action Button (Hero) */}
+            <div className="w-full md:w-auto pb-2 flex justify-center md:block">
+              <button
+                onClick={() => { setBookingMode(true); fetchslots(); }}
+                className="group relative bg-teal-600 hover:bg-teal-500 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-teal-900/20 hover:shadow-teal-500/20 transition-all flex items-center gap-2 overflow-hidden"
+              >
+                <span className="relative z-10">Book Consultation</span>
+                <ChevronRight size={18} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* --- Enhanced Navigation Strip --- */}
-      <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-          <div className="flex items-center gap-8 md:gap-12 overflow-x-auto py-4 no-scrollbar">
+      {/* 2. NAVIGATION STRIP */}
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex gap-8 overflow-x-auto no-scrollbar">
             {[
-              { href: "#overview", label: "Overview", icon: BookOpen },
-              { href: "#expertise", label: "Expertise", icon: Scale },
-              { href: "#credentials", label: "Credentials", icon: Award },
-              { href: "#contact", label: "Contact", icon: Phone },
-            ].map(({ href, label, icon: Icon }) => (
+              { id: 'overview', label: 'Overview', icon: BookOpen },
+              { id: 'expertise', label: 'Expertise', icon: Scale },
+              { id: 'credentials', label: 'Credentials', icon: Award },
+              { id: 'contact', label: 'Contact', icon: Phone },
+            ].map(item => (
               <a
-                key={href}
-                href={href}
-                className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-[#00b33c] transition-colors whitespace-nowrap group"
+                key={item.id}
+                href={`#${item.id}`}
+                className="flex items-center gap-2 py-4 text-sm font-semibold text-slate-600 hover:text-teal-600 border-b-2 border-transparent hover:border-teal-600 transition-all"
               >
-                <Icon size={16} className="group-hover:scale-110 transition-transform" />
-                {label}
+                <item.icon size={16} />
+                {item.label}
               </a>
             ))}
           </div>
         </div>
-      </nav>
+      </div>
 
-      {/* ===== MAIN CONTENT SECTION ===== */}
+      {/* 3. MAIN CONTENT GRID */}
       {!bookingMode ? (
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* ===== LEFT COLUMN: MAIN CONTENT ===== */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Biography Section */}
-              <section id="overview" className="scroll-mt-24">
-                <div className="bg-white border border-gray-200 rounded-xl p-8 md:p-10 border-l-4 border-l-[#00b33c] shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-[#e6ffe6] flex items-center justify-center">
-                      <BookOpen className="text-[#00b33c]" size={20} />
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Professional Biography</h2>
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+            {/* Left Column (Main Info) */}
+            <div className="lg:col-span-2 space-y-10">
+
+              {/* Bio */}
+              <section id="overview" className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm scroll-mt-24">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-teal-50 rounded-xl">
+                    <BookOpen className="text-teal-600" size={24} />
                   </div>
-                  <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-                    <p className="text-base md:text-lg whitespace-pre-line">{lawyer.bio}</p>
-                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900">About {lawyer.name}</h2>
                 </div>
+                <p className="text-slate-600 leading-relaxed text-lg whitespace-pre-line">
+                  {lawyer.bio}
+                </p>
               </section>
 
-              {/* Practice Areas Section */}
-              <section id="expertise" className="scroll-mt-24">
-                <div className="bg-white border border-gray-200 rounded-xl p-8 md:p-10 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-[#e6ffe6] flex items-center justify-center">
-                      <Scale className="text-[#00b33c]" size={20} />
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Areas of Expertise</h2>
+              {/* Expertise */}
+              <section id="expertise" className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm scroll-mt-24">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-teal-50 rounded-xl">
+                    <Scale className="text-teal-600" size={24} />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {(lawyer.practiceAreas || []).map((area, index) => (
-                      <div
-                        key={index}
-                        className="group p-4 rounded-lg bg-gray-50 hover:bg-[#e6ffe6] border border-gray-200 hover:border-[#00b33c] transition-all duration-300 cursor-default"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-[#00b33c] group-hover:scale-125 transition-transform" />
-                          <span className="font-medium text-gray-700 capitalize">{area}</span>
-                        </div>
-                      </div>
-                    ))}
-                    {(!lawyer.practiceAreas || lawyer.practiceAreas.length === 0) && (
-                      <p className="col-span-2 text-gray-500 italic">No areas listed</p>
-                    )}
-                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900">Areas of Expertise</h2>
                 </div>
-              </section>
-
-              {/* Professional Experience Highlight */}
-              <section className="scroll-mt-24">
-                <div className="bg-gradient-to-br from-[#e6ffe6] to-transparent border border-gray-200 rounded-xl p-8 md:p-10 shadow-lg">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
-                      <Briefcase className="text-[#00b33c]" size={20} />
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Professional Highlights</h2>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center p-6 bg-white rounded-lg shadow-sm">
-                      <div className="text-4xl font-bold text-[#00b33c] mb-2">{lawyer.yearsOfPractice}+</div>
-                      <div className="text-sm font-medium text-gray-600">Years of Practice</div>
-                    </div>
-                    <div className="text-center p-6 bg-white rounded-lg shadow-sm">
-                      <div className="text-4xl font-bold text-[#00b33c] mb-2">{lawyer.practiceAreas?.length || 0}</div>
-                      <div className="text-sm font-medium text-gray-600">Practice Areas</div>
-                    </div>
-                    <div className="text-center p-6 bg-white rounded-lg shadow-sm">
-                      <div className="text-4xl font-bold text-[#00b33c] mb-2">{lawyer.languages?.length || 0}</div>
-                      <div className="text-sm font-medium text-gray-600">Languages Spoken</div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
-
-            {/* ===== RIGHT COLUMN: SIDEBAR ===== */}
-            <div className="space-y-6">
-              {/* Credentials Card */}
-              <section id="credentials" className="scroll-mt-24">
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border-t-4 border-t-[#00b33c]">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-[#e6ffe6] flex items-center justify-center">
-                      <Award className="text-[#00b33c]" size={20} />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800">Credentials</h3>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <Calendar size={18} className="text-[#00b33c] mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                            Bar Admission
-                          </p>
-                          <p className="text-base font-semibold text-gray-700">{lawyer.barAdmissionDate}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="h-px bg-gray-200" />
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <Award size={18} className="text-[#00b33c] mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                            Bar Number
-                          </p>
-                          <p className="text-base font-semibold text-gray-700">{lawyer.barNumber}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="h-px bg-gray-200" />
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <Scale size={18} className="text-[#00b33c] mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                            Experience
-                          </p>
-                          <p className="text-base font-semibold text-gray-700">{lawyer.yearsOfPractice} Years</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="h-px bg-gray-200" />
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <MapPin size={18} className="text-[#00b33c] mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                            Location
-                          </p>
-                          <p className="text-base font-semibold text-gray-700">
-                            {lawyer.address}<br />
-                            {lawyer.city}, {lawyer.state}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Languages Card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-lg bg-[#e6ffe6] flex items-center justify-center">
-                    <Languages className="text-[#00b33c]" size={20} />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800">Languages</h3>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {(lawyer.languages || []).map((lang, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-[#00b33c] hover:text-white transition-colors duration-200"
-                    >
-                      {lang}
+                <div className="flex flex-wrap gap-3">
+                  {lawyer.practiceAreas?.map((area, i) => (
+                    <span key={i} className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 transition-colors cursor-default">
+                      {area}
                     </span>
                   ))}
-                  {(!lawyer.languages || lawyer.languages.length === 0) && (
-                    <p className="text-gray-500 italic text-sm">No languages listed</p>
-                  )}
+                </div>
+              </section>
+
+              {/* Highlights Grid */}
+              <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl text-white shadow-lg">
+                  <div className="text-3xl font-bold text-teal-400 mb-1">{lawyer.yearsOfPractice}+</div>
+                  <div className="text-sm text-slate-400">Years Experience</div>
+                </div>
+                <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
+                  <div className="text-3xl font-bold text-slate-900 mb-1">{lawyer.languages?.length}</div>
+                  <div className="text-sm text-slate-500">Languages Spoken</div>
+                </div>
+                <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
+                  <div className="text-3xl font-bold text-slate-900 mb-1">100%</div>
+                  <div className="text-sm text-slate-500">Client Satisfaction</div>
+                </div>
+              </section>
+
+            </div>
+
+            {/* Right Column (Sidebar) */}
+            <div className="space-y-6">
+
+              {/* Sticky Booking Card (Mobile only shows at bottom or inline, Desktop sticky) */}
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-lg shadow-slate-200/50 sticky top-24">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-sm text-slate-500 font-medium uppercase tracking-wide">Consultation Fee</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold text-slate-900">₹{lawyer.consultationFee || 2000}</span>
+                      <span className="text-sm text-slate-400">/ session</span>
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center">
+                    <DollarSign className="text-teal-600" />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => { setBookingMode(true); fetchslots(); }}
+                  className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-200 transition-all flex items-center justify-center gap-2 mb-4"
+                >
+                  <Calendar size={18} />
+                  Book Appointment
+                </button>
+
+                <div className="text-center text-xs text-slate-400">
+                  Avg. response time: &lt; 2 hours
                 </div>
               </div>
 
-              {/* Contact Information Card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-lg bg-[#e6ffe6] flex items-center justify-center">
-                    <Phone className="text-[#00b33c]" size={20} />
+              {/* Credentials Sidebar */}
+              <div id="credentials" className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm scroll-mt-24">
+                <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <Award className="text-teal-500" size={18} /> Credentials
+                </h3>
+                <div className="space-y-4 text-sm">
+                  <div className="flex justify-between py-2 border-b border-slate-50">
+                    <span className="text-slate-500">Bar Number</span>
+                    <span className="font-medium text-slate-900 text-right">{lawyer.barNumber}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">Contact & Appointments</h3>
+                  <div className="flex justify-between py-2 border-b border-slate-50">
+                    <span className="text-slate-500">Admitted</span>
+                    <span className="font-medium text-slate-900 text-right">{lawyer.barAdmissionDate}</span>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <span className="text-slate-500">Languages</span>
+                    <span className="font-medium text-slate-900 text-right">
+                      {lawyer.languages?.join(", ")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* 4. BOOKING MODE VIEW */
+        <div className="max-w-5xl mx-auto px-6 py-12">
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+
+            {/* Header */}
+            <div className="bg-slate-900 p-8 flex justify-between items-center text-white">
+              <div>
+                <h2 className="text-2xl font-bold">Book Appointment</h2>
+                <p className="text-slate-400 text-sm mt-1">Select a date and time for your consultation with {lawyer.name}</p>
+              </div>
+              <button
+                onClick={() => setBookingMode(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              {/* Calendar Side */}
+              <div className="p-8 border-r border-slate-100">
+                <div className="flex items-center justify-between mb-6">
+                  <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-100 rounded-full text-slate-600"><ChevronLeft size={20} /></button>
+                  <span className="font-bold text-lg text-slate-800">
+                    {new Date(currentYear, currentMonth).toLocaleString("default", { month: "long", year: "numeric" })}
+                  </span>
+                  <button onClick={handleNextMonth} className="p-2 hover:bg-slate-100 rounded-full text-slate-600"><ChevronRight size={20} /></button>
                 </div>
 
-                <div className="space-y-4">
-                  {/* Phone */}
-                  <a
-                    href={`tel:${lawyer.phone}`}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-[#e6ffe6] border border-gray-200 hover:border-[#00b33c] transition-all duration-200 group"
-                  >
-                    <Phone size={18} className="text-[#00b33c]" />
-                    <div className="flex-1">
-                      <div className="text-xs text-gray-500 font-medium">Phone</div>
-                      <div className="text-sm font-semibold text-gray-700 group-hover:text-[#00b33c]">
-                        {lawyer.phone}
-                      </div>
-                    </div>
-                    <ExternalLink size={16} className="text-gray-500 group-hover:text-[#00b33c]" />
-                  </a>
-
-                  {/* Email */}
-                  <a
-                    href={`mailto:${lawyer.email}`}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-[#e6ffe6] border border-gray-200 hover:border-[#00b33c] transition-all duration-200 group"
-                  >
-                    <Mail size={18} className="text-[#00b33c]" />
-                    <div className="flex-1">
-                      <div className="text-xs text-gray-500 font-medium">Email</div>
-                      <div className="text-sm font-semibold text-gray-700 group-hover:text-[#00b33c] break-all">
-                        {lawyer.email}
-                      </div>
-                    </div>
-                    <ExternalLink size={16} className="text-gray-500 group-hover:text-[#00b33c]" />
-                  </a>
+                <div className="grid grid-cols-7 text-center mb-4">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+                    <span key={d} className="text-xs font-bold text-slate-400 uppercase">{d}</span>
+                  ))}
                 </div>
 
-                {/* Appointment CTA */}
-                <div className="mt-6">
+                <div className="grid grid-cols-7 gap-2">
+                  {Array(new Date(currentYear, currentMonth, 1).getDay()).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
+                  {calendarDays.map((day) => {
+                    const past = isPastDate(day.date);
+                    const isSelected = selectedDate === day.date;
+                    return (
+                      <button
+                        key={day.date}
+                        disabled={!day.available || past}
+                        onClick={() => !past && setSelectedDate(day.date)}
+                        className={`h-10 rounded-lg text-sm font-medium transition-all ${isSelected ? 'bg-teal-600 text-white shadow-md' :
+                          day.available && !past ? 'hover:bg-teal-50 text-slate-700 hover:text-teal-700' :
+                            'text-slate-300 cursor-not-allowed'
+                          }`}
+                      >
+                        {parseInt(day.date.split("-")[2])}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Time Slots Side */}
+              <div className="p-8 bg-slate-50/50">
+                <h3 className="font-bold text-slate-900 mb-4 h-8 flex items-center">
+                  {selectedDate ? `Available on ${selectedDate}` : "Select a date to view slots"}
+                </h3>
+
+                {selectedDate ? (
+                  <div className="grid grid-cols-3 gap-3">
+                    {slots.filter(s => s.date === selectedDate && !isPastSlot(s.date, s.startTime)).map(slot => (
+
+                      <button
+
+                        key={slot.id}
+
+                        disabled={slot.isBooked}
+                        onClick={() => {
+                          if (!slot.isBooked) {
+                            setSelectedTime(prev => prev?.start === slot.startTime ? null : { start: slot.startTime, end: slot.endTime });
+                            setConsultationFee(slot.consultationFee);
+                            setSelectedSlotId(slot.id);
+                          }
+                        }}
+                        className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${selectedTime?.start === slot.startTime ? 'bg-teal-600 text-white border-teal-600 shadow-md' :
+                          slot.isBooked ? 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed' :
+                            'bg-white text-slate-600 border-slate-200 hover:border-teal-400 hover:text-teal-600'
+                          }`}
+                      >
+                        {slot.startTime}
+                      </button>
+                    ))}
+                    {slots.filter(s => s.date === selectedDate).length === 0 && (
+                      <p className="col-span-full text-slate-500 italic text-sm">No slots available.</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 text-slate-400">
+                    <Calendar size={48} className="mb-2 opacity-20" />
+                    <p>Please select a date from the calendar</p>
+                  </div>
+                )}
+
+                <div className="mt-8 pt-6 border-t border-slate-200">
                   <button
-                    className="w-full py-3 rounded-lg bg-[#00b33c] text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#00992e] transition-all duration-200 shadow-md hover:shadow-lg"
-                    onClick={() => { setBookingMode(true); fetchslots(); }}
+                    disabled={!selectedDate || !selectedTime}
+                    onClick={() => setBookingSlot(true)}
+                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${selectedDate && selectedTime
+                      ? 'bg-teal-600 text-white hover:bg-teal-700 shadow-lg shadow-teal-200'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      }`}
                   >
-                    <Calendar className="w-4 h-4" />
-                    Book Appointment
+                    Continue to Payment
                   </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      ) : (
-        /* ===== BOOKING SPLIT VIEW ===== */
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-16">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold text-gray-800">Book Appointment</h2>
-            <button
-              onClick={() => { setBookingMode(false); setSelectedDate(null); setSelectedTime(null); }}
-              className="text-gray-500 hover:text-red-500 font-medium transition-colors"
-            >
-              Cancel Booking
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Left Column: Calendar */}
-            <div className="md:col-span-1 bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={handlePrevMonth}
-                  className={`p-1 rounded-full hover:bg-gray-100 transition-colors ${currentYear === new Date().getFullYear() && currentMonth === new Date().getMonth()
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-gray-600 hover:text-[#00b33c]"
-                    }`}
-                  disabled={currentYear === new Date().getFullYear() && currentMonth === new Date().getMonth()}
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <p className="text-center font-semibold text-gray-700">
-                  {new Date(currentYear, currentMonth).toLocaleString("default", { month: "long", year: "numeric" })}
-                </p>
-                <button
-                  onClick={handleNextMonth}
-                  className="p-1 rounded-full hover:bg-gray-100 text-gray-600 hover:text-[#00b33c] transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-              <div className="grid grid-cols-7 text-center text-xs text-gray-500 mb-2">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <span key={d}>{d}</span>)}
-              </div>
-              <div className="grid grid-cols-7 gap-2">
-                {/* Empty slots for days before start of month */}
-                {Array(new Date(currentYear, currentMonth, 1).getDay()).fill(null).map((_, index) => (
-                  <div key={`empty-${index}`} className="py-2"></div>
-                ))}
-                {calendarDays.map(day => {
-                  const past = isPastDate(day.date);
-
-                  return (
-                    <button
-                      key={day.date}
-                      disabled={!day.available || past}
-                      onClick={() => !past && setSelectedDate(day.date)}
-                      className={`py-2 rounded-lg text-sm font-medium border transition 
-        ${past
-                          ? "bg-gray-300 text-gray-400 border-gray-300 cursor-not-allowed"
-                          : day.available
-                            ? selectedDate === day.date
-                              ? "bg-[#00b33c] text-white border-[#006b22]"
-                              : "bg-white text-[#00b33c] border-[#00b33c] hover:bg-[#e6ffe6]"
-                            : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-                        }
-      `}
-                    >
-                      {day.date.split("-")[2]}
-                    </button>
-                  );
-                })}
-
-              </div>
-            </div>
-
-            {/* Right Column: Time Slots & Fee */}
-            <div className="md:col-span-2 space-y-6">
-              {/* Consultation Fee */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800">Consultation Fee</h3>
-                  <p className="text-sm text-gray-500">Per session</p>
-                </div>
-                <div className="text-2xl font-bold text-[#00b33c]">
-                  {consultationFee ? `₹${consultationFee}` : ""}
-                </div>
-              </div>
-
-              {/* Time Slots */}
-              {selectedDate && (
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4">Available Times for {selectedDate}</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-               {slots.filter(s => s.date === selectedDate).map(slot => {
-
-  const isSelected = selectedTime?.start === slot.startTime;
-
-  const buttonStyle = slot.isBooked
-    ? "bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed"
-    : isSelected
-      ? "bg-[#00b33c] text-white border-[#006b22]"
-      : "bg-white text-[#00b33c] border-[#00b33c] hover:bg-[#e6ffe6]";
-
-  return (
-    <button
-      key={slot.id}
-      disabled={slot.isBooked}
-      onClick={() => {
-        if (!slot.isBooked) {
-          setSelectedTime(prev =>
-            prev?.start === slot.startTime ? null : { start: slot.startTime, end: slot.endTime }
-          );
-          setConsultationFee(slot.consultationFee);
-          setSelectedSlotId(slot.id);
-        }
-      }}
-      className={`py-2 px-3 rounded-lg text-sm font-medium border transition ${buttonStyle}`}
-    >
-      {slot.startTime}
-    </button>
-  );
-})}
-
-                    {slots.filter(s => s.date === selectedDate).length === 0 && (
-                      <p className="col-span-full text-gray-500 italic">No slots available for this date.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Continue Button */}
-              <div className="flex justify-end">
-                <button
-                  disabled={!selectedDate || !selectedTime}
-                  onClick={() => setBookingSlot(true)}
-                  className={`px-8 py-3 rounded-lg font-bold text-white transition-all
-                    ${selectedDate && selectedTime
-                      ? "bg-[#00b33c] hover:bg-[#00992e] shadow-md hover:shadow-lg"
-                      : "bg-gray-300 cursor-not-allowed"
-                    }`}
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
 
-      {/* 📌 BOOKING DETAILS MODAL */}
+      {/* 5. BOOKING MODAL (PRE-PAYMENT) */}
       {bookingSlot && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all scale-100">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-              <h2 className="text-2xl font-bold text-gray-900">Booking Details</h2>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors" onClick={() => setBookingSlot(false)}>
-                <span className="text-2xl">✕</span>
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="font-bold text-xl text-slate-900">Confirm Details</h3>
+              <button onClick={() => setBookingSlot(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
 
-            <div className="space-y-6">
-              {/* Summary */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2 border border-gray-100">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium">Date:</span>
-                  <span className="text-gray-900 font-semibold">{selectedDate}</span>
+            <div className="p-6 space-y-6">
+              <div className="bg-slate-50 p-4 rounded-xl space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Date</span>
+                  <span className="font-medium text-slate-900">{selectedDate}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium">Time:</span>
-                  <span className="text-gray-900 font-semibold">{selectedTime?.start} - {selectedTime?.end}</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Time</span>
+                  <span className="font-medium text-slate-900">{selectedTime?.start} - {selectedTime?.end}</span>
                 </div>
-                <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-                  <span className="text-gray-800 font-bold">Total Fee:</span>
-                  <span className="text-[#00b33c] font-bold">₹{consultationFee}</span>
+                <div className="pt-2 border-t border-slate-200 flex justify-between text-base">
+                  <span className="font-bold text-slate-700">Total Fee</span>
+                  <span className="font-bold text-teal-600">₹{consultationFee}</span>
                 </div>
               </div>
 
-              {/* Description Input */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Describe your legal concern
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes (Optional)</label>
                 <textarea
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00b33c] focus:border-transparent outline-none transition-all min-h-[120px]"
-                  placeholder="Please briefly explain your case or reason for consultation..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Briefly describe your legal concern..."
+                  className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 h-24 resize-none"
                 />
               </div>
 
-              {/* Actions */}
-              <div className="flex gap-4 mt-8">
-                <button
-                  onClick={() => setBookingSlot(false)}
-                  className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  className="flex-1 py-3 rounded-lg bg-[#00b33c] text-white font-bold hover:bg-[#00992e] shadow-md hover:shadow-lg transition-all"
-                  onClick={
-
-                    HandlePayment
-                  }
-                >
-                  Pay & Book
-                </button>
-              </div>
+              <button
+                onClick={HandlePayment}
+                className="w-full py-3.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200"
+              >
+                Pay Securely & Book
+              </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
+
     </div>
   );
 }

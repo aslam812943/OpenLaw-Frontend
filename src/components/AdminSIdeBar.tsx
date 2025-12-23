@@ -146,7 +146,7 @@ export default function AdminSidebar({
         </ul>
       </nav>
 
-      {/* ✅ Logout Section */}
+      {/*  Logout Section */}
       <div className="border-t border-gray-800 p-4">
         <button
           onClick={handleLogout}

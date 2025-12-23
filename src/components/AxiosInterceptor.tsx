@@ -24,17 +24,9 @@ export default function AxiosInterceptor() {
                         dispatch(clearUserData());
                         dispatch(clearLawyerData());
 
-                        // // Show toast notification
-                        // Toastify({
-                        //     text: "Your account has been blocked by the admin.",
-                        //     duration: 5000,
-                        //     gravity: "top",
-                        //     position: "center",
-                        //     backgroundColor: "#ff4d4d",
-                        //     stopOnFocus: true,
-                        // }).showToast();
+                      
                         showToast('error',"Your account has been blocked by the admin.")
-                        // Redirect to login
+                       
                         router.push('/login');
                     }
                 }
@@ -42,7 +34,7 @@ export default function AxiosInterceptor() {
             }
         );
 
-        // Cleanup interceptor on unmount
+     
         return () => {
             axios.interceptors.response.eject(interceptor);
         };

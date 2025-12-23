@@ -29,11 +29,10 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active, onClick 
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-200 ${
-        active
+      className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-200 ${active
           ? 'bg-purple-600 text-white rounded-lg'
           : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-      }`}
+        }`}
     >
       <span className="w-5 h-5">{icon}</span>
       <span className="text-sm font-medium">{label}</span>
@@ -44,30 +43,30 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active, onClick 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [activeItem, setActiveItem] = useState('Dashboard');
-const route =  useRouter()
+  const route = useRouter()
   // ✅ Logout function
   const handleLogout = async () => {
     try {
       const response = await logoutLawyer();
       if (response) {
         showToast('success', 'Logout successful');
-     
-        route.push ( '/login');
+
+        route.push('/login');
       }
     } catch (err: any) {
       showToast('error', err.message);
     }
   };
 
-const menuItems = [
-  { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/lawyer/dashboard' },
-  { icon: <FolderOpen size={20} />, label: 'My Cases', path: '/lawyer/cases' },
-  { icon: <Calendar size={20} />, label: 'Appointments', path: '/lawyer/appointments' },
-  { icon: <MessageSquare size={20} />, label: 'Messages', path: '/lawyer/messages' },
-  { icon: <FileText size={20} />, label: 'Documents', path: '/lawyer/documents' },
-  { icon: <DollarSign size={20} />, label: 'Earnings', path: '/lawyer/earnings' },
-  { icon: <BarChart3 size={20} />, label: 'Reports', path: '/lawyer/reports' },
-];
+  const menuItems = [
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/lawyer/dashboard' },
+    { icon: <FolderOpen size={20} />, label: 'Schedule', path: '/lawyer/cases' },
+    { icon: <Calendar size={20} />, label: 'Appointments', path: '/lawyer/appointments' },
+    { icon: <MessageSquare size={20} />, label: 'Messages', path: '/lawyer/messages' },
+    { icon: <FileText size={20} />, label: 'Documents', path: '/lawyer/documents' },
+    { icon: <DollarSign size={20} />, label: 'Earnings', path: '/lawyer/earnings' },
+    { icon: <BarChart3 size={20} />, label: 'Reports', path: '/lawyer/reports' },
+  ];
 
 
   return (
@@ -83,7 +82,7 @@ const menuItems = [
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-gray-900 to-gray-950 transition-transform duration-300 z-40
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:translate-x-0`}
       >
         <div className="flex flex-col h-full py-6 justify-between">
           {/* Top Section */}
@@ -101,7 +100,7 @@ const menuItems = [
                   icon={item.icon}
                   label={item.label}
                   active={activeItem === item.label}
-                  onClick={() =>{ setActiveItem(item.label),route.push(item.path)}}
+                  onClick={() => { setActiveItem(item.label), route.push(item.path) }}
                 />
               ))}
             </nav>

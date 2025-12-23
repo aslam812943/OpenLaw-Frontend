@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ✅ Simple validation helper functions
+  //  Simple validation helper functions
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
     return password.length >= 6;
   };
 
-  // ✅ Handle form submit
+  // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -52,13 +52,14 @@ export default function AdminLoginPage() {
 
       const response = await adminLogin(data);
 
-      // ✅ Successful login
+      //  Successful login
       if (response && response.data) {
         showToast("success", "✅ Login successful!");
-        router.push("/admin/dashboard");
+   router.replace("/admin/dashboard"); 
+       
       }
     } catch (err: any) {
-      // ❌ Handle login failure
+ 
       showToast(
         "error",
         `❌ Login failed: ${err.response?.data?.message || err.message || "Invalid credentials"}`
