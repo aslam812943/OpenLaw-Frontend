@@ -8,16 +8,15 @@ import lawyerReducer from "./lawyerSlice";
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user", "lawyer"], // persist both
+  whitelist: ["user", "lawyer"], 
 };
 
-// Combine reducers
 const rootReducer = combineReducers({
   user: userReducer,
   lawyer: lawyerReducer,
 });
 
-// Wrap with persist
+
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({

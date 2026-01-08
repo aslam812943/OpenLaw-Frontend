@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { logoutAdmin } from '@/service/authService';
+import { logoutAdmin } from '@/service/adminService';
 import {
   LayoutDashboard,
   Users,
@@ -42,9 +42,12 @@ const defaultItems: SidebarItem[] = [
   { id: 'lawyer-management', label: 'Lawyer Management', href: '/admin/lawyers', icon: <Briefcase size={20} /> },
   { id: 'appointments', label: 'Appointments Management', href: '/admin/appointments', icon: <Calendar size={20} /> },
   { id: 'payments', label: 'Payments & Transactions', href: '/admin/payments', icon: <DollarSign size={20} /> },
+  { id: 'payouts', label: 'Payout Requests', href: '/admin/payouts', icon: <DollarSign size={20} /> },
   { id: 'reports', label: 'Reports & Complaints', href: '/admin/reports', icon: <FileText size={20} /> },
+  { id: 'subscriptions', label: "Subscriptions", href: '/admin/subscription', icon: <Settings size={20} /> },
   { id: 'notifications', label: 'Notifications & Messaging', href: '/admin/notifications', icon: <Bell size={20} /> },
   { id: 'settings', label: 'Settings & Security', href: '/admin/settings', icon: <Settings size={20} /> },
+
 ];
 
 export default function AdminSidebar({
@@ -57,9 +60,9 @@ export default function AdminSidebar({
   const [activeItem, setActiveItem] = useState('dashboard');
   const router = useRouter();
   const pathname = usePathname();
-  
 
- 
+
+
   useEffect(() => {
     const currentItem = items.find(item => pathname.startsWith(item.href));
     if (currentItem) {
@@ -72,28 +75,27 @@ export default function AdminSidebar({
     router.push(href);
   };
 
- const handleLogout = async () => {
-  try {
-    const result = await logoutAdmin();
+  const handleLogout = async () => {
+    try {
+      const result = await logoutAdmin();
 
-    if (result.success) {
-  
-      showToast("success", result.message);
-  router.push('/admin/login')
-    } else {
-      showToast("error", result.message);
+      if (result.success) {
+
+        showToast("success", result.message);
+        router.push('/admin/login')
+      } else {
+        showToast("error", result.message);
+      }
+    } catch (error) {
+
+      showToast("error", "Logout failed. Please try again later.");
     }
-  } catch (error) {
-    
-    showToast("error", "Logout failed. Please try again later.");
-  }
-};
+  };
 
   return (
     <aside
-      className={`${
-        collapsed ? 'w-20' : 'w-64'
-      } bg-[#0a0a0a] text-white h-screen flex flex-col border-r border-gray-800 transition-all duration-300 ${className}`}
+      className={`${collapsed ? 'w-20' : 'w-64'
+        } bg-[#0a0a0a] text-white h-screen flex flex-col border-r border-gray-800 transition-all duration-300 ${className}`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-800">
@@ -115,26 +117,22 @@ export default function AdminSidebar({
               <li key={item.id}>
                 <button
                   onClick={() => handleItemClick(item.id, item.href)}
-                  className={`w-full flex items-center ${
-                    collapsed ? 'justify-center' : 'gap-3'
-                  } px-3 py-2.5 rounded-lg transition-colors duration-200 text-left ${
-                    isActive
+                  className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'
+                    } px-3 py-2.5 rounded-lg transition-colors duration-200 text-left ${isActive
                       ? 'bg-emerald-600 text-white'
                       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`${
-                      isActive ? 'text-white' : 'text-gray-400'
-                    } transition-colors`}
+                    className={`${isActive ? 'text-white' : 'text-gray-400'
+                      } transition-colors`}
                   >
                     {item.icon}
                   </span>
                   {!collapsed && (
                     <span
-                      className={`text-sm font-medium ${
-                        isActive ? 'text-white' : 'text-gray-300'
-                      }`}
+                      className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-300'
+                        }`}
                     >
                       {item.label}
                     </span>
@@ -150,9 +148,8 @@ export default function AdminSidebar({
       <div className="border-t border-gray-800 p-4">
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center ${
-            collapsed ? 'justify-center' : 'gap-3'
-          } px-3 py-2 rounded-lg text-left text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200`}
+          className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'
+            } px-3 py-2 rounded-lg text-left text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200`}
         >
           <LogOut size={20} />
           {!collapsed && <span className="text-sm font-medium">Logout</span>}

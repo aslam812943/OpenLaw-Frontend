@@ -13,37 +13,34 @@ const Pagination: React.FC<PaginationProps> = ({
   limit,
   onPageChange,
 }) => {
-  const totalPages = Math.ceil(totalItems / limit);
-
-  if (totalPages <= 1) return null;
+  const totalPages = Math.ceil(totalItems / limit)
+  if (totalItems === 0) return null;
 
   return (
-    <div className="flex justify-between items-center mt-6 px-2">
-      <p className="text-sm text-gray-600">
-        Page {currentPage} of {totalPages}
+    <div className="flex justify-between items-center mt-6 px-6 py-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+      <p className="text-sm font-semibold text-slate-700">
+        Showing page <span className="text-teal-600">{currentPage}</span> of <span className="text-teal-600">{totalPages}</span> ({totalItems} total results)
       </p>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`px-3 py-1 border rounded-lg text-sm ${
-            currentPage === 1
-              ? "border-gray-300 text-gray-400 cursor-not-allowed"
-              : "border-gray-700 hover:bg-gray-100"
-          }`}
+          className={`px-5 py-2.5 border rounded-lg text-sm font-bold transition-all ${currentPage === 1
+            ? "border-slate-300 text-slate-400 cursor-not-allowed bg-slate-50"
+            : "border-teal-600 text-teal-600 hover:bg-teal-50 hover:border-teal-700 hover:shadow-md"
+            }`}
         >
-          Prev
+          Previous
         </button>
 
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`px-3 py-1 border rounded-lg text-sm ${
-            currentPage === totalPages
-              ? "border-gray-300 text-gray-400 cursor-not-allowed"
-              : "border-gray-700 hover:bg-gray-100"
-          }`}
+          className={`px-5 py-2.5 border rounded-lg text-sm font-bold transition-all ${currentPage === totalPages
+            ? "border-slate-300 text-slate-400 cursor-not-allowed bg-slate-50"
+            : "border-teal-600 text-teal-600 hover:bg-teal-50 hover:border-teal-700 hover:shadow-md"
+            }`}
         >
           Next
         </button>

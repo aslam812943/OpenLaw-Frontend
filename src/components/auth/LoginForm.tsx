@@ -56,7 +56,7 @@ const LoginForm = () => {
                 return;
             }
 
-            if (data.needsVerificationSubmission || !user.hasSubmittedVerification) {
+            if ( !user.hasSubmittedVerification) {
                 router.replace("/lawyer/verification");
                 return;
             }
@@ -95,9 +95,7 @@ const LoginForm = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    // Google Auth Logic matches original implementation
+    }
     const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
         try {
             const token = credentialResponse.credential;

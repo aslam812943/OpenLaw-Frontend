@@ -13,31 +13,31 @@ const Globe = dynamic(() => import('react-globe.gl'), {
   ),
 });
 
-// Simple global connection arcs showing lawyers and clients everywhere
+
 const arcsData = [
-  { startLat: 37.7749, startLng: -122.4194, endLat: 51.5074, endLng: -0.1278, color: "#00f2ff" }, // San Francisco → London
-  { startLat: 40.7128, startLng: -74.0060, endLat: 48.8566, endLng: 2.3522, color: "#7c3aed" },   // New York → Paris
-  { startLat: 28.6139, startLng: 77.2090, endLat: 35.6895, endLng: 139.6917, color: "#3b82f6" },  // Delhi → Tokyo
-  { startLat: -33.8688, startLng: 151.2093, endLat: 1.3521, endLng: 103.8198, color: "#00f2ff" }, // Sydney → Singapore
-  { startLat: -23.5505, startLng: -46.6333, endLat: 34.0522, endLng: -118.2437, color: "#7c3aed" }, // São Paulo → Los Angeles
+  { startLat: 37.7749, startLng: -122.4194, endLat: 51.5074, endLng: -0.1278, color: "#00f2ff" }, 
+  { startLat: 40.7128, startLng: -74.0060, endLat: 48.8566, endLng: 2.3522, color: "#7c3aed" }, 
+  { startLat: 28.6139, startLng: 77.2090, endLat: 35.6895, endLng: 139.6917, color: "#3b82f6" },  
+  { startLat: -33.8688, startLng: 151.2093, endLat: 1.3521, endLng: 103.8198, color: "#00f2ff" }, 
+  { startLat: -23.5505, startLng: -46.6333, endLat: 34.0522, endLng: -118.2437, color: "#7c3aed" }, 
   // 🔹 Europe
-  { startLat: 52.5200, startLng: 13.4050, endLat: 41.9028, endLng: 12.4964, color: "#22d3ee" }, // Berlin → Rome
-  { startLat: 48.8566, startLng: 2.3522, endLat: 40.4168, endLng: -3.7038, color: "#6366f1" },  // Paris → Madrid
+  { startLat: 52.5200, startLng: 13.4050, endLat: 41.9028, endLng: 12.4964, color: "#22d3ee" }, 
+  { startLat: 48.8566, startLng: 2.3522, endLat: 40.4168, endLng: -3.7038, color: "#6366f1" },  
 
   // 🔹 Middle East
-  { startLat: 25.2048, startLng: 55.2708, endLat: 24.7136, endLng: 46.6753, color: "#38bdf8" }, // Dubai → Riyadh
-  { startLat: 31.7683, startLng: 35.2137, endLat: 30.0444, endLng: 31.2357, color: "#7c3aed" }, // Jerusalem → Cairo
-  { startLat: 19.0760, startLng: 72.8777, endLat: 1.3521, endLng: 103.8198, color: "#00f2ff" }, // Mumbai → Singapore
-  { startLat: 13.7563, startLng: 100.5018, endLat: 35.6895, endLng: 139.6917, color: "#3b82f6" }, // Bangkok → Tokyo
-  { startLat: 37.5665, startLng: 126.9780, endLat: 22.3193, endLng: 114.1694, color: "#22d3ee" }, // Seoul → Hong Kong
+  { startLat: 25.2048, startLng: 55.2708, endLat: 24.7136, endLng: 46.6753, color: "#38bdf8" }, 
+  { startLat: 31.7683, startLng: 35.2137, endLat: 30.0444, endLng: 31.2357, color: "#7c3aed" }, 
+  { startLat: 19.0760, startLng: 72.8777, endLat: 1.3521, endLng: 103.8198, color: "#00f2ff" }, 
+  { startLat: 13.7563, startLng: 100.5018, endLat: 35.6895, endLng: 139.6917, color: "#3b82f6" }, 
+  { startLat: 37.5665, startLng: 126.9780, endLat: 22.3193, endLng: 114.1694, color: "#22d3ee" }, 
 
   // 🔹 Africa
-  { startLat: -1.2921, startLng: 36.8219, endLat: -26.2041, endLng: 28.0473, color: "#6366f1" }, // Nairobi → Johannesburg
-  { startLat: 30.0444, startLng: 31.2357, endLat: 6.5244, endLng: 3.3792, color: "#7c3aed" },    // Cairo → Lagos
+  { startLat: -1.2921, startLng: 36.8219, endLat: -26.2041, endLng: 28.0473, color: "#6366f1" },
+  { startLat: 30.0444, startLng: 31.2357, endLat: 6.5244, endLng: 3.3792, color: "#7c3aed" },    
 
   // 🔹 North America
-  { startLat: 49.2827, startLng: -123.1207, endLat: 34.0522, endLng: -118.2437, color: "#00f2ff" }, // Vancouver → LA
-  { startLat: 41.8781, startLng: -87.6298, endLat: 29.7604, endLng: -95.3698, color: "#38bdf8" },  // Chicago → Houston
+  { startLat: 49.2827, startLng: -123.1207, endLat: 34.0522, endLng: -118.2437, color: "#00f2ff" }, 
+  { startLat: 41.8781, startLng: -87.6298, endLat: 29.7604, endLng: -95.3698, color: "#38bdf8" },  
 
 ];
 
@@ -46,30 +46,29 @@ export default function MyGlobe() {
 
 
 
-  // No need for window resize listener if we aren't doing the complex x-axis desktop-only move anymore.
-  // But keeping basic structure clean.
+
 
   return (
     <section className="relative w-full py-20 overflow-hidden">
-      {/* 1. Animated Background: Starts transparent (white), fades to dark gradient */}
+     
       <motion.div
         className="absolute inset-0 bg-gradient-to-br from-[#021b1a] via-[#041f2a] to-[#020815] z-0"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: "-20%" }}
-        transition={{ duration: 1.5, delay: 0.5 }} // Fades in slowly after globe starts
+        transition={{ duration: 1.5, delay: 0.5 }} 
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-12 z-10">
-        {/* Globe left - Moves from bottom to top slowly */}
+       
         <motion.div
           className="relative w-full lg:w-1/2 aspect-square max-w-xl"
           initial={{ y: 200, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true, margin: "-10%" }}
-          transition={{ duration: 1.8, ease: "easeOut" }} // Slow, smooth rise
+          transition={{ duration: 1.8, ease: "easeOut" }} 
         >
-          {/* Inner glow also fades in or stays with globe */}
+    
           <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(45,212,191,0.35),transparent_65%)] blur-3xl opacity-60" />
 
           <div className="relative w-full h-full flex items-center justify-center">
@@ -98,13 +97,13 @@ export default function MyGlobe() {
           </div>
         </motion.div>
 
-        {/* Text right - Appears after background is dark */}
+  
         <motion.div
           className="w-full lg:w-1/2 text-left text-slate-50"
           initial={{ opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 1.2, duration: 0.8 }} // Wait for bg transition to be mostly done
+          transition={{ delay: 1.2, duration: 0.8 }} 
         >
           <p className="uppercase tracking-[0.25em] text-xs text-teal-300 mb-3">
             Global legal network

@@ -11,8 +11,12 @@ export const API_ROUTES = {
     UNBLOCK_LAWYER: (id: string) => `/api/admin/lawyers/${id}/unblock`,
     APPROVE_LAWYER: (id: string) => `/api/admin/lawyers/${id}/approve`,
     REJECT_LAWYER: (id: string) => `/api/admin/lawyers/${id}/reject`,
-    LOGOUT_ADMIN: '/api/admin/logout'
-
+    CREATESUBSCRIPTION: '/api/admin/subscription/create',
+    FETCH_SUBSCRIPTIONS: '/api/admin/subscription',
+    LOGOUT_ADMIN: '/api/admin/logout',
+    PAYMENTS: '/api/admin/payments',
+    PAYOUT_PENDING: '/api/admin/payout/pending',
+    APPROVE_PAYOUT: (id: string) => `/api/admin/payout/${id}/approve`
   },
 
   USER: {
@@ -22,10 +26,11 @@ export const API_ROUTES = {
     CHANGE_PASSWORD: "/api/user/profile/password",
     GETALL_LAWYERS: '/api/user/lawyers',
     SINGLE_LAWYER: (id: string) => `/api/user/lawyers/${id}`,
-    GETSLOTS: (id: string) => `/api/user/lawyers/slots/${id}`
-
-
-
+    GETSLOTS: (id: string) => `/api/user/lawyers/slots/${id}`,
+    ADDREVIEW: '/api/user/review',
+    GETALLREVIEWS: (id: string) => `/api/user/review/${id}`,
+    CANCELAPPOINMENT: (id: string) => `/api/booking/appointments/${id}/cancel`,
+    GETAPPOINMENT: '/api/booking/appointments'
 
   },
 
@@ -44,10 +49,30 @@ export const API_ROUTES = {
     UPDATE_PROFILE: `/api/lawyer/profile/update`,
     CHANGE_PASSWORD: "/api/lawyer/profile/password",
     APPOIMENTS: `/api/lawyer/appoiments`,
-    APPOIMENTS_UPDATE_STATUS: (id: string) => `/api/lawyer/appoiments/${id}/status`
-
+    APPOIMENTS_UPDATE_STATUS: (id: string) => `/api/lawyer/appoiments/${id}/status`,
+    CHECKSUBSCRIPTION: `/api/lawyer/checksubscription`,
+    SUBSCRIPTIONS: `/api/lawyer/subscriptions`,
+    SUBSCRIPTION_CHECKOUT: `/api/lawyer/subscription/checkout`,
+    SUBSCRIPTION_SUCCESS: `/api/lawyer/subscription/success`,
+    GET_REVIEWS: (id: string) => `/api/lawyer/review/${id}`,
+    GET_CASES: '/api/lawyer/cases',
+    GET_EARNINGS: '/api/lawyer/earnings',
+    REQUEST_PAYOUT: '/api/lawyer/payout/request',
+    PAYOUT_HISTORY: '/api/lawyer/payout/history'
+  },
+  CHAT: {
+    CHECK_ACCESS: (lawyerId: string) => `/api/user/chat/access/${lawyerId}`,
+    GET_ROOM: "/api/user/chat/room",
+    GET_MESSAGES: (roomId: string) => `/api/user/chat/messages/${roomId}`,
+    USER_ROOMS: "/api/user/chat/rooms",
+    LAWYER_ROOMS: "/api/lawyer/chat/rooms",
+    LAWYER_MESSAGES: (roomId: string) => `/api/lawyer/chat/messages/${roomId}`,
+    LAWYER_GET_ROOM: "/api/lawyer/chat/room",
+    LAWYER_GET_ROOM_BY_ID: (roomId: string) => `/api/lawyer/chat/room/${roomId}`,
+    GET_ROOM_BY_ID: (roomId: string) => `/api/user/chat/room/${roomId}`,
+    UPLOAD_FILE: "/api/user/chat/upload",
+    CAN_JOIN_CALL: (bookingId: string) => `/api/video-call/${bookingId}/can-join`,
+    JOIN_CALL: (bookingId: string) => `/api/video-call/${bookingId}/join`
   }
-
-
 }
 

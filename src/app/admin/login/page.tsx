@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { showToast } from "@/utils/alerts";
-import { adminLogin } from "../../../service/authService";
+import { adminLogin } from "../../../service/adminService";
 
 type LoginType = {
   email: string;
@@ -17,7 +17,6 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  //  Simple validation helper functions
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -26,11 +25,11 @@ export default function AdminLoginPage() {
     return password.length >= 6;
   };
 
-  // Handle form submit
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 🔹 1. Basic client-side validation
+   
     if (!email || !password) {
       showToast("error", "Please fill in all fields.");
       return;
@@ -52,7 +51,7 @@ export default function AdminLoginPage() {
 
       const response = await adminLogin(data);
 
-      //  Successful login
+ 
       if (response && response.data) {
         showToast("success", "✅ Login successful!");
    router.replace("/admin/dashboard"); 

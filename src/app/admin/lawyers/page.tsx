@@ -152,7 +152,6 @@ export default function LawyersPage() {
     if (confirmed) setShowRejectModal(true);
   };
 
-  //  Confirm rejection with reason
   const handleRejectConfirm = async () => {
     if (!rejectReason.trim()) {
       showToast("error", "Please enter a rejection reason.");
@@ -260,7 +259,7 @@ export default function LawyersPage() {
           </>
         )}
 
-        {/* ✅ Lawyer Detail Modal */}
+        {/*  Lawyer Detail Modal */}
         {selectedLawyer && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-[600px] p-6 relative max-h-[90vh] overflow-y-auto">
@@ -280,7 +279,7 @@ export default function LawyersPage() {
                 <p className="col-span-2"><span className="font-medium">Languages:</span> {selectedLawyer.languages.join(", ")}</p>
               </div>
 
-              {/* ✅ Documents */}
+              {/*  Documents */}
               <div className="mb-5">
                 <h3 className="text-base font-semibold mb-2">Uploaded Documents</h3>
                 {selectedLawyer.documentUrls.length > 0 ? (
@@ -299,7 +298,7 @@ export default function LawyersPage() {
                 )}
               </div>
 
-              {/* ✅ Action Buttons */}
+              {/*  Action Buttons */}
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setSelectedLawyer(null)}
@@ -342,7 +341,7 @@ export default function LawyersPage() {
           </div>
         )}
 
-        {/* ✅ Reject Modal */}
+        {/*  Reject Modal */}
         {showRejectModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
             <div className="bg-white rounded-lg shadow-xl w-[500px] p-6">

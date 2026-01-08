@@ -172,15 +172,13 @@ export const confirmBooking = async (sessionId: string) => {
 
 
 
-export const getUserAppointments = async () => {
+export const getUserAppointments = async (page: number = 1, limit: number = 5) => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/booking/appointments`, {
-      withCredentials: true
-    });
-
-
-
-    return response.data
+    const response = await axios.get(
+      `${BASE_URL}${API_ROUTES.USER.GETAPPOINMENT}?page=${page}&limit=${limit}`,
+      { withCredentials: true }
+    );
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -188,7 +186,7 @@ export const getUserAppointments = async () => {
 
 export const cancelAppointment = async (id: string, reason: string) => {
   try {
-    const response = await axios.patch(`${BASE_URL}/api/booking/appointments/${id}/cancel`,
+    const response = await axios.patch(`${BASE_URL}${API_ROUTES.USER.CANCELAPPOINMENT(id)}`,
       { reason },
       { withCredentials: true }
     );
@@ -198,3 +196,25 @@ export const cancelAppointment = async (id: string, reason: string) => {
     throw error;
   }
 };
+
+export const addReview = async (reviewData: { userId: string; lawyerId: string; rating: number; comment: string }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}${API_ROUTES.USER.ADDREVIEW}`, reviewData, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to add review");
+  }
+};
+
+
+export const allReview = async (id: string) => {
+  try {
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.USER.GETALLREVIEWS(id)}`, { withCredentials: true })
+    return response.data;
+  } catch (error) {
+ 
+    return [];
+  }
+}

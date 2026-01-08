@@ -3,6 +3,7 @@
 import { getAppoiments, updateAppointmentStatus } from "@/service/lawyerService"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { showToast } from "@/utils/alerts"
 
 interface Appointment {
   id: string;
@@ -28,7 +29,7 @@ const Appointments = () => {
         setData(response.data);
       }
     } catch (error) {
-      console.error("Failed to fetch appointments", error);
+      showToast("error", "Failed to fetch appointments");
     } finally {
       setLoading(false);
     }
@@ -67,7 +68,8 @@ const Appointments = () => {
                   <p className="text-sm text-gray-500">{appointment.date}</p>
                 </div>
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                  appointment.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                    appointment.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
                       'bg-red-100 text-red-800'
                   }`}>
                   {appointment.status}
@@ -89,22 +91,32 @@ const Appointments = () => {
                 </p>
               </div>
 
-              {appointment.status === 'pending' && (
-                <div className="flex gap-3 mt-4">
+              <div className="flex gap-3 mt-4">
+                {appointment.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => handleStatusUpdate(appointment.id, 'confirmed')}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => handleStatusUpdate(appointment.id, 'rejected')}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
+                {appointment.status === 'confirmed' && (
                   <button
-                    onClick={() => handleStatusUpdate(appointment.id, 'confirmed')}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+                    onClick={() => handleStatusUpdate(appointment.id, 'completed')}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
                   >
-                    Accept
+                    Mark as Completed
                   </button>
-                  <button
-                    onClick={() => handleStatusUpdate(appointment.id, 'rejected')}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Reject
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>

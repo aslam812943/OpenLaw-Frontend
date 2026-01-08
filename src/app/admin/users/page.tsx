@@ -51,7 +51,7 @@ export default function AdminUsersPage() {
     : "Are you sure you want to unblock this user? They will regain access to their account.",
   type === "Block" ? "Yes, Block" : "Yes, Unblock",
   "warning",
-  type === "Block" ? "#dc2626" : "#10b981"
+  // type === "Block" ? "#dc2626" : "#10b981"
 );
 
 if (!confirmed) return;
@@ -209,7 +209,7 @@ if (!confirmed) return;
           </div>
         )}
 
-        {/* ✅ Pagination */}
+        {/*  Pagination */}
         <div className="mt-6">
           <Pagination
             currentPage={page}

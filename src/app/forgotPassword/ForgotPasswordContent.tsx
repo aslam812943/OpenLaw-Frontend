@@ -74,11 +74,11 @@ const ForgotPasswordContent = () => {
                                 alt="Security"
                                 className="w-40 h-auto object-contain"
                                 onError={(e) => {
-                                    // Fallback to a lucide icon if image fails, or a placeholder
+                                   
                                     e.currentTarget.style.display = 'none';
                                 }}
                             />
-                            {/* Fallback Icon if Image Missing (Hidden if image loads) */}
+                         
                             <Mail className="w-24 h-24 text-teal-200 hidden" />
                         </div>
 

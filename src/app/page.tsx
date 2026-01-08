@@ -25,34 +25,34 @@ const LawyerLandingPage = () => {
 
       {/* Hero Section */}
       <section className="relative min-h-[500px] lg:min-h-[650px] flex items-center overflow-hidden">
-        {/* Background Image with Overlay */}
+    
         <div className="absolute inset-0 z-0">
           <img
             src="/bgimage.png"
             alt="Lawyer Consultation"
             className="w-full h-full object-cover"
           />
-          {/* Gradient Overlay for better text readability */}
+     
           {/* <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-900/50 to-transparent"></div> */}
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-7xl ml-50 mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:ml-20 w-full py-12 sm:py-16 lg:py-20">
           <div className="max-w-2xl">
-            <h1 className="text-2xl lg:text-5xl font-bold text-black leading-[1.1] mb-8 tracking-tight">
-              Find a Lawyer Anywhere <br />
-              <span className="text-black">consultation platform</span>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black leading-[1.1] mb-6 sm:mb-8 tracking-tight">
+            Justice should not exist only<br className="hidden sm:block" />
+              <span className="text-black">for those who can afford it</span>
             </h1>
 
             {/* Search Box */}
-            <div className="relative max-w-lg w-500 mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-lg bg-white">
+            <div className="relative max-w-lg w-full mb-8 sm:mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-lg bg-white">
               <div className="flex items-center">
                 <div className="pl-4 text-slate-400">
                   <Search className="h-5 w-10" />
                 </div>
                 <input
                   type="text"
-                  className="block w-full px-4 py-4 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 text-base rounded-lg"
+                  className="block w-full px-4 py-3 sm:py-4 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 text-sm sm:text-base rounded-lg"
                   placeholder="What legal help do you need?"
                 />
                 {/* <button className="mr-2 bg-teal-600 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-teal-700 transition-all">
@@ -63,20 +63,20 @@ const LawyerLandingPage = () => {
 
             {/* Social Proof */}
             <div className="flex items-center gap-4">
-              <div className="flex -space-x-4">
+              <div className="flex -space-x-3 sm:-space-x-4">
                 {[{ a: 1, img: '/lawyerBoy6.jpg' }, { b: 2, img: '/lawyerBoy4.jpg' }, { c: 3, img: '/laweyrGirl20.jpg' }, { d: 4, img: '/profile.jpg' }].map((item, index) => (
                   <img
                     key={index}
-                    className="h-12 w-13 rounded-full border-2 border-white object-cover"
+                    className="h-10 w-10 sm:h-12 sm:w-13 rounded-full border-2 border-white object-cover"
                     src={item.img}
                     alt="User"
                     onError={(e) => e.currentTarget.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=U'}
                   />
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                <CheckCircle className="h-7 w-7 text-teal-600 fill-teal-600 text-white" />
-                <span className="text-sm font-bold text-teal-700">Verified</span>
+              <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 rounded-full">
+                <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-teal-600 fill-teal-600 text-white" />
+                <span className="text-xs sm:text-sm font-bold text-teal-700">Verified</span>
 
 
               </div>
@@ -86,8 +86,8 @@ const LawyerLandingPage = () => {
       </section>
 
       {/* How it Works */}
-      <div className="w-full min-h-[600px] bg-teal-600  flex items-center justify-center p-8 font-['Montserrat']">
-        <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="w-full min-h-[500px] sm:min-h-[600px] bg-teal-600 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-['Montserrat']">
+        <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
 
           {/* Left Side - Stats & Clock */}
           <div className="text-white relative">
@@ -126,31 +126,31 @@ const LawyerLandingPage = () => {
             </div>
 
             <div className="relative z-10">
-              <div className="mb-2 font-bold tracking-wider text-sm opacity-90 ml-2">EVERY</div>
+              <div className="mb-2 font-bold tracking-wider text-xs sm:text-sm opacity-90 ml-2">EVERY</div>
 
               <div className="flex items-baseline leading-none mb-4">
-                <span className="text-[160px] font-bold leading-none tracking-tighter">10</span>
-                <span className="text-5xl ml-4 font-semibold">minutes</span>
+                <span className="text-7xl sm:text-9xl lg:text-[160px] font-bold leading-none tracking-tighter">10</span>
+                <span className="text-2xl sm:text-4xl lg:text-5xl ml-2 sm:ml-4 font-semibold">minutes</span>
               </div>
 
-              <div className="text-3xl font-light opacity-90 mb-12 max-w-md  leading-tight">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-light opacity-90 mb-8 sm:mb-12 max-w-md leading-tight">
                 someone finds the right legal help on OpenLaw
               </div>
 
               <div className="h-px w-full bg-white/30 mb-8"></div>
 
-              <div className="grid grid-cols-3 gap-8">
+              <div className="grid grid-cols-3 gap-4 sm:gap-8">
                 <div>
-                  <div className="text-3xl font-bold mb-1">15k+</div>
-                  <div className="text-sm opacity-80 leading-tight">Consultations Completed</div>
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">15k+</div>
+                  <div className="text-xs sm:text-sm opacity-80 leading-tight">Consultations Completed</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold mb-1">98%</div>
-                  <div className="text-sm opacity-80 leading-tight">Case Satisfaction Rate</div>
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">98%</div>
+                  <div className="text-xs sm:text-sm opacity-80 leading-tight">Case Satisfaction Rate</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold mb-1">4.9/5</div>
-                  <div className="text-sm opacity-80 leading-tight">Average Lawyer Rating</div>
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">4.9/5</div>
+                  <div className="text-xs sm:text-sm opacity-80 leading-tight">Average Lawyer Rating</div>
                 </div>
               </div>
             </div>
@@ -158,8 +158,8 @@ const LawyerLandingPage = () => {
 
           {/* Right Side - Testimonial Card */}
           <div className="relative">
-            <div className="bg-white rounded-lg shadow-2xl p-12 relative transform transition-transform hover:-translate-y-1 duration-300">
-              <div className="text-gray-600 text-xl leading-relaxed text-center mb-8 font-['Open_Sans']">
+            <div className="bg-white rounded-lg shadow-2xl p-6 sm:p-8 lg:p-12 relative transform transition-transform hover:-translate-y-1 duration-300">
+              <div className="text-gray-600 text-base sm:text-lg lg:text-xl leading-relaxed text-center mb-6 sm:mb-8 font-['Open_Sans']">
                 "I was facing a complex property dispute and didn't know where to turn. OpenLaw connected me with an expert: <span className="font-bold text-gray-800">within minutes, I had clear legal advice and a path forward.</span>"
               </div>
 
@@ -186,21 +186,21 @@ const LawyerLandingPage = () => {
 
 
       {/* Feature Section 1: Support Team */}
-      <section className="py-24 bg-[#fafafa]">
+      <section className="py-12 sm:py-16 lg:py-24 bg-[#fafafa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
 
             {/* Text Content */}
-            <div className="order-2 lg:order-1 ml-20">
+            <div className="order-2 lg:order-1 lg:ml-20">
               <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-8">
                 <Briefcase className="w-6 h-6 text-teal-700" />
               </div>
 
-              <h2 className="text-4xl font-serif text-slate-900 mb-6 leading-tight">
-                Expert Legal Guidance, <br /> Every Step of the Way
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-slate-900 mb-4 sm:mb-6 leading-tight">
+                Expert Legal Guidance, <br className="hidden sm:block" /> Every Step of the Way
               </h2>
 
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-md">
+              <p className="text-base sm:text-lg text-slate-600 mb-6 sm:mb-8 leading-relaxed max-w-md">
                 Connect with top-rated attorneys who are dedicated to your success. Our platform ensures you have a full support system, keeping you informed and confident throughout your legal journey.
               </p>
 
@@ -222,15 +222,15 @@ const LawyerLandingPage = () => {
                 <img
                   src="grouplaweyrs (1).png"
                   alt="Team Support"
-                  className="w-200 h-113 object-cover"
+                  className="w-full h-auto object-cover"
                   onError={(e) => e.currentTarget.src = 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1600&q=80'}
                 />
               </motion.div>
               {/* Floating Card */}
-              <div className="absolute bottom-10 right-10 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-lg max-w-xs animate-fade-in-up">
-                <div className="flex items-start gap-3">
+              <div className="hidden sm:block absolute bottom-4 sm:bottom-10 right-4 sm:right-10 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg max-w-[200px] sm:max-w-xs animate-fade-in-up">
+                <div className="flex items-start gap-2 sm:gap-3">
                   <div className="flex-1">
-                    <p className="text-sm text-slate-700 font-medium">Hello! I've reviewed your case details. We can proceed with the filing today. - Attorney Michael</p>
+                    <p className="text-xs sm:text-sm text-slate-700 font-medium">Hello! I've reviewed your case details. We can proceed with the filing today. - Attorney Michael</p>
                   </div>
                   <div className="bg-teal-600 rounded-full p-1">
                     <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[8px] border-l-white border-b-[6px] border-b-transparent ml-0.5"></div>
@@ -244,12 +244,12 @@ const LawyerLandingPage = () => {
       </section>
 
       {/* Feature Section 2: Pricing */}
-      <section className="py-24 bg-[#fafafa]">
+      <section className="py-12 sm:py-16 lg:py-24 bg-[#fafafa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
 
             {/* Image Side */}
-            <div className="relative ml-10">
+            <div className="relative lg:ml-10">
               <motion.div
                 className="rounded-3xl overflow-hidden shadow-2xl"
                 initial={{ opacity: 0, x: -50 }}
@@ -295,11 +295,11 @@ const LawyerLandingPage = () => {
                 <FileText className="w-6 h-6 text-teal-700" />
               </div>
 
-              <h2 className="text-4xl font-serif text-slate-900 mb-6 leading-tight">
-                Transparent Pricing, <br /> No Hidden Fees
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-slate-900 mb-4 sm:mb-6 leading-tight">
+                Transparent Pricing, <br className="hidden sm:block" /> No Hidden Fees
               </h2>
 
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-md">
+              <p className="text-base sm:text-lg text-slate-600 mb-6 sm:mb-8 leading-relaxed max-w-md">
                 We believe in complete financial transparency. See exactly what you'll pay upfront with our fixed-fee structure. No surprise bills, just clear, honest pricing for high-quality legal representation.
               </p>
 
