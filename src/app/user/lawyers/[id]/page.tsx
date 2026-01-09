@@ -5,13 +5,17 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { getSingleLawyer, getallslots } from "@/service/lawyerService";
-import { handlepayAndBook } from "@/service/userService";
+import { handlepayAndBook, addReview, allReview } from "@/service/userService";
 import {
   Mail, Phone, MapPin, Award, Scale, Calendar,
   BookOpen, Briefcase, Languages, ExternalLink,
-  ChevronLeft, ChevronRight, Star, ShieldCheck, Clock, DollarSign
+  ChevronLeft, ChevronRight, Star, ShieldCheck, Clock, DollarSign,
+  MessageSquare
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { checkChatAccess, getChatRoom } from "@/service/chatService";
+import { showToast } from "@/utils/alerts";
 
 interface LawyerData {
   id: string;
@@ -45,6 +49,15 @@ export default function LawyersSinglePage() {
   const [bookingSlot, setBookingSlot] = useState(false);
   const [consultationFee, setConsultationFee] = useState<number | undefined>(0);
   const [description, setDescription] = useState("");
+  const [hasChatAccess, setHasChatAccess] = useState(false);
+
+  // Review State
+  const [rating, setRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  const router = useRouter();
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -53,16 +66,29 @@ export default function LawyersSinglePage() {
     async function fetchLawyer() {
       try {
         const response = await getSingleLawyer(`${id}`);
+        const reviewsRes = await allReview(`${id}`);
+        setReviews(reviewsRes.data || []);
+
         setLawyer(response.data as unknown as LawyerData);
       } catch (error) {
-        console.error("Failed to fetch lawyer", error);
+        showToast("error", "Failed to fetch lawyer details");
       } finally {
         setLoading(false);
       }
     }
 
+    async function fetchChatAccess() {
+      try {
+        const response = await checkChatAccess(id as string);
+        setHasChatAccess(response.hasAccess);
+      } catch (error) {
+        showToast("error", "Failed to check chat access");
+      }
+    }
+
     if (id) {
       fetchLawyer();
+      fetchChatAccess();
     }
   }, [id]);
 
@@ -147,11 +173,10 @@ export default function LawyersSinglePage() {
       if (response?.data?.url) {
         window.location.href = response.data.url;
       } else {
-        alert("Failed to initiate payment. Please try again.");
+        showToast("error", "Failed to initiate payment. Please try again.");
       }
     } catch (error) {
-
-      alert("Payment failed. Please check console for details.");
+      showToast("error", "Payment failed. Please try again.");
     }
   };
 
@@ -173,6 +198,45 @@ export default function LawyersSinglePage() {
       setCurrentYear(prev => prev + 1);
     } else {
       setCurrentMonth(prev => prev + 1);
+    }
+  };
+
+  const handleReviewSubmit = async () => {
+    if (rating === 0) {
+      showToast("error", "Please select a rating");
+      return;
+    }
+    if (!reviewComment.trim()) {
+      showToast("error", "Please write a comment");
+      return;
+    }
+    if (!lawyer) return;
+    if (!user || !user.id) {
+      showToast("error", "You must be logged in to review");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    try {
+      await addReview({
+        userId: user.id,
+        lawyerId: lawyer.id,
+        rating,
+        comment: reviewComment
+      });
+      showToast("success", "Review submitted successfully!");
+
+      const newReviews = await allReview(lawyer.id);
+      if (newReviews?.data) {
+        setReviews(newReviews.data);
+      }
+
+      setRating(0);
+      setReviewComment("");
+    } catch (error: any) {
+      showToast("error", error.message || "Failed to submit review");
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -270,16 +334,31 @@ export default function LawyersSinglePage() {
               </motion.div>
             </div>
 
-            {/* Action Button (Hero) */}
-            <div className="w-full md:w-auto pb-2 flex justify-center md:block">
+            {/* Action Buttons (Hero) */}
+            <div className="w-full md:w-auto pb-2 flex justify-center md:block space-y-4">
               <button
                 onClick={() => { setBookingMode(true); fetchslots(); }}
-                className="group relative bg-teal-600 hover:bg-teal-500 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-teal-900/20 hover:shadow-teal-500/20 transition-all flex items-center gap-2 overflow-hidden"
+                className="w-full group relative bg-teal-600 hover:bg-teal-500 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-teal-900/20 hover:shadow-teal-500/20 transition-all flex items-center justify-center gap-2 overflow-hidden"
               >
                 <span className="relative z-10">Book Consultation</span>
                 <ChevronRight size={18} className="relative z-10 group-hover:translate-x-1 transition-transform" />
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
+
+              {hasChatAccess && (
+                <button
+                  onClick={async () => {
+                    const roomRes = await getChatRoom(lawyer?.id as string);
+                    if (roomRes.success) {
+                      router.push(`/user/chat/${roomRes.data.id}`);
+                    }
+                  }}
+                  className="w-full group relative bg-white/10 hover:bg-white/20 text-white font-bold py-3.5 px-8 rounded-full border border-white/20 backdrop-blur-sm transition-all flex items-center justify-center gap-2"
+                >
+                  <MessageSquare size={18} className="text-teal-400" />
+                  <span>Message Lawyer</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -293,6 +372,7 @@ export default function LawyersSinglePage() {
               { id: 'overview', label: 'Overview', icon: BookOpen },
               { id: 'expertise', label: 'Expertise', icon: Scale },
               { id: 'credentials', label: 'Credentials', icon: Award },
+              { id: 'reviews', label: 'Reviews', icon: Star },
               { id: 'contact', label: 'Contact', icon: Phone },
             ].map(item => (
               <a
@@ -362,6 +442,74 @@ export default function LawyersSinglePage() {
                 </div>
               </section>
 
+              {/* 6. REVIEWS SECTION (Moved to Main Column) */}
+              {reviews.length > 0 && (
+                <section id="reviews" className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm scroll-mt-24">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-3 bg-teal-50 rounded-xl">
+                      <MessageSquare className="text-teal-600" size={24} />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900">Client Reviews ({reviews.length})</h2>
+                  </div>
+
+                  {reviews.length > 10 ? (
+                    <div className="relative overflow-hidden w-full">
+                      <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-white to-transparent z-10" />
+                      <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-white to-transparent z-10" />
+
+                      <motion.div
+                        className="flex gap-4"
+                        animate={{ x: ["0%", "-50%"] }}
+                        transition={{
+                          repeat: Infinity,
+                          ease: "linear",
+                          duration: Math.max(20, reviews.length * 2)
+                        }}
+                      >
+                        {[...reviews, ...reviews].map((review: any, i) => (
+                          <div key={`${review._id}-${i}`} className="w-[300px] flex-shrink-0 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <div className="flex items-center gap-3 mb-3">
+                              <img src={review.userImage || "/default-user.jpg"} alt={review.userName} className="w-8 h-8 rounded-full object-cover bg-slate-200" />
+                              <div>
+                                <div className="font-bold text-slate-900 text-sm">{review.userName || "Anonymous"}</div>
+                                <div className="flex text-amber-400 text-xs">
+                                  {[...Array(5)].map((_, r) => (
+                                    <Star key={r} size={10} fill={r < review.rating ? "currentColor" : "none"} className={r < review.rating ? "" : "text-slate-200"} />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-slate-600 text-sm line-clamp-3">{review.comment}</p>
+                          </div>
+                        ))}
+                      </motion.div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {reviews.map((review: any) => (
+                        <div key={review.id} className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                          <div className="flex items-center gap-3 mb-3">
+                            <img src={review.userImage || "/default-user.jpg"} alt={review.userName} className="w-10 h-10 rounded-full object-cover bg-slate-200" />
+                            <div>
+                              <div className="font-bold text-slate-900 text-sm">{review.userName || "Anonymous"}</div>
+                              <div className="flex text-amber-400 gap-0.5">
+                                {[...Array(5)].map((_, r) => (
+                                  <Star key={r} size={12} fill={r < review.rating ? "currentColor" : "none"} className={r < review.rating ? "" : "text-slate-200"} />
+                                ))}
+                              </div>
+                            </div>
+                            <div className="ml-auto text-xs text-slate-400">
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
+
             </div>
 
             {/* Right Column (Sidebar) */}
@@ -373,8 +521,8 @@ export default function LawyersSinglePage() {
                   <div>
                     <p className="text-sm text-slate-500 font-medium uppercase tracking-wide">Consultation Fee</p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-slate-900">₹{lawyer.consultationFee || 2000}</span>
-                      <span className="text-sm text-slate-400">/ session</span>
+                      <span className="text-3xl font-bold text-slate-900">Min ₹{lawyer.consultationFee || 2000}</span>
+                      <span className="text-sm text-slate-400">/ hr</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center">
@@ -417,6 +565,53 @@ export default function LawyersSinglePage() {
                   </div>
                 </div>
               </div>
+
+
+              {/* Review Section - Only if hasChatAccess (implies booking) */}
+              {hasChatAccess && (
+                <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mt-8">
+                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Star className="text-amber-400" size={18} fill="currentColor" />
+                    Write a Review
+                  </h3>
+                  {reviews.some((r: any) => r.userId === user.id) ? (
+                    <div className="p-4 bg-teal-50 border border-teal-100 rounded-xl text-teal-800 text-sm font-medium">
+                      You have already reviewed this lawyer. Thank you for your feedback!
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onClick={() => setRating(star)}
+                            className="focus:outline-none transition-transform hover:scale-110"
+                          >
+                            <Star
+                              size={24}
+                              className={star <= rating ? "text-amber-400" : "text-slate-300"}
+                              fill={star <= rating ? "currentColor" : "none"}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      <textarea
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        placeholder="Share your experience working with this lawyer..."
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 min-h-[120px] resize-none"
+                      />
+                      <button
+                        onClick={handleReviewSubmit}
+                        disabled={isSubmittingReview}
+                        className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                      >
+                        {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
             </div>
           </div>
@@ -537,6 +732,8 @@ export default function LawyersSinglePage() {
           </div>
         </div>
       )}
+
+      {/* 5. BOOKING MODAL (PRE-PAYMENT) */}
 
       {/* 5. BOOKING MODAL (PRE-PAYMENT) */}
       {bookingSlot && (

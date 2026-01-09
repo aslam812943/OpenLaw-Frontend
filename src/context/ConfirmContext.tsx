@@ -17,14 +17,14 @@ interface ConfirmContextType {
 
 const ConfirmContext = createContext<ConfirmContextType | undefined>(undefined);
 
-// A simple global trigger for the utility function to use outside of React tree
+
 let globalConfirmTrigger: ((options: ConfirmOptions) => Promise<boolean>) | null = null;
 
 export const confirmActionInternal = (options: ConfirmOptions) => {
     if (globalConfirmTrigger) {
         return globalConfirmTrigger(options);
     }
-    console.warn("ConfirmProvider not found in the component tree.");
+
     return Promise.resolve(false);
 };
 
@@ -46,7 +46,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
     }, []);
 
-    // Expose to global trigger
+    
     globalConfirmTrigger = confirm;
 
     const handleConfirm = () => {

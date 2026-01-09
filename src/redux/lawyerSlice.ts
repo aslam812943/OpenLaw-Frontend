@@ -8,6 +8,7 @@ interface LawyerState {
   phone: string | null;
   role: "lawyer" | null;
   hasSubmittedVerification: boolean;
+  profileImage?: string | null;
 }
 
 const initialState: LawyerState = {
@@ -17,6 +18,7 @@ const initialState: LawyerState = {
   phone: null,
   role: null,
   hasSubmittedVerification: false,
+  profileImage: null,
 };
 
 const lawyerSlice = createSlice({

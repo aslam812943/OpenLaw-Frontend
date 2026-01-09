@@ -20,7 +20,7 @@ export default function AxiosInterceptor() {
                     const errorMessage = error.response.data?.message;
 
                     if (errorMessage === "Your account has been blocked or disabled.") {
-                        // Clear Redux state
+                    
                         dispatch(clearUserData());
                         dispatch(clearLawyerData());
 

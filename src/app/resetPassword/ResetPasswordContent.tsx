@@ -25,12 +25,11 @@ const ResetPasswordContent = () => {
             ? ''
             : 'Password must be at least 6 characters long';
 
-    // Handle real-time change
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setForm({ ...form, [name]: value });
 
-        // Real-time validation
+        
         let errorMsg = '';
         if (name === 'email') errorMsg = validateEmail(value);
         if (name === 'otp') errorMsg = validateOTP(value);
@@ -39,7 +38,7 @@ const ResetPasswordContent = () => {
         setErrors({ ...errors, [name]: errorMsg });
     };
 
-    // Final validation + API submit
+    
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -58,7 +57,6 @@ const ResetPasswordContent = () => {
 
         setLoading(true);
         try {
-            // Keeping original API endpoint and payload
             await axios.post('http://localhost:8080/api/user/reset-password', form);
 
             showToast('success', 'Password reset successful! Please login with your new password.');

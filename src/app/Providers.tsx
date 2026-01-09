@@ -11,6 +11,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import AxiosInterceptor from "@/components/AxiosInterceptor";
 import { ConfirmProvider } from "@/context/ConfirmContext";
+import { SocketProvider } from "@/context/SocketContext";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -18,8 +19,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <ConfirmProvider>
-            <AxiosInterceptor />
-            {children}
+            <SocketProvider>
+              <AxiosInterceptor />
+              {children}
+            </SocketProvider>
           </ConfirmProvider>
         </PersistGate>
       </Provider>

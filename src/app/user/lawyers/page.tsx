@@ -46,9 +46,9 @@ const AllLawyers = () => {
   const [filterPracticeArea, setFilterPracticeArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1;
 
-  // Additional filters state (visual for now, can be hooked up if API supports)
+
   const [locationFilter, setLocationFilter] = useState("");
   const [experienceFilter, setExperienceFilter] = useState("");
   const [feeFilter, setFeeFilter] = useState("");
@@ -72,7 +72,7 @@ const AllLawyers = () => {
     router.push(`/user/lawyers/${id}`);
   };
 
-  // Reset page when filters change
+
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, sort, filterPracticeArea]);
@@ -87,8 +87,11 @@ const AllLawyers = () => {
         limit,
       });
 
+
       const list = res?.data?.response?.lawyers;
       const total = res?.data?.response?.totalCount || 0;
+
+
 
       if (Array.isArray(list)) {
         setLawyers(list);
@@ -278,7 +281,6 @@ const AllLawyers = () => {
               )}
             </div>
 
-            {/* Additional placeholders (Location/Exp) could go here with similar Teal styling */}
           </div>
 
           {/* Main Content - Lawyer List */}
@@ -357,7 +359,7 @@ const AllLawyers = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               <DollarSign size={16} className="text-teal-500" />
-                              <span className="font-medium">${lawyer.consultationFee || 200} / hr</span>
+                              <span className="font-medium">Min ₹{lawyer.consultationFee || 200} / hr</span>
                             </div>
                           </div>
                         </div>
@@ -383,15 +385,17 @@ const AllLawyers = () => {
               </div>
             )}
 
-            {/* Pagination Control */}
-            <div className="mt-12">
-              <Pagination
-                currentPage={currentPage}
-                totalItems={totalItems}
-                limit={limit}
-                onPageChange={setCurrentPage}
-              />
-            </div>
+
+            {lawyers.length > 0 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={totalItems}
+                  limit={limit}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -399,7 +403,7 @@ const AllLawyers = () => {
   );
 };
 
-// Helper for user icon in hero
+
 function UserIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full p-2">

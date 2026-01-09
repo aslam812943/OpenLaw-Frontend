@@ -25,7 +25,6 @@ const VerifyOtpContent = () => {
         return () => clearInterval(intervalId);
     }, [timer]);
 
-    // Real-time validation for OTP
     const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.replace(/\D/g, '');
         setOtp(value);
@@ -39,7 +38,7 @@ const VerifyOtpContent = () => {
         }
     };
 
-    // Submit handler
+   
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -61,7 +60,6 @@ const VerifyOtpContent = () => {
         setLoading(false);
     };
 
-    // Resend OTP handler
     const handleResend = async () => {
         setResendLoading(true);
         try {

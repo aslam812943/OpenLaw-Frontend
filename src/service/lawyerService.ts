@@ -16,6 +16,7 @@ export interface Lawyer {
   verificationStatus?: string;
   isVerified: boolean;
   isBlock: boolean;
+  paymentVerify?: boolean;
 }
 
 export interface PaginatedLawyerResponse {
@@ -269,8 +270,7 @@ export const getprofile = async () => {
       withCredentials: true,
       headers: { "Content-Type": "application/json" },
     })
-
-    return response.data
+    return response.data;
   } catch (error: any) {
     console.log(error)
   }
@@ -338,7 +338,7 @@ export const getallLawyers = async (params?: any) => {
 
 
 export const getSingleLawyer = async (id: string) => {
-  console.log(id)
+
   try {
     const response = await axios.get(
       `${BASE_URL}${API_ROUTES.USER.SINGLE_LAWYER(id)}`, {
@@ -348,7 +348,7 @@ export const getSingleLawyer = async (id: string) => {
     );
     return response.data;
   } catch (error: any) {
-   
+
     throw error;
   }
 };
@@ -394,3 +394,125 @@ export const updateAppointmentStatus = async (id: string, status: string) => {
   }
 }
 
+
+export const checksubscription = async () => {
+  try {
+    let response = await axios.get(`${BASE_URL},${API_ROUTES.LAWYER.CHECKSUBSCRIPTION}`, { withCredentials: true },)
+    return response
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const getSubscriptionPlans = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.SUBSCRIPTIONS}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error: any) {
+    const msg = error.response?.data?.message || "Failed to fetch subscription plans.";
+    throw new Error(msg);
+  }
+};
+
+export const createSubscriptionCheckout = async (
+  lawyerId: string,
+  email: string,
+  planName: string,
+  price: number,
+  subscriptionId: string
+) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}${API_ROUTES.LAWYER.SUBSCRIPTION_CHECKOUT}`,
+      { lawyerId, email, planName, price, subscriptionId },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    const msg = error.response?.data?.message || "Failed to create checkout session.";
+    throw new Error(msg);
+  }
+};
+
+export const verifySubscriptionPayment = async (session_id: string) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}${API_ROUTES.LAWYER.SUBSCRIPTION_SUCCESS}`,
+      { session_id },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    const msg = error.response?.data?.message || "Payment verification failed.";
+    throw new Error(msg);
+  }
+};
+
+export const fetchLawyerReviews = async (id: string) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}${API_ROUTES.LAWYER.GET_REVIEWS(id)}`,
+      { withCredentials: true }
+    );
+    return response.data.data;
+  } catch (error: any) {
+    const msg = error.response?.data?.message || "Failed to fetch reviews.";
+
+    return [];
+  }
+};
+
+export const getLawyerCases = async () => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}${API_ROUTES.LAWYER.GET_CASES}`,
+      { withCredentials: true }
+    );
+    return response.data.data;
+  } catch (error: any) {
+    console.error(error);
+    return [];
+  }
+}
+
+export const getLawyerEarnings = async () => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}${API_ROUTES.LAWYER.GET_EARNINGS}`,
+      { withCredentials: true }
+    );
+    return response.data.data;
+  } catch (error: any) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export const requestPayout = async (amount: number) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}${API_ROUTES.LAWYER.REQUEST_PAYOUT}`,
+      { amount },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    const msg = error.response?.data?.message || "Failed to request payout.";
+    throw new Error(msg);
+  }
+};
+
+export const getPayoutHistory = async () => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}${API_ROUTES.LAWYER.PAYOUT_HISTORY}`,
+      { withCredentials: true }
+    );
+    return response.data.data;
+  } catch (error: any) {
+    console.error(error);
+    throw error;
+  }
+};
