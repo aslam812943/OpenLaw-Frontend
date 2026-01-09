@@ -516,3 +516,15 @@ export const getPayoutHistory = async () => {
     throw error;
   }
 };
+
+export const fetchLawyerDashboardStats = async (startDate?: string, endDate?: string) => {
+  try {
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.DASHBOARD_STATS}`, {
+      params: { startDate, endDate },
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || error;
+  }
+};

@@ -59,7 +59,8 @@ export const API_ROUTES = {
     GET_CASES: '/api/lawyer/cases',
     GET_EARNINGS: '/api/lawyer/earnings',
     REQUEST_PAYOUT: '/api/lawyer/payout/request',
-    PAYOUT_HISTORY: '/api/lawyer/payout/history'
+    PAYOUT_HISTORY: '/api/lawyer/payout/history',
+    DASHBOARD_STATS: '/api/lawyer/dashboard/stats'
   },
   CHAT: {
     CHECK_ACCESS: (lawyerId: string) => `/api/user/chat/access/${lawyerId}`,
