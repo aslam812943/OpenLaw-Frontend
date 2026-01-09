@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from "react";
-import { Eye } from "lucide-react";
+import { Eye, Lock as LockIcon, Unlock as UnlockIcon, CheckCircle as CheckCircleIcon } from "lucide-react";
 import {
   fetchLawyers,
   Lawyer,
@@ -25,6 +25,11 @@ export default function LawyersPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [showActionModal, setShowActionModal] = useState<{
+    isOpen: boolean;
+    type: "Block" | "Unblock" | "Approve" | "";
+    lawyer: Lawyer | null
+  }>({ isOpen: false, type: "", lawyer: null });
 
   const loadLawyers = async (pageNum: number) => {
     try {
@@ -52,40 +57,6 @@ export default function LawyersPage() {
     reason?: string
   ) => {
     try {
-      let confirmed = false;
-
-      if (type === "Block") {
-        confirmed = await confirmAction(
-          "Block Lawyer?",
-          "Are you sure you want to block this lawyer? They will lose access to their account.",
-          "Yes, Block",
-          "warning"
-        );
-      } else if (type === "Unblock") {
-        confirmed = await confirmAction(
-          "Unblock Lawyer?",
-          "Are you sure you want to unblock this lawyer? They will regain access to their account.",
-          "Yes, Unblock",
-          "warning"
-        );
-      } else if (type === "Approve") {
-        confirmed = await confirmAction(
-          "Approve Lawyer?",
-          "Confirm approval for this lawyer’s verification request.",
-          "Yes, Approve",
-          "success"
-        );
-      } else if (type === "Reject") {
-        confirmed = await confirmAction(
-          "Reject Lawyer?",
-          "Are you sure you want to reject this lawyer’s application?",
-          "Yes, Reject",
-          "warning"
-        );
-      }
-
-      if (!confirmed) return;
-
       if (type === "Block") {
         await blockLawyer(id);
         showToast("success", "Lawyer blocked successfully.");
@@ -94,7 +65,6 @@ export default function LawyersPage() {
         );
         if (selectedLawyer?.id === id)
           setSelectedLawyer((prev) => (prev ? { ...prev, isBlock: true } : prev));
-
       } else if (type === "Unblock") {
         await unBlockLawyer(id);
         showToast("success", "Lawyer unblocked successfully.");
@@ -103,7 +73,6 @@ export default function LawyersPage() {
         );
         if (selectedLawyer?.id === id)
           setSelectedLawyer((prev) => (prev ? { ...prev, isBlock: false } : prev));
-
       } else if (type === "Approve") {
         await approveLawyer(id, email!);
         showToast("success", "Lawyer approved successfully.");
@@ -119,7 +88,6 @@ export default function LawyersPage() {
             ? { ...prev, isAdminVerified: true, verificationStatus: "Approved" }
             : prev
         );
-
       } else if (type === "Reject") {
         await rejectLawyer(id, email!, reason);
         showToast("warning", "Lawyer rejected successfully.");
@@ -309,11 +277,15 @@ export default function LawyersPage() {
 
                 <button
                   onClick={() =>
-                    handleAction(selectedLawyer.isBlock ? "Unblock" : "Block", selectedLawyer.id)
+                    setShowActionModal({
+                      isOpen: true,
+                      type: selectedLawyer.isBlock ? "Unblock" : "Block",
+                      lawyer: selectedLawyer
+                    })
                   }
                   className={`px-4 py-2 rounded-lg ${selectedLawyer.isBlock
-                      ? "bg-green-500 hover:bg-green-600 text-white"
-                      : "bg-red-500 hover:bg-red-600 text-white"
+                    ? "bg-green-500 hover:bg-green-600 text-white"
+                    : "bg-red-500 hover:bg-red-600 text-white"
                     }`}
                 >
                   {selectedLawyer.isBlock ? "Unblock" : "Block"}
@@ -329,7 +301,9 @@ export default function LawyersPage() {
                     </button>
 
                     <button
-                      onClick={() => handleAction("Approve", selectedLawyer.id, selectedLawyer.email)}
+                      onClick={() =>
+                        setShowActionModal({ isOpen: true, type: "Approve", lawyer: selectedLawyer })
+                      }
                       className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
                     >
                       Approve
@@ -341,7 +315,7 @@ export default function LawyersPage() {
           </div>
         )}
 
-        {/*  Reject Modal */}
+        {/* Reject Modal */}
         {showRejectModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
             <div className="bg-white rounded-lg shadow-xl w-[500px] p-6">
@@ -368,6 +342,50 @@ export default function LawyersPage() {
                   className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
                 >
                   Confirm Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Action Modal (Block/Unblock/Approve) */}
+        {showActionModal.isOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
+            <div className="bg-white rounded-lg shadow-xl w-[450px] p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`p-2 rounded-full ${showActionModal.type === "Block" ? "bg-red-100 text-red-600" :
+                  showActionModal.type === "Approve" ? "bg-green-100 text-green-600" :
+                    "bg-blue-100 text-blue-600"
+                  }`}>
+                  {showActionModal.type === "Block" ? <LockIcon size={20} /> :
+                    showActionModal.type === "Approve" ? <CheckCircleIcon size={20} /> :
+                      <UnlockIcon size={20} />}
+                </div>
+                <h2 className="text-lg font-semibold">{showActionModal.type} Lawyer?</h2>
+              </div>
+              <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+                {showActionModal.type === "Block" && "Are you sure you want to block this lawyer? They will lose access to their account immediately."}
+                {showActionModal.type === "Unblock" && "Confirm unblocking this lawyer. They will regain access to their account."}
+                {showActionModal.type === "Approve" && "Are you sure you want to approve this lawyer's verification request?"}
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowActionModal({ isOpen: false, type: "", lawyer: null })}
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleAction(showActionModal.type, showActionModal.lawyer!.id, showActionModal.lawyer!.email);
+                    setShowActionModal({ isOpen: false, type: "", lawyer: null });
+                  }}
+                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium ${showActionModal.type === "Block" ? "bg-red-600 hover:bg-red-700" :
+                    showActionModal.type === "Approve" ? "bg-green-600 hover:bg-green-700" :
+                      "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                >
+                  Confirm {showActionModal.type}
                 </button>
               </div>
             </div>

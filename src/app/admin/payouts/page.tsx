@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { fetchPendingPayouts, approvePayout } from '@/service/adminService';
+import { blockLawyer, unBlockLawyer } from '@/service/lawyerService';
 import { showToast } from '@/utils/alerts';
-import { CheckCircle, XCircle, Clock, DollarSign, User, ShieldCheck } from 'lucide-react';
+import { confirmAction } from '@/utils/confirmAction';
+import { CheckCircle as CheckCircleIcon, XCircle, Clock, DollarSign, User, ShieldCheck, Lock as LockIcon, Unlock as UnlockIcon } from 'lucide-react';
 
 interface PendingPayout {
     id: string;
@@ -12,6 +14,8 @@ interface PendingPayout {
     amount: number;
     status: 'pending' | 'approved' | 'rejected';
     requestDate: string;
+    isBlock?: boolean;
+    email?: string;
 }
 
 const AdminPayoutsPage = () => {
@@ -35,7 +39,14 @@ const AdminPayoutsPage = () => {
     }, []);
 
     const handleApprove = async (id: string) => {
-        if (!confirm('Are you sure you want to approve this payout? Commission will be deducted automatically.')) return;
+        const confirmed = await confirmAction(
+            'Approve Payout Request?',
+            'Are you sure you want to approve this withdrawal? Commission will be calculated and deducted automatically.',
+            'Yes, Approve',
+            'success'
+        );
+
+        if (!confirmed) return;
 
         setActionLoading(id);
         try {
@@ -44,6 +55,36 @@ const AdminPayoutsPage = () => {
             fetchData();
         } catch (error: any) {
             showToast('error', error.message || 'Approval failed');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleBlockAction = async (payout: PendingPayout) => {
+        const isCurrentlyBlocked = payout.isBlock;
+        const type = isCurrentlyBlocked ? "Unblock" : "Block";
+
+        const confirmed = await confirmAction(
+            `${type} Lawyer?`,
+            `Are you sure you want to ${type.toLowerCase()} this lawyer? ${isCurrentlyBlocked ? "They will regain access." : "They will lose access to their account."}`,
+            `Yes, ${type}`,
+            "warning"
+        );
+
+        if (!confirmed) return;
+
+        setActionLoading(payout.id);
+        try {
+            if (isCurrentlyBlocked) {
+                await unBlockLawyer(payout.lawyerId);
+                showToast("success", "Lawyer unblocked successfully.");
+            } else {
+                await blockLawyer(payout.lawyerId);
+                showToast("success", "Lawyer blocked successfully.");
+            }
+            fetchData();
+        } catch (error: any) {
+            showToast("error", `Failed to ${type.toLowerCase()} lawyer.`);
         } finally {
             setActionLoading(null);
         }
@@ -93,6 +134,7 @@ const AdminPayoutsPage = () => {
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Requested Date</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lawyer</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Account Status</th>
                                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
@@ -120,17 +162,41 @@ const AdminPayoutsPage = () => {
                                                 ₹{p.amount.toLocaleString()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                                            <button
-                                                onClick={() => handleApprove(p.id)}
-                                                disabled={!!actionLoading}
-                                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 mx-auto"
-                                            >
-                                                {actionLoading === p.id ? (
-                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                ) : <CheckCircle size={16} />}
-                                                Approve
-                                            </button>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {p.isBlock ? (
+                                                <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-bold w-fit border border-red-100 dark:border-red-900/30">
+                                                    <LockIcon size={12} /> Blocked
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-full text-xs font-bold w-fit border border-emerald-100 dark:border-emerald-900/30">
+                                                    <UnlockIcon size={12} /> Active
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleApprove(p.id)}
+                                                    disabled={!!actionLoading}
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2"
+                                                >
+                                                    {actionLoading === p.id ? (
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    ) : <CheckCircleIcon size={16} />}
+                                                    Approve
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleBlockAction(p)}
+                                                    disabled={!!actionLoading}
+                                                    title={p.isBlock ? "Unblock Lawyer" : "Block Lawyer"}
+                                                    className={`p-2 rounded-lg border transition-all ${p.isBlock
+                                                        ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
+                                                        : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"}`}
+                                                >
+                                                    {p.isBlock ? <UnlockIcon size={18} /> : <LockIcon size={18} />}
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
