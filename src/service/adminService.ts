@@ -131,9 +131,10 @@ export const fetchPayments = async (filters: PaymentFilters) => {
   }
 };
 
-export const fetchDashboardStats = async () => {
+export const fetchDashboardStats = async (startDate?: string, endDate?: string) => {
   try {
     const response = await axios.get(`${BASE_URL}${API_ROUTES.ADMIN.DASHBOARD_STATS}`, {
+      params: { startDate, endDate },
       withCredentials: true
     });
     return response.data;

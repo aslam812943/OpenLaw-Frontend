@@ -7,12 +7,14 @@ interface BookingStatusChartProps {
         cancelled: number;
         pending: number;
         rejected: number;
+        confirmed: number;
     };
 }
 
 export const BookingStatusChart: React.FC<BookingStatusChartProps> = ({ data }) => {
     const chartData = [
         { name: 'Completed', value: data.completed, color: '#10b981' },
+        { name: 'Confirmed', value: data.confirmed, color: '#3b82f6' },
         { name: 'Cancelled', value: data.cancelled, color: '#f43f5e' },
         { name: 'Pending', value: data.pending, color: '#f59e0b' },
         { name: 'Rejected', value: data.rejected, color: '#64748b' },
