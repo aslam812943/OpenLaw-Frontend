@@ -131,6 +131,17 @@ export const fetchPayments = async (filters: PaymentFilters) => {
   }
 };
 
+export const fetchDashboardStats = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.ADMIN.DASHBOARD_STATS}`, {
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || error;
+  }
+};
+
 export const fetchPendingPayouts = async () => {
   try {
     const response = await axios.get(`${BASE_URL}${API_ROUTES.ADMIN.PAYOUT_PENDING}`, {

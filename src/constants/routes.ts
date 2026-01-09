@@ -16,7 +16,8 @@ export const API_ROUTES = {
     LOGOUT_ADMIN: '/api/admin/logout',
     PAYMENTS: '/api/admin/payments',
     PAYOUT_PENDING: '/api/admin/payout/pending',
-    APPROVE_PAYOUT: (id: string) => `/api/admin/payout/${id}/approve`
+    APPROVE_PAYOUT: (id: string) => `/api/admin/payout/${id}/approve`,
+    DASHBOARD_STATS: "/api/admin/dashboard/stats"
   },
 
   USER: {
