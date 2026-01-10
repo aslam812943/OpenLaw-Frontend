@@ -16,7 +16,8 @@ export const API_ROUTES = {
     LOGOUT_ADMIN: '/api/admin/logout',
     PAYMENTS: '/api/admin/payments',
     PAYOUT_PENDING: '/api/admin/payout/pending',
-    APPROVE_PAYOUT: (id: string) => `/api/admin/payout/${id}/approve`
+    APPROVE_PAYOUT: (id: string) => `/api/admin/payout/${id}/approve`,
+    DASHBOARD_STATS: "/api/admin/dashboard/stats"
   },
 
   USER: {
@@ -58,7 +59,8 @@ export const API_ROUTES = {
     GET_CASES: '/api/lawyer/cases',
     GET_EARNINGS: '/api/lawyer/earnings',
     REQUEST_PAYOUT: '/api/lawyer/payout/request',
-    PAYOUT_HISTORY: '/api/lawyer/payout/history'
+    PAYOUT_HISTORY: '/api/lawyer/payout/history',
+    DASHBOARD_STATS: '/api/lawyer/dashboard/stats'
   },
   CHAT: {
     CHECK_ACCESS: (lawyerId: string) => `/api/user/chat/access/${lawyerId}`,
