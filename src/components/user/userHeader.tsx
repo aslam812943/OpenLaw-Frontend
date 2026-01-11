@@ -33,7 +33,7 @@ const UserHeader: React.FC = () => {
         showToast("error", result.message);
       }
     } catch (error) {
-      console.error("Logout error:", error);
+    
       showToast("error", "Logout failed. Please try again later.");
     }
   };
@@ -74,7 +74,7 @@ const UserHeader: React.FC = () => {
           <div className="hidden md:flex items-center gap-4">
             {/* Consultation Button */}
             <Link
-              href="/consultation"
+              href="/user/bookings"
               className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
             >
               Consultation
@@ -113,7 +113,7 @@ const UserHeader: React.FC = () => {
                       <div className="p-2 space-y-1">
                         {[
                           { label: "Profile", href: "/user/profile", icon: User },
-                          { label: "My Bookings", href: "/bookings", icon: FileText },
+                          { label: "My Bookings", href: "/user/bookings", icon: FileText },
                           { label: "Messages", href: "/user/chat", icon: MessageSquare }
                         ].map((item) => (
                           <Link
@@ -201,7 +201,7 @@ const UserHeader: React.FC = () => {
 
                   {[
                     { label: "Profile", href: "/user/profile", icon: User },
-                    { label: "My Bookings", href: "/bookings", icon: FileText },
+                    { label: "My Bookings", href: "/user/bookings", icon: FileText },
                     { label: "Messages", href: "/user/chat", icon: MessageSquare }
                   ].map((item) => (
                     <Link

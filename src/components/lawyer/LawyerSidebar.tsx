@@ -13,7 +13,8 @@ import {
   X,
   LogOut,
   ChevronRight,
-  Star
+  Star,
+  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from "next/navigation";
@@ -35,8 +36,8 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active, onClick,
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 relative group truncate ${active
-        ? 'bg-teal-500/10 text-teal-500 shadow-[inset_0_0_0_1px_rgba(20,184,166,0.1)]'
-        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+        ? 'bg-teal-500/10 text-white shadow-[inset_0_0_0_1px_rgba(20,184,166,0.1)]'
+        : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
         }`}
     >
       {active && (
@@ -82,6 +83,7 @@ const Sidebar: React.FC = () => {
     { icon: <Calendar size={20} />, label: 'Appointments', path: '/lawyer/appointments' },
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/lawyer/chat' },
     { icon: <Star size={20} />, label: 'Reviews', path: '/lawyer/reviews' },
+    { icon: <Zap size={20} />, label: 'Subscriptions', path: '/lawyer/subscriptions' },
     { icon: <FileText size={20} />, label: 'Documents', path: '/lawyer/documents' },
     { icon: <DollarSign size={20} />, label: 'Earnings', path: '/lawyer/earnings' },
     { icon: <BarChart3 size={20} />, label: 'Reports', path: '/lawyer/reports' },

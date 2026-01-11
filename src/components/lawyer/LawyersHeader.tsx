@@ -62,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({
           </motion.div>
           <div className="hidden sm:block">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Legal<span className="text-teal-600">Connect</span>
+              Open<span className="text-teal-600">Law</span>
             </h1>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PRO DASHBOARD</p>
           </div>
