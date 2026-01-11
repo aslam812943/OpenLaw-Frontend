@@ -24,6 +24,7 @@ interface CurrentSubscription {
     price: number;
     commissionPercent: number;
     isActive: boolean;
+    expiryDate?: string;
 }
 
 const SubscriptionsPage = () => {
@@ -60,7 +61,7 @@ const SubscriptionsPage = () => {
     const handleSubscribe = async (plan: SubscriptionPlan) => {
         try {
             setProcessingId(plan.id);
-     
+
             const profileData = await import('@/service/lawyerService').then(m => m.getprofile());
 
             if (!profileData?.data) {
@@ -77,7 +78,7 @@ const SubscriptionsPage = () => {
             );
 
             if (response && response.url) {
-                
+
                 window.location.href = response.url;
             } else {
                 throw new Error("Invalid checkout session URL");
@@ -97,6 +98,8 @@ const SubscriptionsPage = () => {
             </div>
         );
     }
+
+
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 p-6 md:p-8 font-sans">
@@ -124,6 +127,11 @@ const SubscriptionsPage = () => {
                                 <span className="px-3 py-1 rounded-full bg-teal-500/20 text-teal-400 text-xs font-bold uppercase tracking-wider border border-teal-500/20">
                                     Active Plan
                                 </span>
+                                {currentSubscription.expiryDate && (
+                                    <span className="text-slate-400 text-sm">
+                                        Expires on: <span className="text-teal-400 font-semibold">{new Date(currentSubscription.expiryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                    </span>
+                                )}
                             </div>
                             <h2 className="text-2xl font-bold text-white mb-2">{currentSubscription.planName}</h2>
                             <p className="text-slate-400">
@@ -148,6 +156,15 @@ const SubscriptionsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {plans.map((plan, index) => {
                     const isCurrent = currentSubscription?.id === plan.id;
+                    const getMonths = (duration: number, unit: string) => {
+                        return unit === 'year' ? duration * 12 : duration;
+                    };
+
+                    const currentMonths = currentSubscription ? getMonths(currentSubscription.duration, currentSubscription.durationUnit) : 0;
+                    const planMonths = getMonths(plan.duration, plan.durationUnit);
+
+                    const isDowngrade = currentMonths > 0 && planMonths < currentMonths;
+                    const isDisabled = isCurrent || !!processingId || isDowngrade;
 
                     return (
                         <motion.div
@@ -155,10 +172,12 @@ const SubscriptionsPage = () => {
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            whileHover={{ y: -8 }}
+                            whileHover={{ y: isDowngrade ? 0 : -8 }}
                             className={`relative bg-slate-900/50 backdrop-blur-sm border rounded-2xl p-8 flex flex-col h-full transition-all duration-300 ${isCurrent
                                 ? 'border-teal-500/50 shadow-[0_0_30px_rgba(20,184,166,0.1)]'
-                                : 'border-slate-800 hover:border-slate-700 hover:bg-slate-900'
+                                : isDowngrade
+                                    ? 'border-slate-800 opacity-60'
+                                    : 'border-slate-800 hover:border-slate-700 hover:bg-slate-900'
                                 }`}
                         >
                             {isCurrent && (
@@ -190,22 +209,33 @@ const SubscriptionsPage = () => {
                                 </li>
                             </ul>
 
-                            <button
-                                onClick={() => !isCurrent && handleSubscribe(plan)}
-                                disabled={isCurrent || !!processingId}
-                                className={`w-full py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${isCurrent
-                                    ? 'bg-slate-800 text-slate-500 cursor-default'
-                                    : 'bg-teal-500 text-slate-950 hover:bg-teal-400 active:scale-95 shadow-lg shadow-teal-500/20'
-                                    }`}
-                            >
-                                {processingId === plan.id ? (
-                                    <div className="h-5 w-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                                ) : isCurrent ? (
-                                    <>Active Plan</>
-                                ) : (
-                                    <>Select Plan</>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={() => !isDisabled && handleSubscribe(plan)}
+                                    disabled={isDisabled}
+                                    className={`w-full py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${isCurrent
+                                        ? 'bg-slate-800 text-slate-500 cursor-default'
+                                        : isDowngrade
+                                            ? 'bg-slate-800/50 text-slate-600 cursor-not-allowed border border-slate-800'
+                                            : 'bg-teal-500 text-slate-950 hover:bg-teal-400 active:scale-95 shadow-lg shadow-teal-500/20'
+                                        }`}
+                                >
+                                    {processingId === plan.id ? (
+                                        <div className="h-5 w-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                                    ) : isCurrent ? (
+                                        <>Active Plan</>
+                                    ) : isDowngrade ? (
+                                        <>Unavailable</>
+                                    ) : (
+                                        <>Select Plan</>
+                                    )}
+                                </button>
+                                {isDowngrade && (
+                                    <p className="text-xs text-red-400/80 text-center flex items-center justify-center gap-1">
+                                        <AlertCircle size={12} /> Cannot switch to shorter duration
+                                    </p>
                                 )}
-                            </button>
+                            </div>
                         </motion.div>
                     );
                 })}
