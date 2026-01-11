@@ -47,7 +47,7 @@ export default function SuccessPage() {
                 }
             })
             .catch((err: any) => {
-                console.error('Booking confirmation error:', err);
+              
                 const message = err.response?.data?.message || err.message || 'Failed to confirm booking';
                 setErrorMessage(message);
                 setStatus('error');
@@ -195,7 +195,7 @@ export default function SuccessPage() {
                             {/* Action Buttons */}
                             <div className="flex flex-col sm:flex-row gap-3 pt-4">
                                 <button
-                                    onClick={() => router.push('/user/appointments')}
+                                    onClick={() => router.push('/user/bookings')}
                                     className="flex-1 bg-[#00b33c] hover:bg-[#00a033] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                                 >
                                     View My Appointments
