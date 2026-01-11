@@ -715,6 +715,13 @@ export default function LawyersSinglePage() {
                   </div>
                 )}
 
+                {selectedTime && (
+                  <div className="mt-6 mb-4 p-4 bg-teal-50 border border-teal-100 rounded-xl flex justify-between items-center animate-fadeIn">
+                    <span className="text-slate-600 font-medium">Consultation Fee</span>
+                    <span className="text-xl font-bold text-teal-700">₹{consultationFee}</span>
+                  </div>
+                )}
+
                 <div className="mt-8 pt-6 border-t border-slate-200">
                   <button
                     disabled={!selectedDate || !selectedTime}

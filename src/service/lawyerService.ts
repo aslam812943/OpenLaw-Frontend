@@ -397,12 +397,25 @@ export const updateAppointmentStatus = async (id: string, status: string) => {
 
 export const checksubscription = async () => {
   try {
-    let response = await axios.get(`${BASE_URL},${API_ROUTES.LAWYER.CHECKSUBSCRIPTION}`, { withCredentials: true },)
+    let response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.CHECKSUBSCRIPTION}`, { withCredentials: true },)
     return response
   } catch (error) {
     console.log(error)
   }
 }
+
+export const getCurrentSubscription = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.CURRENT_SUBSCRIPTION}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error: any) {
+    const msg = error.response?.data?.message || "Failed to fetch current subscription.";
+    console.error(msg);
+    return null;
+  }
+};
 
 export const getSubscriptionPlans = async () => {
   try {

@@ -86,7 +86,7 @@ const LawyerLandingPage = () => {
       </section>
 
       {/* How it Works */}
-      <div className="w-full min-h-[500px] sm:min-h-[600px] bg-teal-600 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-['Montserrat']">
+      <div className="w-full min-h-[500px] sm:min-h-[600px] bg-teal-700 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-['Montserrat']">
         <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
 
           {/* Left Side - Stats & Clock */}
@@ -166,10 +166,10 @@ const LawyerLandingPage = () => {
               <div className="flex flex-col items-center justify-center">
                 <div className="flex -space-x-4 mb-4">
                   <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm bg-gray-200">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" className="w-full h-full object-cover" />
+                    <img src="/laweyrGirl20.jpg" alt="User" className="w-full h-full object-cover" />
                   </div>
                   <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm bg-gray-200">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" alt="User" className="w-full h-full object-cover" />
+                    <img src="/profile.jpg" alt="User" className="w-full h-full object-cover" />
                   </div>
                 </div>
 

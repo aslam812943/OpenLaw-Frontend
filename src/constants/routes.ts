@@ -52,6 +52,7 @@ export const API_ROUTES = {
     APPOIMENTS: `/api/lawyer/appoiments`,
     APPOIMENTS_UPDATE_STATUS: (id: string) => `/api/lawyer/appoiments/${id}/status`,
     CHECKSUBSCRIPTION: `/api/lawyer/checksubscription`,
+    CURRENT_SUBSCRIPTION: `/api/lawyer/subscription/current`,
     SUBSCRIPTIONS: `/api/lawyer/subscriptions`,
     SUBSCRIPTION_CHECKOUT: `/api/lawyer/subscription/checkout`,
     SUBSCRIPTION_SUCCESS: `/api/lawyer/subscription/success`,

@@ -125,7 +125,7 @@ export default function MyGlobe() {
 
           <div className="flex flex-wrap items-center gap-4">
             <button className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-3 rounded-lg shadow-lg shadow-teal-500/40 transition-all">
-              Find a lawyer near you
+              Find a lawyer 
             </button>
             <span className="text-xs md:text-sm text-slate-400">
               Available 24/7 in major cities and growing every day.

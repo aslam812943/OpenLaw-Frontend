@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getSubscriptionPlans, createSubscriptionCheckout, getprofile } from "@/service/lawyerService";
 import { useRouter } from "next/navigation";
+import { showToast } from "@/utils/alerts";
 
 interface Subscription {
     id: string;
@@ -14,7 +15,6 @@ interface Subscription {
 const SubscriptionPlans: React.FC = () => {
     const [plans, setPlans] = useState<Subscription[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const router = useRouter();
 
@@ -25,10 +25,10 @@ const SubscriptionPlans: React.FC = () => {
                 if (response.status) {
                     setPlans(response.data);
                 } else {
-                    setError("Failed to load plans.");
+                    showToast("error", "Failed to load plans.");
                 }
             } catch (err: any) {
-                setError(err.message || "An error occurred.");
+                showToast("error", err.message || "An error occurred.");
             } finally {
                 setLoading(false);
             }
@@ -45,7 +45,7 @@ const SubscriptionPlans: React.FC = () => {
             const lawyer = profileRes?.data;
 
             if (!lawyer) {
-                alert("Could not fetch lawyer details. Please try logging in again.");
+                showToast("error", "Could not fetch lawyer details. Please try logging in again.");
                 return;
             }
 
@@ -60,19 +60,18 @@ const SubscriptionPlans: React.FC = () => {
             if (response.success && response.url) {
                 router.push(response.url);
             } else {
-                alert("Failed to initiate checkout");
+                showToast("error", "Failed to initiate checkout");
             }
 
         } catch (err: any) {
             console.error(err);
-            alert(err.message || "Checkout failed");
+            showToast("error", err.message || "Checkout failed");
         } finally {
             setProcessingId(null);
         }
     };
 
     if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
-    if (error) return <div className="text-red-500 text-center mt-10">{error}</div>;
 
     return (
         <div className="bg-gray-50 min-h-screen py-10 px-4">
