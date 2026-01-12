@@ -40,13 +40,13 @@ const defaultItems: SidebarItem[] = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
   { id: 'user-management', label: 'User Management', href: '/admin/users', icon: <Users size={20} /> },
   { id: 'lawyer-management', label: 'Lawyer Management', href: '/admin/lawyers', icon: <Briefcase size={20} /> },
-  { id: 'appointments', label: 'Appointments Management', href: '/admin/appointments', icon: <Calendar size={20} /> },
+  // { id: 'appointments', label: 'Appointments Management', href: '/admin/appointments', icon: <Calendar size={20} /> },
   { id: 'payments', label: 'Payments & Transactions', href: '/admin/payments', icon: <DollarSign size={20} /> },
   { id: 'payouts', label: 'Payout Requests', href: '/admin/payouts', icon: <DollarSign size={20} /> },
-  { id: 'reports', label: 'Reports & Complaints', href: '/admin/reports', icon: <FileText size={20} /> },
+  // { id: 'reports', label: 'Reports & Complaints', href: '/admin/reports', icon: <FileText size={20} /> },
   { id: 'subscriptions', label: "Subscriptions", href: '/admin/subscription', icon: <Settings size={20} /> },
-  { id: 'notifications', label: 'Notifications & Messaging', href: '/admin/notifications', icon: <Bell size={20} /> },
-  { id: 'settings', label: 'Settings & Security', href: '/admin/settings', icon: <Settings size={20} /> },
+  // { id: 'notifications', label: 'Notifications & Messaging', href: '/admin/notifications', icon: <Bell size={20} /> },
+
 
 ];
 

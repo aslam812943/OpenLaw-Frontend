@@ -84,9 +84,9 @@ const Sidebar: React.FC = () => {
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/lawyer/chat' },
     { icon: <Star size={20} />, label: 'Reviews', path: '/lawyer/reviews' },
     { icon: <Zap size={20} />, label: 'Subscriptions', path: '/lawyer/subscriptions' },
-    { icon: <FileText size={20} />, label: 'Documents', path: '/lawyer/documents' },
+
     { icon: <DollarSign size={20} />, label: 'Earnings', path: '/lawyer/earnings' },
-    { icon: <BarChart3 size={20} />, label: 'Reports', path: '/lawyer/reports' },
+
   ];
 
   return (
