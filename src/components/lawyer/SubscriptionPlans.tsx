@@ -22,7 +22,7 @@ const SubscriptionPlans: React.FC = () => {
         const fetchPlans = async () => {
             try {
                 const response = await getSubscriptionPlans();
-                if (response.status) {
+                if (response.success) {
                     setPlans(response.data);
                 } else {
                     showToast("error", "Failed to load plans.");
@@ -42,7 +42,7 @@ const SubscriptionPlans: React.FC = () => {
         try {
 
             const profileRes = await getprofile();
-            const lawyer = profileRes?.data;
+            const lawyer = profileRes;
 
             if (!lawyer) {
                 showToast("error", "Could not fetch lawyer details. Please try logging in again.");

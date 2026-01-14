@@ -29,7 +29,7 @@ export const fetchSubscriptions = async (): Promise<CommonResponse<any[]>> => {
   return apiClient.get<CommonResponse<any[]>>(API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS);
 };
 
-export const toggleSubscriptionStatus = async (id: string, status: boolean) => {
+export const toggleSubscriptionStatus = async (id: string, status: boolean): Promise<CommonResponse<any>> => {
   return apiClient.patch(`${API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS}/${id}/status`, { status });
 };
 

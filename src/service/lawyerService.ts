@@ -12,7 +12,7 @@ export interface Lawyer {
   practiceAreas: string[];
   languages: string[];
   documentUrls: string[];
-  address?: any; 
+  address?: any;
   city?: string;
   state?: string;
   profileImage?: string;
@@ -42,10 +42,21 @@ export interface CommonResponse<T = any> {
 ============================================================ */
 export const fetchLawyers = async (
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  search?: string,
+  filter?: string,
+  sort?: string
 ): Promise<PaginatedLawyerResponse> => {
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(search && { search }),
+    ...(filter && { filter }),
+    ...(sort && { sort }),
+  });
+
   const response = await apiClient.get<CommonResponse<PaginatedLawyerResponse>>(
-    `${API_ROUTES.ADMIN.FETCH_LAWYERS}?page=${page}&limit=${limit}`
+    `${API_ROUTES.ADMIN.FETCH_LAWYERS}?${queryParams.toString()}`
   );
 
   return {
@@ -152,17 +163,21 @@ export const changePassword = async (oldPassword: string, newPassword: string) =
   return apiClient.put(API_ROUTES.LAWYER.CHANGE_PASSWORD, { oldPassword, newPassword });
 };
 
-export const getallLawyers = async (params?: any) => {
+export const getallLawyers = async (params?: any): Promise<CommonResponse<any>> => {
   try {
-    return await apiClient.get(API_ROUTES.USER.GETALL_LAWYERS, { params });
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.USER.GETALL_LAWYERS, { params });
   } catch (err) {
-    console.error(err);
+    return { success: false, message: "Failed to fetch lawyers", data: [] };
   }
 };
+
+
 
 export const getSingleLawyer = async (id: string): Promise<CommonResponse<Lawyer>> => {
   return apiClient.get<CommonResponse<Lawyer>>(API_ROUTES.USER.SINGLE_LAWYER(id));
 };
+
+
 
 export const getallslots = async (id: string): Promise<CommonResponse<any[]>> => {
   try {
@@ -173,6 +188,8 @@ export const getallslots = async (id: string): Promise<CommonResponse<any[]>> =>
   }
 };
 
+
+
 export const getAppoiments = async (): Promise<CommonResponse<any[]>> => {
   try {
     return await apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.APPOIMENTS);
@@ -182,9 +199,13 @@ export const getAppoiments = async (): Promise<CommonResponse<any[]>> => {
   }
 };
 
+
+
 export const updateAppointmentStatus = async (id: string, status: string): Promise<CommonResponse> => {
   return apiClient.patch<CommonResponse>(API_ROUTES.LAWYER.APPOIMENTS_UPDATE_STATUS(id), { status });
 };
+
+
 
 export const checksubscription = async (): Promise<CommonResponse<any>> => {
   try {
@@ -195,6 +216,8 @@ export const checksubscription = async (): Promise<CommonResponse<any>> => {
   }
 };
 
+
+
 export const getCurrentSubscription = async (): Promise<CommonResponse<any> | null> => {
   try {
     return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.CURRENT_SUBSCRIPTION);
@@ -204,9 +227,12 @@ export const getCurrentSubscription = async (): Promise<CommonResponse<any> | nu
   }
 };
 
-export const getSubscriptionPlans = async () => {
-  return apiClient.get(API_ROUTES.LAWYER.SUBSCRIPTIONS);
+
+
+export const getSubscriptionPlans = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.SUBSCRIPTIONS);
 };
+
 
 export const createSubscriptionCheckout = async (
   lawyerId: string,
@@ -214,7 +240,7 @@ export const createSubscriptionCheckout = async (
   planName: string,
   price: number,
   subscriptionId: string
-) => {
+): Promise<any> => {
   return apiClient.post(API_ROUTES.LAWYER.SUBSCRIPTION_CHECKOUT, {
     lawyerId,
     email,
@@ -224,42 +250,56 @@ export const createSubscriptionCheckout = async (
   });
 };
 
+
+
 export const verifySubscriptionPayment = async (session_id: string) => {
   return apiClient.post(API_ROUTES.LAWYER.SUBSCRIPTION_SUCCESS, { session_id });
 };
 
-export const fetchLawyerReviews = async (id: string) => {
+
+
+export const fetchLawyerReviews = async (id: string): Promise<CommonResponse<any>> => {
   try {
-    return await apiClient.get(API_ROUTES.LAWYER.GET_REVIEWS(id));
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.GET_REVIEWS(id));
   } catch (error: any) {
     console.error(error);
-    return { success: false, data: [] };
+    return { success: false, message: "Failed to fetch reviews", data: [] };
   }
 };
 
-export const getLawyerCases = async () => {
+
+
+export const getLawyerCases = async (): Promise<CommonResponse<any>> => {
   try {
-    return await apiClient.get(API_ROUTES.LAWYER.GET_CASES);
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.GET_CASES);
   } catch (error: any) {
     console.error(error);
-    return { success: false, data: [] };
+    return { success: false, message: "Failed to fetch cases", data: [] };
   }
 };
 
-export const getLawyerEarnings = async () => {
-  return apiClient.get(API_ROUTES.LAWYER.GET_EARNINGS);
+
+
+export const getLawyerEarnings = async (): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.GET_EARNINGS);
 };
+
+
 
 export const requestPayout = async (amount: number) => {
   return apiClient.post(API_ROUTES.LAWYER.REQUEST_PAYOUT, { amount });
 };
 
-export const getPayoutHistory = async () => {
-  return apiClient.get(API_ROUTES.LAWYER.PAYOUT_HISTORY);
+
+
+export const getPayoutHistory = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.PAYOUT_HISTORY);
 };
 
-export const fetchLawyerDashboardStats = async (startDate?: string, endDate?: string) => {
-  return apiClient.get(API_ROUTES.LAWYER.DASHBOARD_STATS, {
+
+
+export const fetchLawyerDashboardStats = async (startDate?: string, endDate?: string): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.DASHBOARD_STATS, {
     params: { startDate, endDate },
   });
 };

@@ -76,7 +76,7 @@ export default function App() {
             availableDays: rule.availableDays || [],
             bufferTime: String(rule.bufferTime),
             slotDuration: String(rule.slotDuration),
-            ConsultationFee: Number(rule.consultationFee),
+            consultationFee: Number(rule.consultationFee),
             maxBookings: String(rule.maxBookings),
             sessionType: rule.sessionType,
             exceptionDays: rule.exceptionDays || []

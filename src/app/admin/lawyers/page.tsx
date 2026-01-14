@@ -13,6 +13,7 @@ import {
 import Pagination from "@/components/common/Pagination";
 import { showToast } from "@/utils/alerts";
 import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable";
+import { FilterBar } from "@/components/admin/shared/ReusableFilterBar";
 import { confirmAction } from "@/utils/confirmAction";
 
 export default function LawyersPage() {
@@ -20,8 +21,11 @@ export default function LawyersPage() {
   const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [limit] = useState(3);
+  const [limit] = useState(10);
   const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
+  const [sort, setSort] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -34,7 +38,7 @@ export default function LawyersPage() {
   const loadLawyers = async (pageNum: number) => {
     try {
       setLoading(true);
-      const { lawyers, total } = await fetchLawyers(pageNum, limit);
+      const { lawyers, total } = await fetchLawyers(pageNum, limit, search, filter, sort);
       setLawyers(lawyers);
       setTotal(total);
     } catch (err: any) {
@@ -46,7 +50,22 @@ export default function LawyersPage() {
 
   useEffect(() => {
     loadLawyers(page);
-  }, [page]);
+  }, [page, search, filter, sort]);
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+    setPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSort(value);
+    setPage(1);
+  };
 
   const totalPages = Math.ceil(total / limit);
 
@@ -195,6 +214,24 @@ export default function LawyersPage() {
 
       >
         <h1 className="text-2xl font-semibold mb-6 text-white">Lawyer Management</h1>
+
+        <FilterBar
+          onSearch={handleSearch}
+          onFilterChange={handleFilterChange}
+          onSortChange={handleSortChange}
+          placeholder="Search lawyers..."
+          filterOptions={[
+            { label: "Active", value: "active" },
+            { label: "Blocked", value: "blocked" },
+            { label: "Approved", value: "approved" },
+            { label: "Rejected", value: "rejected" },
+            { label: "Pending", value: "pending" },
+          ]}
+          sortOptions={[
+            { label: "Most Experienced", value: "experience-desc" },
+            { label: "Least Experienced", value: "experience-asc" },
+          ]}
+        />
 
         <ReusableTable
           columns={columns}

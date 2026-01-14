@@ -43,7 +43,7 @@ const LoginForm = () => {
 
         if (user.role === "lawyer") {
             dispatch(setLawyerData({
-                id: user.id,
+                id: user._id || (user as any).id,
                 email: user.email,
                 name: user.name,
                 phone: user.phone,
@@ -65,7 +65,7 @@ const LoginForm = () => {
             router.replace("/lawyer/dashboard");
         } else if (user.role === "user") {
             dispatch(setUserData({
-                id: user.id,
+                id: user._id || (user as any).id,
                 email: user.email,
                 name: user.name,
                 phone: user.phone as any,
@@ -115,7 +115,6 @@ const LoginForm = () => {
                 return;
             }
 
-            // Map GoogleAuthResponse to CommonResponse<LoginResponse> for processLoginSuccess
             const loginRes: CommonResponse<LoginResponse> = {
                 success: response.success,
                 message: response.message,

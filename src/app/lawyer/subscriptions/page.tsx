@@ -64,10 +64,10 @@ const SubscriptionsPage = () => {
 
             const profileData = await import('@/service/lawyerService').then(m => m.getprofile());
 
-            if (!profileData?.data) {
+            if (!profileData) {
                 throw new Error("Could not fetch user profile");
             }
-            const user = profileData.data;
+            const user = profileData;
 
             const response = await createSubscriptionCheckout(
                 user.id,

@@ -103,7 +103,7 @@ export default function GetProfile() {
                 bio: profileData?.bio || '',
                 consultationFee: profileData?.consultationFee || 0
             })
-            setShowChengePassword(profileData.isPassword)
+            setShowChengePassword(profileData.isPassword || false)
 
 
             const addressArray = profileData?.address || [];

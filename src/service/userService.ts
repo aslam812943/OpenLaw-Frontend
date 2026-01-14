@@ -9,8 +9,16 @@ export interface User {
   role: string;
   isBlock: boolean;
   avatar?: string;
+  profileImage?: string;
   hasSubmittedVerification?: boolean;
   verificationStatus?: string;
+  isPassword?: boolean;
+  Address?: {
+    address?: string;
+    city?: string;
+    pincode?: string;
+    state?: string;
+  };
 }
 
 export interface CommonResponse<T = any> {
@@ -37,8 +45,21 @@ export interface FetchUsersResponse {
   total: number;
 }
 
-export async function fetchUsers(page = 1, limit = 5): Promise<FetchUsersResponse> {
-  return apiClient.get(`${API_ROUTES.ADMIN.FETCH_USERS}?page=${page}&limit=${limit}`);
+export async function fetchUsers(
+  page = 1,
+  limit = 5,
+  search?: string,
+  filter?: string,
+  sort?: string
+): Promise<FetchUsersResponse> {
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(search && { search }),
+    ...(filter && { filter }),
+    ...(sort && { sort }),
+  });
+  return apiClient.get(`${API_ROUTES.ADMIN.FETCH_USERS}?${queryParams.toString()}`);
 }
 
 export const blockUser = async (id: string): Promise<string> => {
@@ -51,7 +72,7 @@ export const unBlockUser = async (id: string): Promise<string> => {
   return response.message;
 };
 
-export const logoutUser = async () => {
+export const logoutUser = async (): Promise<CommonResponse<any>> => {
   return apiClient.post(API_ROUTES.USER.LOGOUT_USER);
 };
 
@@ -129,8 +150,8 @@ export const confirmBooking = async (sessionId: string): Promise<CommonResponse<
   return apiClient.post<CommonResponse<any>>(API_ROUTES.PAYMENT.CONFIRM, { sessionId });
 }
 
-export const getUserAppointments = async (page: number = 1, limit: number = 5) => {
-  return apiClient.get(`${API_ROUTES.USER.GETAPPOINMENT}?page=${page}&limit=${limit}`);
+export const getUserAppointments = async (page: number = 1, limit: number = 5): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(`${API_ROUTES.USER.GETAPPOINMENT}?page=${page}&limit=${limit}`);
 };
 
 export const cancelAppointment = async (id: string, reason: string) => {

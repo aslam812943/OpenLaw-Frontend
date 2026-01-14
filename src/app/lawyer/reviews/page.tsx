@@ -18,7 +18,7 @@ const ReviewsPage = () => {
 
                 const profile = await getprofile();
                 if (profile) {
-                    const id = profile.id || profile._id;
+                    const id = profile.id;
                     setLawyerId(id);
 
                     const reviewsRes = await fetchLawyerReviews(id);

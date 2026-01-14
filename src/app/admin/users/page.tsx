@@ -10,6 +10,7 @@ import { Eye } from "lucide-react";
 import AdminSidebar from "../../../components/AdminSIdeBar";
 import { confirmAction } from "@/utils/confirmAction";
 import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable";
+import { FilterBar } from "@/components/admin/shared/ReusableFilterBar";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<IUser[]>([]);
@@ -18,13 +19,15 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [limit] = useState(5);
-  const [collapsed, setCollapsed] = useState(false);
+  const [limit] = useState(10);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
+  const [sort, setSort] = useState("");
 
   const loadUsers = async (pageNum: number) => {
     try {
       setLoading(true);
-      const response = await fetchUsers(pageNum, limit);
+      const response = await fetchUsers(pageNum, limit, search, filter, sort);
       setUsers(response.users);
       setTotal(response.total);
     } catch (e: any) {
@@ -37,9 +40,24 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     loadUsers(page);
-  }, [page]);
+  }, [page, search, filter, sort]);
 
-  //  Handle Block/Unblock with confirmation (smaller alert)
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+    setPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSort(value);
+    setPage(1);
+  };
+
+  
   const handleAction = async (type: string, id: string) => {
     try {
       const user = users.find((u) => u._id === id);
@@ -124,20 +142,37 @@ export default function AdminUsersPage() {
       >
         <h1 className="text-2xl text-white font-semibold mb-6">User Management</h1>
 
-        {/* ✅ Table */}
-        {/* ✅ Table */}
+      
         {error ? (
           <div className="p-6 text-red-500 text-center">Error: {error}</div>
         ) : (
-          <ReusableTable
-            columns={columns}
-            data={users}
-            isLoading={loading}
-            emptyMessage="No users found."
-          />
+          <>
+            <FilterBar
+              onSearch={handleSearch}
+              onFilterChange={handleFilterChange}
+              onSortChange={handleSortChange}
+              placeholder="Search users..."
+              filterOptions={[
+                { label: "Active", value: "active" },
+                { label: "Blocked", value: "blocked" },
+              ]}
+              sortOptions={[
+                { label: "Newest First", value: "newest" },
+                { label: "Oldest First", value: "oldest" },
+                { label: "Name (A-Z)", value: "name-asc" },
+                { label: "Name (Z-A)", value: "name-desc" },
+              ]}
+            />
+            <ReusableTable
+              columns={columns}
+              data={users}
+              isLoading={loading}
+              emptyMessage="No users found."
+            />
+          </>
         )}
 
-        {/* ✅ Modal */}
+        {/* Modal */}
         {selectedUser && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-[500px] p-6 relative">

@@ -24,7 +24,7 @@ export const getChatRoom = async (lawyerId: string): Promise<CommonResponse<Chat
     return apiClient.post<CommonResponse<ChatRoom>>(API_ROUTES.CHAT.GET_ROOM, { lawyerId });
 };
 
-export const getMessages = async (roomId: string, role: 'user' | 'lawyer' = 'user') => {
+export const getMessages = async (roomId: string, role: 'user' | 'lawyer' = 'user'): Promise<CommonResponse<any[]>> => {
     const endpoint = role === 'user'
         ? API_ROUTES.CHAT.GET_MESSAGES(roomId)
         : API_ROUTES.CHAT.LAWYER_MESSAGES(roomId);
@@ -32,15 +32,15 @@ export const getMessages = async (roomId: string, role: 'user' | 'lawyer' = 'use
     return apiClient.get(endpoint);
 };
 
-export const getUserRooms = async () => {
+export const getUserRooms = async (): Promise<CommonResponse<any>> => {
     return apiClient.get(API_ROUTES.CHAT.USER_ROOMS);
 };
 
-export const getLawyerRooms = async () => {
+export const getLawyerRooms = async (): Promise<CommonResponse<any>> => {
     return apiClient.get(API_ROUTES.CHAT.LAWYER_ROOMS);
 };
 
-export const getRoomById = async (roomId: string, role: 'user' | 'lawyer' = 'user') => {
+export const getRoomById = async (roomId: string, role: 'user' | 'lawyer' = 'user'): Promise<CommonResponse<any>> => {
     const endpoint = role === 'user'
         ? API_ROUTES.CHAT.GET_ROOM_BY_ID(roomId)
         : API_ROUTES.CHAT.LAWYER_GET_ROOM_BY_ID(roomId);
@@ -48,7 +48,7 @@ export const getRoomById = async (roomId: string, role: 'user' | 'lawyer' = 'use
     return apiClient.get(endpoint);
 };
 
-export const uploadFile = async (file: File) => {
+export const uploadFile = async (file: File): Promise<CommonResponse<any>> => {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -59,10 +59,10 @@ export const uploadFile = async (file: File) => {
     });
 };
 
-export const canJoinCall = async (bookingId: string) => {
+export const canJoinCall = async (bookingId: string): Promise<any> => {
     return apiClient.get(API_ROUTES.CHAT.CAN_JOIN_CALL(bookingId));
 };
 
-export const joinCall = async (bookingId: string) => {
+export const joinCall = async (bookingId: string): Promise<CommonResponse<any>> => {
     return apiClient.post(API_ROUTES.CHAT.JOIN_CALL(bookingId), {});
 };
