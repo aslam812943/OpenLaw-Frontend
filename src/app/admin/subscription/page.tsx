@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { createSubscription, fetchSubscriptions, toggleSubscriptionStatus } from '@/service/adminService';
 import { showToast } from '@/utils/alerts';
 import { Plus, List, ArrowLeft, Loader2, DollarSign, Clock, Percent, ShieldCheck, Power, PowerOff } from 'lucide-react';
+import Pagination from '@/components/common/Pagination';
 
 type DurationUnit = 'month' | 'year';
 
@@ -23,8 +24,9 @@ const Subscription = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
-
-  // Form State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 3;
   const [planName, setPlanName] = useState<string>('');
   const [duration, setDuration] = useState<number>(1);
   const [durationUnit, setDurationUnit] = useState<DurationUnit>('month');
@@ -32,15 +34,17 @@ const Subscription = () => {
   const [commissionPercent, setCommissionPercent] = useState<number>(0);
 
   useEffect(() => {
-    loadSubscriptions();
-  }, []);
+    loadSubscriptions(currentPage);
+  }, [currentPage]);
 
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = async (page: number = 1) => {
     try {
       setLoading(true);
-      const res = await fetchSubscriptions();
+      const res = await fetchSubscriptions(page, limit);
       if (res.success) {
-        setPlans(res.data);
+        setPlans(res.data.plans || res.data);
+        setTotalItems(res.data.total || (res.data.length > 0 ? res.data.length : 0));
+        setCurrentPage(page);
       }
     } catch (error: any) {
       showToast('error', error.message || 'Failed to fetch subscriptions');
@@ -56,19 +60,17 @@ const Subscription = () => {
       showToast('warning', 'Plan name is required');
       return;
     }
-
     if (duration <= 0) {
       showToast('warning', 'Duration must be greater than 0');
       return;
     }
 
-    if (price <= 0) {
-      showToast('warning', 'Price must be greater than 0');
+    if (price < 50) {
+      showToast('warning', 'Price must be at least 50');
       return;
     }
-
-    if (commissionPercent < 0 || commissionPercent > 100) {
-      showToast('warning', 'Commission must be between 0 and 100');
+    if (commissionPercent < 0 || commissionPercent > 50) {
+      showToast('warning', 'Commission must be between 0 and 50%');
       return;
     }
 
@@ -136,8 +138,8 @@ const Subscription = () => {
         <button
           onClick={() => setShowForm(!showForm)}
           className={`group relative flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${showForm
-              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-lg shadow-teal-900/20 hover:shadow-teal-900/40 hover:-translate-y-0.5'
+            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-lg shadow-teal-900/20 hover:shadow-teal-900/40 hover:-translate-y-0.5'
             }`}
         >
           {showForm ? (
@@ -180,8 +182,8 @@ const Subscription = () => {
                   disabled={togglingId === plan.id}
                   onClick={() => handleToggleStatus(plan.id, plan.isActive)}
                   className={`p-2 rounded-lg transition-all transform active:scale-95 ${plan.isActive
-                      ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
-                      : 'bg-teal-500/10 text-teal-500 hover:bg-teal-500/20'
+                    ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+                    : 'bg-teal-500/10 text-teal-500 hover:bg-teal-500/20'
                     }`}
                   title={plan.isActive ? 'Deactivate' : 'Activate'}
                 >
@@ -222,6 +224,16 @@ const Subscription = () => {
               </div>
               <h3 className="text-xl font-semibold text-white">No active plans found</h3>
               <p className="text-slate-500 mt-2">Start by creating your first subscription plan.</p>
+            </div>
+          )}
+          {plans.length > 0 && (
+            <div className="col-span-full mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                limit={limit}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             </div>
           )}
         </div>
@@ -281,12 +293,11 @@ const Subscription = () => {
                   </div>
                   <input
                     type="number"
-                    min="0"
                     required
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
                     className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
-                    placeholder="0.00"
+                    placeholder="50.00"
                   />
                 </div>
               </div>
@@ -300,8 +311,6 @@ const Subscription = () => {
                 </div>
                 <input
                   type="number"
-                  min="0"
-                  max="100"
                   required
                   value={commissionPercent}
                   onChange={(e) => setCommissionPercent(Number(e.target.value))}
@@ -309,7 +318,7 @@ const Subscription = () => {
                   placeholder="e.g. 15"
                 />
               </div>
-              <p className="text-xs text-slate-500 ml-1">Percentage taken from lawyer's booking earnings</p>
+              <p className="text-xs text-slate-500 ml-1">Percentage taken from lawyer's booking earnings (Max 50%)</p>
             </div>
 
             <button

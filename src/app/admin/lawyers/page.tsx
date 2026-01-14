@@ -372,7 +372,6 @@ export default function LawyersPage() {
           </div>
         )}
 
-        {/* Action Modal (Block/Unblock/Approve) */}
         {showActionModal.isOpen && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
             <div className="bg-white rounded-lg shadow-xl w-[450px] p-6">

@@ -25,8 +25,10 @@ export const createSubscription = async (data: any): Promise<CommonResponse<any>
   return apiClient.post<CommonResponse<any>>(API_ROUTES.ADMIN.CREATESUBSCRIPTION, data);
 };
 
-export const fetchSubscriptions = async (): Promise<CommonResponse<any[]>> => {
-  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS);
+export const fetchSubscriptions = async (page: number = 1, limit: number = 10): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS, {
+    params: { page, limit },
+  });
 };
 
 export const toggleSubscriptionStatus = async (id: string, status: boolean): Promise<CommonResponse<any>> => {
