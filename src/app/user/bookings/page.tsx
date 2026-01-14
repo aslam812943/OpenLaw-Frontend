@@ -39,8 +39,8 @@ const UserAppointmentsPage = () => {
         try {
             setLoading(true);
             const data = await getUserAppointments(page, limit);
-            setAppointments(data.appointments || []);
-            setTotalItems(data.pagination?.totalItems || 0);
+            setAppointments(data.data?.appointments || []);
+            setTotalItems(data.data?.pagination?.totalItems || 0);
         } catch (error) {
             showToast("error", "Failed to fetch appointments. Please try again.");
         } finally {

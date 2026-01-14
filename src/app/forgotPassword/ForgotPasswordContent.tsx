@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import axios from 'axios';
+import { userForgotPassword } from '@/service/userService';
 import { useRouter } from "next/navigation";
 import { Mail, ChevronLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
@@ -36,7 +36,7 @@ const ForgotPasswordContent = () => {
 
         setLoading(true);
         try {
-            await axios.post('http://localhost:8080/api/user/forget-password', { email });
+            await userForgotPassword(email);
 
             showToast('success', 'Password reset OTP sent! Please check your email.');
             router.push('/resetPassword');
@@ -74,11 +74,11 @@ const ForgotPasswordContent = () => {
                                 alt="Security"
                                 className="w-40 h-auto object-contain"
                                 onError={(e) => {
-                                   
+
                                     e.currentTarget.style.display = 'none';
                                 }}
                             />
-                         
+
                             <Mail className="w-24 h-24 text-teal-200 hidden" />
                         </div>
 

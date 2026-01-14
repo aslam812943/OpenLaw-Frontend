@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { fetchPayments, PaymentFilters } from '../../../service/adminService';
+import { ReusableTable, Column } from '@/components/admin/shared/ReusableTable';
+import Pagination from '@/components/common/Pagination';
 
 interface Payment {
     id: string;
@@ -56,7 +58,46 @@ export default function AdminPaymentsPage() {
         setFilters(prev => ({ ...prev, page: newPage }));
     };
 
-    const totalPages = Math.ceil(total / (filters.limit || 10));
+    const columns: Column<Payment>[] = [
+        {
+            header: "Date",
+            render: (payment) => <span className="text-gray-600">{new Date(payment.date).toLocaleDateString()}</span>
+        },
+        {
+            header: "Transaction ID",
+            render: (payment) => <span className="text-teal-600 font-mono text-sm">{payment.transactionId}</span>
+        },
+        {
+            header: "Type",
+            render: (payment) => (
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${payment.type === 'subscription' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                    {payment.type.toUpperCase()}
+                </span>
+            )
+        },
+        { header: "User", accessor: "userName", render: (p) => p.userName || 'N/A' },
+        { header: "Lawyer", accessor: "lawyerName" },
+        {
+            header: "Amount",
+            render: (payment) => (
+                <span className="font-medium text-gray-900">
+                    {payment.amount} {payment.currency.toUpperCase()}
+                </span>
+            )
+        },
+        {
+            header: "Status",
+            render: (payment) => (
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${payment.status === 'completed' ? 'bg-green-100 text-green-700' :
+                    payment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                    }`}>
+                    {payment.status.toUpperCase()}
+                </span>
+            )
+        }
+    ];
 
     return (
         <div className="p-6 bg-gray-900 min-h-screen text-white">
@@ -111,83 +152,21 @@ export default function AdminPaymentsPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-700 text-gray-300 uppercase text-sm">
-                            <tr>
-                                <th className="p-4">Date</th>
-                                <th className="p-4">Transaction ID</th>
-                                <th className="p-4">Type</th>
-                                <th className="p-4">User</th>
-                                <th className="p-4">Lawyer</th>
-                                <th className="p-4">Amount</th>
-                                <th className="p-4">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-700">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={7} className="p-4 text-center text-gray-400">Loading...</td>
-                                </tr>
-                            ) : payments.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="p-4 text-center text-gray-400">No payments found.</td>
-                                </tr>
-                            ) : (
-                                payments.map((payment) => (
-                                    <tr key={payment.id} className="hover:bg-gray-750 transition">
-                                        <td className="p-4 text-gray-300">{new Date(payment.date).toLocaleDateString()}</td>
-                                        <td className="p-4 text-teal-400 font-mono text-sm">{payment.transactionId}</td>
-                                        <td className="p-4">
-                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${payment.type === 'subscription' ? 'bg-purple-900 text-purple-200' : 'bg-blue-900 text-blue-200'
-                                                }`}>
-                                                {payment.type.toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 text-gray-300">{payment.userName || 'N/A'}</td>
-                                        <td className="p-4 text-gray-300">{payment.lawyerName}</td>
-                                        <td className="p-4 text-white font-medium">
-                                            {payment.amount} {payment.currency.toUpperCase()}
-                                        </td>
-                                        <td className="p-4">
-                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${payment.status === 'completed' ? 'bg-green-900 text-green-200' :
-                                                    payment.status === 'pending' ? 'bg-yellow-900 text-yellow-200' :
-                                                        'bg-red-900 text-red-200'
-                                                }`}>
-                                                {payment.status.toUpperCase()}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <ReusableTable
+                columns={columns}
+                data={payments}
+                isLoading={loading}
+                emptyMessage="No payments found."
+            />
 
             {/* Pagination */}
-            <div className="flex justify-between items-center mt-6">
-                <span className="text-gray-400">
-                    Showing {payments.length} of {total} results
-                </span>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => handlePageChange((filters.page || 1) - 1)}
-                        disabled={(filters.page || 1) <= 1}
-                        className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50 hover:bg-gray-600 transition"
-                    >
-                        Previous
-                    </button>
-                    <span className="px-4 py-2 text-gray-300">Page {filters.page} of {totalPages}</span>
-                    <button
-                        onClick={() => handlePageChange((filters.page || 1) + 1)}
-                        disabled={(filters.page || 1) >= totalPages}
-                        className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50 hover:bg-gray-600 transition"
-                    >
-                        Next
-                    </button>
-                </div>
+            <div className="mt-6">
+                <Pagination
+                    currentPage={filters.page || 1}
+                    totalItems={total}
+                    limit={filters.limit || 10}
+                    onPageChange={handlePageChange}
+                />
             </div>
         </div>
     );

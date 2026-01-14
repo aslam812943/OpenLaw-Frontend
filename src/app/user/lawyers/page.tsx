@@ -87,11 +87,8 @@ const AllLawyers = () => {
         limit,
       });
 
-
-      const list = res?.data?.response?.lawyers;
-      const total = res?.data?.response?.totalCount || 0;
-
-
+      const list = res?.data?.lawyers;
+      const total = res?.data?.totalCount || 0;
 
       if (Array.isArray(list)) {
         setLawyers(list);

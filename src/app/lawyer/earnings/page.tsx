@@ -40,12 +40,12 @@ const EarningsPage = () => {
 
     const fetchData = async () => {
         try {
-            const [earningsData, historyData] = await Promise.all([
+            const [earningsRes, historyRes] = await Promise.all([
                 getLawyerEarnings(),
                 getPayoutHistory()
             ]);
-            setEarnings(earningsData);
-            setPayoutHistory(historyData);
+            if (earningsRes?.success) setEarnings(earningsRes.data);
+            if (historyRes?.success) setPayoutHistory(historyRes.data);
         } catch (error) {
             showToast('error', 'Failed to fetch data');
         } finally {

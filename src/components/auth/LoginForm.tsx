@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { useRouter } from "next/navigation";
-import axios from 'axios';
-import { useDispatch } from 'react-redux';
 import { setUserData } from '../../redux/userSlice';
 import { setLawyerData } from '../../redux/lawyerSlice';
+import { useDispatch } from 'react-redux';
+import { userLogin, userGoogleAuth, CommonResponse, LoginResponse, User } from '@/service/userService';
+import { API_ROUTES } from '@/constants/routes';
 import { showToast } from '@/utils/alerts';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import RoleSelectionModal from '../RoleSelectionModal';
@@ -36,9 +37,9 @@ const LoginForm = () => {
         setLoginErrors(prev => ({ ...prev, [name]: error }));
     };
 
-    const processLoginSuccess = (data: any) => {
+    const processLoginSuccess = (data: CommonResponse<LoginResponse>) => {
         showToast("success", data.message || "Login successful");
-        const { user } = data;
+        const user = data.data?.user;
 
         if (user.role === "lawyer") {
             dispatch(setLawyerData({
@@ -47,7 +48,7 @@ const LoginForm = () => {
                 name: user.name,
                 phone: user.phone,
                 role: user.role,
-                hasSubmittedVerification: user.hasSubmittedVerification
+                hasSubmittedVerification: user.hasSubmittedVerification || false
             }));
 
             if (user.verificationStatus === "Rejected") {
@@ -56,7 +57,7 @@ const LoginForm = () => {
                 return;
             }
 
-            if ( !user.hasSubmittedVerification) {
+            if (!user.hasSubmittedVerification) {
                 router.replace("/lawyer/verification");
                 return;
             }
@@ -67,7 +68,7 @@ const LoginForm = () => {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                phone: user.phone,
+                phone: user.phone as any,
                 role: user.role
             }));
             router.replace("/");
@@ -82,16 +83,11 @@ const LoginForm = () => {
 
         if (emailError || passwordError) return;
 
-        setLoading(true);
         try {
-            const response = await axios.post(
-                "http://localhost:8080/api/user/login",
-                loginForm,
-                { withCredentials: true }
-            );
-            processLoginSuccess(response.data);
+            const response = await userLogin(loginForm);
+            processLoginSuccess(response);
         } catch (err: any) {
-            showToast('error', err.response?.data?.message || 'Login failed');
+            showToast('error', err.message || 'Login failed');
         } finally {
             setLoading(false);
         }
@@ -111,19 +107,24 @@ const LoginForm = () => {
 
     const processGoogleLogin = async (token: string, role?: string) => {
         try {
-            const response = await axios.post(
-                "http://localhost:8080/api/user/google",
-                { token, role },
-                { withCredentials: true }
-            );
+            const response = await userGoogleAuth(token, role);
 
-            if (response.data.needsRoleSelection) {
+            if (response.data?.needsRoleSelection) {
                 setGoogleToken(token);
                 setShowRoleModal(true);
                 return;
             }
 
-            processLoginSuccess(response.data);
+            // Map GoogleAuthResponse to CommonResponse<LoginResponse> for processLoginSuccess
+            const loginRes: CommonResponse<LoginResponse> = {
+                success: response.success,
+                message: response.message,
+                data: {
+                    user: response.data.user as User,
+                }
+            };
+
+            processLoginSuccess(loginRes);
         } catch (error: any) {
             showToast("error", error.response?.data?.message || "Google Login failed");
         }

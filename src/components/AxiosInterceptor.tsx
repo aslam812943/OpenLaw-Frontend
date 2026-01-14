@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import axios from 'axios';
+import { apiInstance } from '@/utils/apiClient';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { showToast } from '@/utils/alerts';
@@ -13,20 +13,20 @@ export default function AxiosInterceptor() {
     const router = useRouter();
 
     useEffect(() => {
-        const interceptor = axios.interceptors.response.use(
+        const interceptor = apiInstance.interceptors.response.use(
             (response) => response,
             (error) => {
                 if (error.response && error.response.status === 403) {
                     const errorMessage = error.response.data?.message;
 
                     if (errorMessage === "Your account has been blocked or disabled.") {
-                    
+
                         dispatch(clearUserData());
                         dispatch(clearLawyerData());
 
-                      
-                        showToast('error',"Your account has been blocked by the admin.")
-                       
+
+                        showToast('error', "Your account has been blocked by the admin.")
+
                         router.push('/login');
                     }
                 }
@@ -34,9 +34,9 @@ export default function AxiosInterceptor() {
             }
         );
 
-     
+
         return () => {
-            axios.interceptors.response.eject(interceptor);
+            apiInstance.interceptors.response.eject(interceptor);
         };
     }, [dispatch, router]);
 

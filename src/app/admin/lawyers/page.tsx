@@ -10,9 +10,9 @@ import {
   approveLawyer,
   rejectLawyer,
 } from "@/service/lawyerService";
-import AdminSidebar from "../../../components/AdminSIdeBar";
 import Pagination from "@/components/common/Pagination";
 import { showToast } from "@/utils/alerts";
+import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable";
 import { confirmAction } from "@/utils/confirmAction";
 
 export default function LawyersPage() {
@@ -38,7 +38,7 @@ export default function LawyersPage() {
       setLawyers(lawyers);
       setTotal(total);
     } catch (err: any) {
-      showToast("error", err.response?.data?.message || "Failed to load lawyers.");
+      showToast("error", err || "Failed to load lawyers.");
     } finally {
       setLoading(false);
     }
@@ -138,6 +138,56 @@ export default function LawyersPage() {
     setRejectReason("");
   };
 
+  const columns: Column<Lawyer>[] = [
+    { header: "Name", accessor: "name", className: "font-medium" },
+    { header: "Email", accessor: "email" },
+    { header: "Phone", accessor: "phone" },
+    { header: "Years", accessor: "yearsOfPractice" },
+    {
+      header: "Practice Area",
+      render: (lawyer) => lawyer.practiceAreas?.[0] || "—",
+    },
+    {
+      header: "Status",
+      render: (lawyer) =>
+        lawyer.verificationStatus === "Approved" ? (
+          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+            Approved
+          </span>
+        ) : lawyer.verificationStatus === "Rejected" ? (
+          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+            Rejected
+          </span>
+        ) : (
+          <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
+            Pending
+          </span>
+        ),
+    },
+    {
+      header: "Blocked",
+      render: (lawyer) =>
+        lawyer.isBlock ? (
+          <span className="text-red-600 font-medium">Blocked</span>
+        ) : (
+          <span className="text-green-600 font-medium">Active</span>
+        ),
+    },
+    {
+      header: "Action",
+      className: "text-center",
+      render: (lawyer) => (
+        <button
+          onClick={() => setSelectedLawyer(lawyer)}
+          className="text-blue-600 hover:text-blue-800"
+          title="View Details"
+        >
+          <Eye size={20} />
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div >
 
@@ -146,85 +196,22 @@ export default function LawyersPage() {
       >
         <h1 className="text-2xl font-semibold mb-6 text-white">Lawyer Management</h1>
 
-        {loading ? (
-          <p className="text-center text-gray-500">Loading lawyers...</p>
-        ) : lawyers.length === 0 ? (
-          <p className="text-center text-gray-500">No lawyers found.</p>
-        ) : (
-          <>
-            <div className="overflow-x-auto bg-white rounded-lg shadow-md">
-              <table className="min-w-full text-sm text-left border-collapse">
-                <thead className="bg-gray-100 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Years</th>
-                    <th className="px-4 py-3">Practice Area</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Blocked</th>
-                    <th className="px-4 py-3 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lawyers.map((lawyer) => (
-                    <tr
-                      key={lawyer.id}
-                      className="border-b hover:bg-gray-50 transition duration-150"
-                    >
-                      <td className="px-4 py-3 font-medium">{lawyer.name}</td>
-                      <td className="px-4 py-3">{lawyer.email}</td>
-                      <td className="px-4 py-3">{lawyer.phone}</td>
-                      <td className="px-4 py-3">{lawyer.yearsOfPractice}</td>
-                      <td className="px-4 py-3">
-                        {lawyer.practiceAreas?.[0] || "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {lawyer.verificationStatus === "Approved" ? (
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                            Approved
-                          </span>
-                        ) : lawyer.verificationStatus === "Rejected" ? (
-                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
-                            Rejected
-                          </span>
-                        ) : (
-                          <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
-                            Pending
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        {lawyer.isBlock ? (
-                          <span className="text-red-600 font-medium">Blocked</span>
-                        ) : (
-                          <span className="text-green-600 font-medium">Active</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => setSelectedLawyer(lawyer)}
-                          className="text-blue-600 hover:text-blue-800"
-                          title="View Details"
-                        >
-                          <Eye size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <ReusableTable
+          columns={columns}
+          data={lawyers}
+          isLoading={loading}
+          emptyMessage="No lawyers found."
+        />
 
-            <div className="mt-6">
-              <Pagination
-                currentPage={page}
-                totalItems={total}
-                limit={limit}
-                onPageChange={(newPage) => setPage(newPage)}
-              />
-            </div>
-          </>
+        {!loading && lawyers.length > 0 && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={page}
+              totalItems={total}
+              limit={limit}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
+          </div>
         )}
 
         {/*  Lawyer Detail Modal */}

@@ -87,8 +87,7 @@ export default function GetProfile() {
 
     const fetchProfile = async () => {
         try {
-            const response = await getprofile();
-            const profileData = response?.data;
+            const profileData = await getprofile();
             setData({
                 barNumber: profileData?.barNumber,
                 barAdmissionDate: profileData?.barAdmissionDate,

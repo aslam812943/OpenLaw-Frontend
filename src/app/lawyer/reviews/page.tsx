@@ -15,14 +15,16 @@ const ReviewsPage = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-             
-                const profileRes = await getprofile();
-                if (profileRes && profileRes.data) {
-                    const id = profileRes.data._id || profileRes.data.id;
+
+                const profile = await getprofile();
+                if (profile) {
+                    const id = profile.id || profile._id;
                     setLawyerId(id);
 
-                    const reviewsData = await fetchLawyerReviews(id);
-                    setReviews(reviewsData || []);
+                    const reviewsRes = await fetchLawyerReviews(id);
+                    if (reviewsRes?.success) {
+                        setReviews(reviewsRes.data || []);
+                    }
                 }
             } catch (error: any) {
                 showToast('error', error.message || 'Failed to load reviews');
@@ -37,7 +39,7 @@ const ReviewsPage = () => {
     if (loading) {
         return (
             <div className="flex h-screen bg-slate-50">
-              
+
                 <div className="flex-1 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
                 </div>
@@ -47,7 +49,7 @@ const ReviewsPage = () => {
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
-           
+
 
             <main className="flex-1 overflow-y-auto">
                 <div className="max-w-7xl mx-auto px-6 py-10">

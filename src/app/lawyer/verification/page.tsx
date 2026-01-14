@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from "react"; 
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { submitVerificationDetails } from "@/service/lawyerService";
 import { RootState } from "@/redux/store";
 import { showToast } from "@/utils/alerts";
 import {
@@ -220,16 +220,10 @@ const LawyerSignup = () => {
       formDataToSend.append("practiceAreas", JSON.stringify(formData.practiceAreas));
       formDataToSend.append("languages", JSON.stringify(formData.languages));
       formDataToSend.append("userId", JSON.stringify(lawyer.id));
-    
+
       files.forEach((file) => formDataToSend.append("documents", file));
 
-      await axios.post(
-  "http://localhost:8080/api/lawyer/verifyDetils",
-  formDataToSend,
-  {
-    withCredentials: true,
-  }
-);
+      await submitVerificationDetails(formDataToSend);
 
       showToast("success", "Verification details submitted successfully!");
       setIsSubmitted(true);
@@ -246,7 +240,7 @@ const LawyerSignup = () => {
     if (isSubmitted) {
       router.push("/lawyer/dashboard");
     }
-  }, [isSubmitted, router]); 
+  }, [isSubmitted, router]);
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 via-white to-green-50">

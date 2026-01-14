@@ -53,11 +53,13 @@ export default function AdminDashboard() {
   const loadStats = async (start?: Date, end?: Date) => {
     try {
       setLoading(true);
-      const data = await fetchDashboardStats(
+      const res = await fetchDashboardStats(
         start?.toISOString(),
         end?.toISOString()
       );
-      setStats(data);
+      if (res?.success) {
+        setStats(res.data);
+      }
     } catch (error: any) {
       showToast("error", "Failed to fetch dashboard statistics");
     } finally {
@@ -98,28 +100,28 @@ export default function AdminDashboard() {
         <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
           <KPICard
             title="Total Platform Revenue"
-            value={`₹${stats.totalRevenue.toLocaleString()}`}
+            value={`₹${(stats.totalRevenue || 0).toLocaleString()}`}
             icon={DollarSign}
             trend={{ value: 12, isUp: true }}
             color="bg-emerald-500/10"
           />
           <KPICard
             title="Commission Earned"
-            value={`₹${stats.totalCommission.toLocaleString()}`}
+            value={`₹${(stats.totalCommission || 0).toLocaleString()}`}
             icon={TrendingUp}
             trend={{ value: 8.4, isUp: true }}
             color="bg-blue-500/10"
           />
           <KPICard
             title="Total Bookings"
-            value={Object.values(stats.bookingStats).reduce((a, b) => a + b, 0)}
+            value={Object.values(stats.bookingStats || {}).reduce((a, b) => a + b, 0)}
             icon={Briefcase}
             description="Across all categories"
             color="bg-purple-500/10"
           />
           <KPICard
             title="Pending Withdrawals"
-            value={`₹${stats.withdrawalStats.pendingWithdrawals.toLocaleString()}`}
+            value={`₹${(stats.withdrawalStats?.pendingWithdrawals || 0).toLocaleString()}`}
             icon={CreditCard}
             description="Awaiting approval"
             color="bg-amber-500/10"

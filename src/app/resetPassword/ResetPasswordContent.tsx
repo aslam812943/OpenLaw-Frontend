@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import axios from 'axios';
+import { userResetPassword } from '@/service/userService';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, CheckCircle, ArrowRight, ChevronLeft, KeyRound } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
@@ -29,7 +29,7 @@ const ResetPasswordContent = () => {
         const { name, value } = e.target;
         setForm({ ...form, [name]: value });
 
-        
+
         let errorMsg = '';
         if (name === 'email') errorMsg = validateEmail(value);
         if (name === 'otp') errorMsg = validateOTP(value);
@@ -38,7 +38,7 @@ const ResetPasswordContent = () => {
         setErrors({ ...errors, [name]: errorMsg });
     };
 
-    
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -57,7 +57,7 @@ const ResetPasswordContent = () => {
 
         setLoading(true);
         try {
-            await axios.post('http://localhost:8080/api/user/reset-password', form);
+            await userResetPassword(form);
 
             showToast('success', 'Password reset successful! Please login with your new password.');
             router.push('/login');

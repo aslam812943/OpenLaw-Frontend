@@ -1,129 +1,68 @@
-import axios from "axios";
-import { API_ROUTES, BASE_URL } from "@/constants/routes";
+import apiClient from "../utils/apiClient";
+import { API_ROUTES } from "@/constants/routes";
+import { CommonResponse } from "./lawyerService";
 
-export const checkChatAccess = async (lawyerId: string) => {
+export interface ChatAccessResponse {
+    hasAccess: boolean;
+}
+
+export interface ChatRoom {
+    id: string;
+
+}
+
+export const checkChatAccess = async (lawyerId: string): Promise<ChatAccessResponse> => {
     try {
-        const response = await axios.get(
-            `${BASE_URL}${API_ROUTES.CHAT.CHECK_ACCESS(lawyerId)}`,
-            { withCredentials: true }
-        );
-        return response.data;
+        const response = await apiClient.get<CommonResponse<ChatAccessResponse>>(API_ROUTES.CHAT.CHECK_ACCESS(lawyerId));
+        return { hasAccess: response?.hasAccess ?? false };
     } catch (error: any) {
-        return { success: false, hasAccess: false };
+        return { hasAccess: false };
     }
 };
 
-export const getChatRoom = async (lawyerId: string) => {
-    try {
-        const response = await axios.post(
-            `${BASE_URL}${API_ROUTES.CHAT.GET_ROOM}`,
-            { lawyerId },
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to get chat room");
-    }
+export const getChatRoom = async (lawyerId: string): Promise<CommonResponse<ChatRoom>> => {
+    return apiClient.post<CommonResponse<ChatRoom>>(API_ROUTES.CHAT.GET_ROOM, { lawyerId });
 };
 
 export const getMessages = async (roomId: string, role: 'user' | 'lawyer' = 'user') => {
-    try {
-        const endpoint = role === 'user'
-            ? API_ROUTES.CHAT.GET_MESSAGES(roomId)
-            : API_ROUTES.CHAT.LAWYER_MESSAGES(roomId);
+    const endpoint = role === 'user'
+        ? API_ROUTES.CHAT.GET_MESSAGES(roomId)
+        : API_ROUTES.CHAT.LAWYER_MESSAGES(roomId);
 
-        const response = await axios.get(
-            `${BASE_URL}${endpoint}`,
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to fetch messages");
-    }
+    return apiClient.get(endpoint);
 };
 
 export const getUserRooms = async () => {
-    try {
-        const response = await axios.get(
-            `${BASE_URL}${API_ROUTES.CHAT.USER_ROOMS}`,
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to fetch chat rooms");
-    }
+    return apiClient.get(API_ROUTES.CHAT.USER_ROOMS);
 };
 
 export const getLawyerRooms = async () => {
-    try {
-        const response = await axios.get(
-            `${BASE_URL}${API_ROUTES.CHAT.LAWYER_ROOMS}`,
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to fetch chat rooms");
-    }
+    return apiClient.get(API_ROUTES.CHAT.LAWYER_ROOMS);
 };
 
 export const getRoomById = async (roomId: string, role: 'user' | 'lawyer' = 'user') => {
-    try {
-        const endpoint = role === 'user'
-            ? API_ROUTES.CHAT.GET_ROOM_BY_ID(roomId)
-            : API_ROUTES.CHAT.LAWYER_GET_ROOM_BY_ID(roomId);
+    const endpoint = role === 'user'
+        ? API_ROUTES.CHAT.GET_ROOM_BY_ID(roomId)
+        : API_ROUTES.CHAT.LAWYER_GET_ROOM_BY_ID(roomId);
 
-        const response = await axios.get(
-            `${BASE_URL}${endpoint}`,
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to fetch room details");
-    }
+    return apiClient.get(endpoint);
 };
 
 export const uploadFile = async (file: File) => {
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
+    const formData = new FormData();
+    formData.append('file', file);
 
-        const response = await axios.post(
-            `${BASE_URL}${API_ROUTES.CHAT.UPLOAD_FILE || '/chat/upload'}`,
-            formData,
-            {
-                withCredentials: true,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to upload file");
-    }
+    return apiClient.post(API_ROUTES.CHAT.UPLOAD_FILE || '/chat/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
 };
+
 export const canJoinCall = async (bookingId: string) => {
-    console.log(bookingId)
-    try {
-        const response = await axios.get(
-            `${BASE_URL}${API_ROUTES.CHAT.CAN_JOIN_CALL(bookingId)}`,
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to check join status");
-    }
+    return apiClient.get(API_ROUTES.CHAT.CAN_JOIN_CALL(bookingId));
 };
 
 export const joinCall = async (bookingId: string) => {
-    try {
-        const response = await axios.post(
-            `${BASE_URL}${API_ROUTES.CHAT.JOIN_CALL(bookingId)}`,
-            {},
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Failed to join call");
-    }
+    return apiClient.post(API_ROUTES.CHAT.JOIN_CALL(bookingId), {});
 };

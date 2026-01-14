@@ -1,113 +1,37 @@
+import apiClient from "../utils/apiClient";
+import { API_ROUTES } from "../constants/routes";
+import { CommonResponse } from "./userService";
 
-import axios from "axios";
-import { API_ROUTES, BASE_URL } from "../constants/routes";
-
-export const adminLogin = async (data: { email: string; password: string }) => {
-  try {
-
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.ADMIN.LOGIN}`,
-      data,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-
-    return response;
-  } catch (error: any) {
-
-    throw error.response?.data || error;
-  }
+export const adminLogin = async (data: { email: string; password: string }): Promise<CommonResponse<any>> => {
+  return apiClient.post<CommonResponse<any>>(API_ROUTES.ADMIN.LOGIN, data);
 };
-
-
-
 
 export const logoutAdmin = async () => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.ADMIN.LOGOUT_ADMIN}`,
-      {},
-      { withCredentials: true }
-    );
-
-
-    if (response.data?.success) {
-      return {
-        success: true,
-        message: response.data.message || "Logged out successfully.",
-      };
-    } else {
-      return {
-        success: false,
-        message: response.data?.message || "Unexpected server response during logout.",
-      };
-    }
-
+    const response: any = await apiClient.post(API_ROUTES.ADMIN.LOGOUT_ADMIN);
+    return {
+      success: true,
+      message: response.message || "Logged out successfully.",
+    };
   } catch (error: any) {
-
-
-
-    if (error.response) {
-
-      return {
-        success: false,
-        message:
-          error.response.data?.message ||
-          `Logout failed with status ${error.response.status}.`,
-      };
-    } else if (error.request) {
-
-      return {
-        success: false,
-        message: "No response from server. Please check your internet connection.",
-      };
-    } else {
-
-      return {
-        success: false,
-        message: error.message || "An unexpected error occurred during logout.",
-      };
-    }
+    return {
+      success: false,
+      message: error.message || "An unexpected error occurred during logout.",
+    };
   }
+};
 
+export const createSubscription = async (data: any): Promise<CommonResponse<any>> => {
+  return apiClient.post<CommonResponse<any>>(API_ROUTES.ADMIN.CREATESUBSCRIPTION, data);
+};
 
-
-
-
-}
-
-
-export const createSubscription = async (data: any) => {
-  try {
-    const response = await axios.post(`${BASE_URL}${API_ROUTES.ADMIN.CREATESUBSCRIPTION}`, data, { withCredentials: true })
-    return response.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
-}
-
-export const fetchSubscriptions = async () => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS}`, { withCredentials: true });
-    return response.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
-}
+export const fetchSubscriptions = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS);
+};
 
 export const toggleSubscriptionStatus = async (id: string, status: boolean) => {
-  try {
-    const response = await axios.patch(`${BASE_URL}${API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS}/${id}/status`, { status }, { withCredentials: true });
-    return response.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
-}
-
-
+  return apiClient.patch(`${API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS}/${id}/status`, { status });
+};
 
 export interface PaymentFilters {
   page?: number;
@@ -119,48 +43,22 @@ export interface PaymentFilters {
   endDate?: string;
 }
 
-export const fetchPayments = async (filters: PaymentFilters) => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.ADMIN.PAYMENTS}`, {
-      params: filters,
-      withCredentials: true
-    });
-    return response.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
+export const fetchPayments = async (filters: PaymentFilters): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.ADMIN.PAYMENTS, {
+    params: filters,
+  });
 };
 
-export const fetchDashboardStats = async (startDate?: string, endDate?: string) => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.ADMIN.DASHBOARD_STATS}`, {
-      params: { startDate, endDate },
-      withCredentials: true
-    });
-    return response.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
+export const fetchDashboardStats = async (startDate?: string, endDate?: string): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.ADMIN.DASHBOARD_STATS, {
+    params: { startDate, endDate },
+  });
 };
 
-export const fetchPendingPayouts = async () => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.ADMIN.PAYOUT_PENDING}`, {
-      withCredentials: true
-    });
-    return response.data.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
+export const fetchPendingPayouts = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.ADMIN.PAYOUT_PENDING);
 };
 
 export const approvePayout = async (id: string) => {
-  try {
-    const response = await axios.patch(`${BASE_URL}${API_ROUTES.ADMIN.APPROVE_PAYOUT(id)}`, {}, {
-      withCredentials: true
-    });
-    return response.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
+  return apiClient.patch(API_ROUTES.ADMIN.APPROVE_PAYOUT(id));
 };

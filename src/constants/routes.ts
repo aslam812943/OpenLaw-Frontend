@@ -21,6 +21,13 @@ export const API_ROUTES = {
   },
 
   USER: {
+    LOGIN: "/api/user/login",
+    REGISTER: "/api/user/register",
+    VERIFY_OTP: "/api/user/verify-otp",
+    RESEND_OTP: "/api/user/resend-otp",
+    GOOGLE_AUTH: "/api/user/google",
+    FORGOT_PASSWORD: "/api/user/forget-password",
+    RESET_PASSWORD: "/api/user/reset-password",
     LOGOUT_USER: `/api/user/logout`,
     GETPROFILE: `/api/user/profile`,
     UPDATE_PROFILE_INFO: "/api/user/profile/update",
@@ -41,6 +48,8 @@ export const API_ROUTES = {
   },
 
   LAWYER: {
+    REGISTER: "/api/lawyer/register",
+    VERIFY_DETAILS: "/api/lawyer/verifyDetils",
     LOGOUT_LAWYER: `/api/lawyer/logout`,
     SCHEDULE_CREATE: '/api/lawyer/schedule/create',
     SCHEDULE_UPDATE: `/api/lawyer/schedule/update`,

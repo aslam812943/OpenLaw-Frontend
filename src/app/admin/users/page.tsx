@@ -9,6 +9,7 @@ import type { IUser } from "@/types/user";
 import { Eye } from "lucide-react";
 import AdminSidebar from "../../../components/AdminSIdeBar";
 import { confirmAction } from "@/utils/confirmAction";
+import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<IUser[]>([]);
@@ -44,17 +45,17 @@ export default function AdminUsersPage() {
       const user = users.find((u) => u._id === id);
       if (!user) return;
 
-    const confirmed = await confirmAction(
-  type === "Block" ? `Block ${user.name}?` : `Unblock ${user.name}?`,
-  type === "Block"
-    ? "Are you sure you want to block this user? They will lose access until unblocked."
-    : "Are you sure you want to unblock this user? They will regain access to their account.",
-  type === "Block" ? "Yes, Block" : "Yes, Unblock",
-  "warning",
-  // type === "Block" ? "#dc2626" : "#10b981"
-);
+      const confirmed = await confirmAction(
+        type === "Block" ? `Block ${user.name}?` : `Unblock ${user.name}?`,
+        type === "Block"
+          ? "Are you sure you want to block this user? They will lose access until unblocked."
+          : "Are you sure you want to unblock this user? They will regain access to their account.",
+        type === "Block" ? "Yes, Block" : "Yes, Unblock",
+        "warning",
+        // type === "Block" ? "#dc2626" : "#10b981"
+      );
 
-if (!confirmed) return;
+      if (!confirmed) return;
 
       if (type === "Block") {
         const response = await blockUser(id);
@@ -88,75 +89,52 @@ if (!confirmed) return;
 
   const totalPages = Math.ceil(total / limit);
 
+  const columns: Column<IUser>[] = [
+    { header: "Name", accessor: "name" },
+    { header: "Email", accessor: "email" },
+    { header: "Phone", accessor: "phone" },
+    {
+      header: "Status",
+      render: (u) =>
+        u.isBlock ? (
+          <span className="text-red-600 font-medium">Blocked</span>
+        ) : (
+          <span className="text-green-600 font-medium">Active</span>
+        ),
+    },
+    {
+      header: "Action",
+      className: "text-center",
+      render: (u) => (
+        <button
+          onClick={() => setSelectedUser(u)}
+          className="text-blue-600 hover:text-blue-800"
+        >
+          <Eye size={20} />
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div>
-     
+
       <div
-     
+
       >
         <h1 className="text-2xl text-white font-semibold mb-6">User Management</h1>
 
         {/* ✅ Table */}
-        {loading ? (
-          <div className="p-6 text-gray-500 text-center">Loading users...</div>
-        ) : error ? (
+        {/* ✅ Table */}
+        {error ? (
           <div className="p-6 text-red-500 text-center">Error: {error}</div>
         ) : (
-          <div className="overflow-x-auto bg-white rounded-lg shadow-md">
-            <table className="min-w-full text-sm text-left border-collapse">
-              <thead className="bg-gray-100 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Phone</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.length > 0 ? (
-                  users.map((u) => (
-                    <tr
-                      key={u._id}
-                      className="border-b hover:bg-gray-50 transition duration-150"
-                    >
-                      <td className="px-4 py-3">{u.name}</td>
-                      <td className="px-4 py-3">{u.email}</td>
-                      <td className="px-4 py-3">{u.phone}</td>
-                      <td className="px-4 py-3">
-                        {u.isBlock ? (
-                          <span className="text-red-600 font-medium">
-                            Blocked
-                          </span>
-                        ) : (
-                          <span className="text-green-600 font-medium">
-                            Active
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => setSelectedUser(u)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Eye size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="p-4 text-center text-gray-500 italic"
-                    >
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <ReusableTable
+            columns={columns}
+            data={users}
+            isLoading={loading}
+            emptyMessage="No users found."
+          />
         )}
 
         {/* ✅ Modal */}
@@ -196,11 +174,10 @@ if (!confirmed) return;
                       selectedUser._id
                     )
                   }
-                  className={`px-4 py-2 rounded-lg ${
-                    selectedUser.isBlock
-                      ? "bg-green-500 hover:bg-green-600 text-white"
-                      : "bg-red-500 hover:bg-red-600 text-white"
-                  }`}
+                  className={`px-4 py-2 rounded-lg ${selectedUser.isBlock
+                    ? "bg-green-500 hover:bg-green-600 text-white"
+                    : "bg-red-500 hover:bg-red-600 text-white"
+                    }`}
                 >
                   {selectedUser.isBlock ? "Unblock" : "Block"}
                 </button>
