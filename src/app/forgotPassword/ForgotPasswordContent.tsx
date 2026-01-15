@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import axios from 'axios';
+import { userForgotPassword } from '@/service/userService';
 import { useRouter } from "next/navigation";
 import { Mail, ChevronLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
@@ -36,7 +36,7 @@ const ForgotPasswordContent = () => {
 
         setLoading(true);
         try {
-            await axios.post('http://localhost:8080/api/user/forget-password', { email });
+            await userForgotPassword(email);
 
             showToast('success', 'Password reset OTP sent! Please check your email.');
             router.push('/resetPassword');
@@ -57,7 +57,6 @@ const ForgotPasswordContent = () => {
                             src="/forgotpassword.png"
                             alt="Background"
                             className="w-full h-full object-cover"
-                        // onError={(e) => e.currentTarget.src = 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=1200&q=80'}
                         />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 opacity-60 z-0"></div>
@@ -74,11 +73,11 @@ const ForgotPasswordContent = () => {
                                 alt="Security"
                                 className="w-40 h-auto object-contain"
                                 onError={(e) => {
-                                   
+
                                     e.currentTarget.style.display = 'none';
                                 }}
                             />
-                         
+
                             <Mail className="w-24 h-24 text-teal-200 hidden" />
                         </div>
 

@@ -67,9 +67,15 @@ export default function LawyersSinglePage() {
       try {
         const response = await getSingleLawyer(`${id}`);
         const reviewsRes = await allReview(`${id}`);
-        setReviews(reviewsRes.data || []);
+        if (reviewsRes?.success) {
+          setReviews(reviewsRes.data || []);
+        }
 
-        setLawyer(response.data as unknown as LawyerData);
+        const lawyerData = response.data;
+        setLawyer(lawyerData as unknown as LawyerData);
+        if (lawyerData?.consultationFee) {
+          setConsultationFee(Number(lawyerData.consultationFee));
+        }
       } catch (error) {
         showToast("error", "Failed to fetch lawyer details");
       } finally {
@@ -134,9 +140,11 @@ export default function LawyersSinglePage() {
   async function fetchslots() {
     const response = await getallslots(`${id}`);
 
-    if (response) {
+    if (response?.success) {
       setSlots(response.data);
-      setConsultationFee(response.data.consultationFee);
+      if (response.data.length > 0) {
+        setConsultationFee(Number(response.data[0].consultationFee));
+      }
       updateCalendar(response.data);
     }
   }

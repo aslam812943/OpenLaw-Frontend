@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from "next/navigation";
-import axios from 'axios';
 import { showToast } from '@/utils/alerts';
+import { userRegister } from '@/service/userService';
+import { lawyerRegister } from '@/service/lawyerService';
 import { Mail, Lock, User, Phone, ArrowRight, Users, Gavel } from 'lucide-react';
 
 // Validation Helpers
@@ -73,7 +74,13 @@ const RegisterForm = () => {
         try {
             localStorage.setItem("registerEmail", registerForm.email);
             const apiData = { ...registerForm, phone: String(registerForm.phone) };
-            await axios.post('http://localhost:8080/api/user/register', apiData);
+
+            if (registerForm.role === 'lawyer') {
+                await lawyerRegister(apiData);
+            } else {
+                await userRegister(apiData);
+            }
+
             showToast('success', 'Registration successful! OTP sent to your email/phone.');
             router.push('/verifyOtp');
         } catch (err: any) {

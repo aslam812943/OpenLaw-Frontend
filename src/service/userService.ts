@@ -1,220 +1,172 @@
+import { API_ROUTES } from "../constants/routes";
+import apiClient from "../utils/apiClient";
 
-import axios from "axios";
-import { API_ROUTES, BASE_URL } from "../constants/routes";
-
-
-
-export async function fetchUsers(page = 1, limit = 5): Promise<any> {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.ADMIN.FETCH_USERS}?page=${page}&limit=${limit}`,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    return response.data;
-
-  } catch (err: any) {
-
-    throw new Error(err.response?.data?.message || "Failed to load users");
-  }
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  isBlock: boolean;
+  avatar?: string;
+  profileImage?: string;
+  hasSubmittedVerification?: boolean;
+  verificationStatus?: string;
+  isPassword?: boolean;
+  Address?: {
+    address?: string;
+    city?: string;
+    pincode?: string;
+    state?: string;
+  };
 }
 
-export const blockUser = async (id: string) => {
-  try {
-    const response = await axios.patch(`${BASE_URL}${API_ROUTES.ADMIN.BLOCK_USERS(id)}`, {}, {
-      withCredentials: true,
-    });
-    return response.data.message;
-  } catch (err) {
-    console.log(err)
-  }
+export interface CommonResponse<T = any> {
+  success: boolean;
+  message: string;
+  data: T;
+}
 
-};
+export interface LoginResponse {
+  user: User;
+  token?: string;
+}
 
-export const unBlockUser = async (id: string) => {
-  const response = await axios.patch(`${BASE_URL}${API_ROUTES.ADMIN.UNBLOCK_USERS(id)}`, {}, {
-    withCredentials: true,
+export interface GoogleAuthResponse {
+  user?: User;
+  needsRoleSelection?: boolean;
+  message?: string;
+}
+
+export interface FetchUsersResponse {
+  success: boolean;
+  message: string;
+  users: User[];
+  total: number;
+}
+
+export async function fetchUsers(
+  page = 1,
+  limit = 5,
+  search?: string,
+  filter?: string,
+  sort?: string
+): Promise<FetchUsersResponse> {
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(search && { search }),
+    ...(filter && { filter }),
+    ...(sort && { sort }),
   });
-  return response.data.message;
+  return apiClient.get(`${API_ROUTES.ADMIN.FETCH_USERS}?${queryParams.toString()}`);
+}
+
+export const blockUser = async (id: string): Promise<string> => {
+  const response = await apiClient.patch<CommonResponse>(API_ROUTES.ADMIN.BLOCK_USERS(id));
+  return response.message;
 };
 
+export const unBlockUser = async (id: string): Promise<string> => {
+  const response = await apiClient.patch<CommonResponse>(API_ROUTES.ADMIN.UNBLOCK_USERS(id));
+  return response.message;
+};
 
+export const logoutUser = async (): Promise<CommonResponse<any>> => {
+  return apiClient.post(API_ROUTES.USER.LOGOUT_USER);
+};
 
-export const logoutUser = async () => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.USER.LOGOUT_USER}`,
-      {},
-      { withCredentials: true }
-    );
+export const getprofile = async (): Promise<User> => {
+  const response = await apiClient.get<CommonResponse<User>>(API_ROUTES.USER.GETPROFILE);
+  return response.data;
+};
 
-    if (response.data?.success) {
-      return {
-        success: true,
-        message: response.data.message || "Logged out successfully.",
-      };
-    } else {
-      return {
-        success: false,
-        message: response.data?.message || "Unexpected server response during logout.",
-      };
+export const updateProfileInfo = async (formData: FormData): Promise<User> => {
+  const response = await apiClient.put<CommonResponse<User>>(
+    API_ROUTES.USER.UPDATE_PROFILE_INFO,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
     }
-
-
-  } catch (error: any) {
-
-
-
-    if (error.response) {
-
-      return {
-        success: false,
-        message:
-          error.response.data?.message ||
-          `Logout failed with status ${error.response.status}.`,
-      };
-    } else if (error.request) {
-
-      return {
-        success: false,
-        message: "No response from server. Please check your internet connection.",
-      };
-    } else {
-
-      return {
-        success: false,
-        message: error.message || "An unexpected error occurred during logout.",
-      };
-    }
-  }
-};
-
-export const getprofile = async () => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.USER.GETPROFILE}`,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    return response.data;
-
-  } catch (error: any) {
-
-    throw new Error(error.response?.data?.message || "Failed to get profile");
-  }
-};
-
-export const updateProfileInfo = async (formData: FormData) => {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}${API_ROUTES.USER.UPDATE_PROFILE_INFO}`,
-      formData,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-    return response.data;
-
-  } catch (error: any) {
-
-    throw new Error(error.response?.data?.message || "Failed to update profile");
-  }
+  );
+  return response.data;
 };
 
 export const changePassword = async (payload: {
   oldPassword: string;
   newPassword: string;
 }) => {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}${API_ROUTES.USER.CHANGE_PASSWORD}`,
-      payload,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    return response.data;
-
-  } catch (error: any) {
-
-    throw new Error(error.response?.data?.message || "Password update failed");
-  }
+  const response = await apiClient.put<CommonResponse>(
+    API_ROUTES.USER.CHANGE_PASSWORD,
+    payload
+  );
+  return response.data;
 };
 
+export const userLogin = async (data: { email: string; password: string }): Promise<CommonResponse<LoginResponse>> => {
+  return apiClient.post(API_ROUTES.USER.LOGIN, data);
+};
 
+export const userRegister = async (data: {
+  name: string;
+  email: string;
+  phone: string;
+  password?: string;
+  role: string;
+}): Promise<CommonResponse> => {
+  return apiClient.post(API_ROUTES.USER.REGISTER, data);
+};
 
-export const handlepayAndBook = async (data: any) => {
-  try {
-    return await axios.post(`${BASE_URL}${API_ROUTES.PAYMENT.PAYMENT}`, data, { withCredentials: true })
-  } catch (error) {
+export const verifyUserOtp = async (data: { email: string, otp: string }): Promise<CommonResponse> => {
+  return apiClient.post(API_ROUTES.USER.VERIFY_OTP, data);
+};
 
-    throw error;
-  }
+export const resendUserOtp = async (email: string): Promise<CommonResponse> => {
+  return apiClient.post(API_ROUTES.USER.RESEND_OTP, { email });
+};
+
+export const userGoogleAuth = async (token: string, role?: string): Promise<CommonResponse<GoogleAuthResponse>> => {
+  return apiClient.post(API_ROUTES.USER.GOOGLE_AUTH, { token, role });
+};
+
+export const userForgotPassword = async (email: string): Promise<CommonResponse> => {
+  return apiClient.post(API_ROUTES.USER.FORGOT_PASSWORD, { email });
+};
+
+export const userResetPassword = async (data: {
+  otp: string;
+  email: string;
+  password?: string;
+  conformpassword?: string;
+}): Promise<CommonResponse> => {
+  return apiClient.post(API_ROUTES.USER.RESET_PASSWORD, data);
+};
+
+export const handlepayAndBook = async (data: any): Promise<CommonResponse<any>> => {
+  return apiClient.post<CommonResponse<any>>(API_ROUTES.PAYMENT.PAYMENT, data);
 }
 
-export const confirmBooking = async (sessionId: string) => {
-  try {
-    const response = await axios.post(`${BASE_URL}${API_ROUTES.PAYMENT.CONFIRM}`, { sessionId }, { withCredentials: true });
-    return response.data;
-  } catch (error) {
-
-    throw error;
-  }
+export const confirmBooking = async (sessionId: string): Promise<CommonResponse<any>> => {
+  return apiClient.post<CommonResponse<any>>(API_ROUTES.PAYMENT.CONFIRM, { sessionId });
 }
 
-
-
-
-export const getUserAppointments = async (page: number = 1, limit: number = 5) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.USER.GETAPPOINMENT}?page=${page}&limit=${limit}`,
-      { withCredentials: true }
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+export const getUserAppointments = async (page: number = 1, limit: number = 5): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(`${API_ROUTES.USER.GETAPPOINMENT}?page=${page}&limit=${limit}`);
 };
 
 export const cancelAppointment = async (id: string, reason: string) => {
-  try {
-    const response = await axios.patch(`${BASE_URL}${API_ROUTES.USER.CANCELAPPOINMENT(id)}`,
-      { reason },
-      { withCredentials: true }
-    );
-
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.patch<CommonResponse>(API_ROUTES.USER.CANCELAPPOINMENT(id), { reason });
+  return response.data;
 };
 
-export const addReview = async (reviewData: { userId: string; lawyerId: string; rating: number; comment: string }) => {
-  try {
-    const response = await axios.post(`${BASE_URL}${API_ROUTES.USER.ADDREVIEW}`, reviewData, {
-      withCredentials: true,
-    });
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to add review");
-  }
+export const addReview = async (reviewData: { userId: string; lawyerId: string; rating: number; comment: string }): Promise<CommonResponse> => {
+  return apiClient.post<CommonResponse>(API_ROUTES.USER.ADDREVIEW, reviewData);
 };
 
-
-export const allReview = async (id: string) => {
+export const allReview = async (id: string): Promise<CommonResponse<any[]>> => {
   try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.USER.GETALLREVIEWS(id)}`, { withCredentials: true })
-    return response.data;
+    return await apiClient.get<CommonResponse<any[]>>(API_ROUTES.USER.GETALLREVIEWS(id));
   } catch (error) {
- 
-    return [];
+    return { success: false, message: "Failed to fetch reviews", data: [] };
   }
 }

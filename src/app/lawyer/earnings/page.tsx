@@ -40,12 +40,12 @@ const EarningsPage = () => {
 
     const fetchData = async () => {
         try {
-            const [earningsData, historyData] = await Promise.all([
+            const [earningsRes, historyRes] = await Promise.all([
                 getLawyerEarnings(),
                 getPayoutHistory()
             ]);
-            setEarnings(earningsData);
-            setPayoutHistory(historyData);
+            if (earningsRes?.success) setEarnings(earningsRes.data);
+            if (historyRes?.success) setPayoutHistory(historyRes.data);
         } catch (error) {
             showToast('error', 'Failed to fetch data');
         } finally {
@@ -96,104 +96,113 @@ const EarningsPage = () => {
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
             <main className="flex-1 overflow-y-auto pb-20">
-                <div className="max-w-7xl mx-auto px-6 py-10">
+                <div className="max-w-7xl mx-auto px-6 py-12">
 
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-emerald-100 rounded-2xl">
-                                <DollarSign className="text-emerald-700" size={28} />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold text-slate-900">Earnings & Payouts</h1>
-                                <p className="text-slate-500 mt-1">Track your revenue and manage withdrawals</p>
-                            </div>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pl-2">
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Earnings & Payouts</h1>
+                            <p className="text-slate-500 text-lg">Track your revenue and manage withdrawals</p>
                         </div>
-                        <button
-                            onClick={() => setWithdrawModalOpen(true)}
-                            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm"
-                        >
-                            <DollarSign size={20} />
-                            Withdraw Funds
-                        </button>
                     </div>
 
-                    {/* Balance Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-emerald-100 rounded-xl">
-                                    <Wallet className="w-6 h-6 text-emerald-600" />
-                                </div>
-                                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Withdrawable Balance</p>
-                            </div>
-                            <h2 className="text-4xl font-bold text-slate-900">
-                                ₹{earnings?.walletBalance.toLocaleString() || 0}
-                            </h2>
-                            <p className="text-xs text-slate-400 mt-2">Available for immediate withdrawal</p>
+                    {/* Hero Section - Dark Card */}
+                    <div className="mb-10 bg-[#1e293b] rounded-[2rem] p-10 relative overflow-hidden shadow-2xl text-white">
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
+                            <Wallet size={250} className="text-white" />
                         </div>
 
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-amber-100 rounded-xl">
-                                    <TrendingUp className="w-6 h-6 text-amber-600" />
-                                </div>
-                                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Pending Balance</p>
-                            </div>
-                            <h2 className="text-4xl font-bold text-slate-900">
-                                ₹{earnings?.pendingBalance.toLocaleString() || 0}
-                            </h2>
-                            <p className="text-xs text-slate-400 mt-2">Will be available after consultation completion</p>
-                        </div>
+                        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
 
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-slate-100 rounded-xl">
-                                    <DollarSign className="w-6 h-6 text-slate-600" />
+                            {/* Withdrawable Balance */}
+                            <div className="lg:col-span-1">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2 rounded-xl bg-teal-500/20 text-teal-300">
+                                        <Wallet className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-slate-300 font-bold uppercase tracking-wider text-xs">Withdrawable Balance</span>
                                 </div>
-                                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Gross Earnings</p>
+                                <h2 className="text-5xl font-bold text-white tracking-tight mb-2">
+                                    ₹{earnings?.walletBalance.toLocaleString() || 0}
+                                </h2>
+                                <p className="text-slate-400 text-sm mb-8">Available for immediate withdrawal</p>
+
+                                <button
+                                    onClick={() => setWithdrawModalOpen(true)}
+                                    className="bg-teal-500 hover:bg-teal-400 text-slate-900 px-8 py-4 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-teal-500/20 active:scale-95"
+                                >
+                                    <DollarSign size={20} />
+                                    Withdraw Funds
+                                </button>
                             </div>
-                            <h2 className="text-4xl font-bold text-slate-900">
-                                ₹{earnings?.totalEarnings.toLocaleString() || 0}
-                            </h2>
-                            <p className="text-xs text-slate-400 mt-2">Total gross income before platform fee</p>
+
+                            {/* Pending Balance */}
+                            <div className="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-white/10 pt-8 lg:pt-0 lg:pl-12">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300">
+                                        <TrendingUp className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-slate-300 font-bold uppercase tracking-wider text-xs">Pending Balance</span>
+                                </div>
+                                <h2 className="text-4xl font-bold text-white tracking-tight mb-2 opacity-90">
+                                    ₹{earnings?.pendingBalance.toLocaleString() || 0}
+                                </h2>
+                                <p className="text-slate-400 text-sm">Will be available after consultation completion</p>
+                            </div>
+
+                            {/* Total Gross Earnings */}
+                            <div className="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-white/10 pt-8 lg:pt-0 lg:pl-12">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-300">
+                                        <DollarSign className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-slate-300 font-bold uppercase tracking-wider text-xs">Total Gross Earnings</span>
+                                </div>
+                                <h2 className="text-4xl font-bold text-white tracking-tight mb-2 opacity-90">
+                                    ₹{earnings?.totalEarnings.toLocaleString() || 0}
+                                </h2>
+                                <p className="text-slate-400 text-sm">Total gross income before platform fee</p>
+                            </div>
+
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                         {/* Transactions List */}
-                        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div className="px-6 py-5 border-b border-slate-200 bg-slate-50/50">
-                                <h3 className="text-lg font-bold text-slate-900">Recent Transactions</h3>
+                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
+                            <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-0 z-20">
+                                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                    Recent Transactions
+                                </h3>
                             </div>
 
-                            <div className="flex-1 overflow-auto max-h-[500px]">
+                            <div className="flex-1 overflow-auto custom-scrollbar p-2">
                                 {!earnings || earnings.transactions.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                                        <div className="p-6 bg-slate-50 rounded-full mb-4">
-                                            <DollarSign size={32} className="text-slate-300" />
+                                    <div className="flex flex-col items-center justify-center h-full text-center">
+                                        <div className="p-4 bg-slate-50 rounded-full mb-4">
+                                            <DollarSign size={24} className="text-slate-300" />
                                         </div>
-                                        <p className="text-slate-500 text-sm">No transactions yet</p>
+                                        <p className="text-slate-400 font-medium">No transactions yet</p>
                                     </div>
                                 ) : (
                                     <table className="w-full">
-                                        <thead className="bg-slate-50 sticky top-0 z-10">
+                                        <thead className="bg-slate-50/50 sticky top-0 z-10">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Client</th>
-                                                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Fee</th>
-                                                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Platform Fee</th>
-                                                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Net</th>
+                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Client</th>
+                                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Fee</th>
+                                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Net</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
+                                        <tbody className="divide-y divide-slate-50">
                                             {earnings.transactions.map((t) => (
-                                                <tr key={t.bookingId} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="px-6 py-4 text-sm text-slate-600 font-medium">{t.date}</td>
-                                                    <td className="px-6 py-4 text-sm text-slate-900 font-bold">{t.userName}</td>
-                                                    <td className="px-6 py-4 text-right text-sm font-bold text-slate-900">₹{t.amount}</td>
-                                                    <td className="px-6 py-4 text-right text-sm font-medium text-amber-600">-₹{t.commissionAmount}</td>
-                                                    <td className="px-6 py-4 text-right text-sm font-extrabold text-emerald-600">₹{t.netAmount}</td>
+                                                <tr key={t.bookingId} className="hover:bg-slate-50/80 transition-colors group">
+                                                    <td className="px-6 py-5 text-sm text-slate-500 font-medium">{t.date}</td>
+                                                    <td className="px-6 py-5 text-sm text-slate-900 font-bold">{t.userName}</td>
+                                                    <td className="px-6 py-5 text-right text-sm font-semibold text-slate-500">₹{t.amount}</td>
+                                                    <td className="px-6 py-5 text-right">
+                                                        <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">₹{t.netAmount}</span>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -203,41 +212,41 @@ const EarningsPage = () => {
                         </div>
 
                         {/* Payout History */}
-                        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                            <div className="px-6 py-5 border-b border-slate-200 bg-slate-50/50">
-                                <h3 className="text-lg font-bold text-slate-900">Payout History</h3>
+                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
+                            <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-0 z-20">
+                                <h3 className="text-xl font-bold text-slate-900">Payout History</h3>
                             </div>
 
-                            <div className="flex-1 overflow-auto max-h-[500px]">
+                            <div className="flex-1 overflow-auto custom-scrollbar p-2">
                                 {payoutHistory.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                                        <div className="p-6 bg-slate-50 rounded-full mb-4">
-                                            <Calendar size={32} className="text-slate-300" />
+                                    <div className="flex flex-col items-center justify-center h-full text-center">
+                                        <div className="p-4 bg-slate-50 rounded-full mb-4">
+                                            <Calendar size={24} className="text-slate-300" />
                                         </div>
-                                        <p className="text-slate-500 text-sm">No payout requests yet</p>
+                                        <p className="text-slate-400 font-medium">No payout requests yet</p>
                                     </div>
                                 ) : (
                                     <table className="w-full">
-                                        <thead className="bg-slate-50 sticky top-0 z-10">
+                                        <thead className="bg-slate-50/50 sticky top-0 z-10">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                                                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
+                                        <tbody className="divide-y divide-slate-50">
                                             {payoutHistory.map((p) => (
-                                                <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="px-6 py-4 text-sm text-slate-600">{new Date(p.requestDate).toLocaleDateString()}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${p.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                                                    <td className="px-6 py-5 text-sm text-slate-500 font-medium">{new Date(p.requestDate).toLocaleDateString()}</td>
+                                                    <td className="px-6 py-5">
+                                                        <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
                                                             p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                                                                 'bg-red-100 text-red-700'
                                                             }`}>
                                                             {p.status}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-right text-sm font-bold text-slate-900">₹{p.amount}</td>
+                                                    <td className="px-6 py-5 text-right text-sm font-bold text-slate-900">₹{p.amount}</td>
                                                 </tr>
                                             ))}
                                         </tbody>

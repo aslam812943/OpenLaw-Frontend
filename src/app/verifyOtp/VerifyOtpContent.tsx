@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
-import axios from 'axios';
+import { verifyUserOtp, resendUserOtp } from '@/service/userService';
 import { UserCheck, Shield, Mail, ArrowRight, ChevronLeft, KeyRound } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
 
@@ -38,7 +38,7 @@ const VerifyOtpContent = () => {
         }
     };
 
-   
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -50,7 +50,7 @@ const VerifyOtpContent = () => {
         setLoading(true);
         try {
             const email = localStorage.getItem('registerEmail') || '';
-            await axios.post('http://localhost:8080/api/user/verify-otp', { email, otp });
+            await verifyUserOtp({ email, otp });
 
             showToast('success', 'OTP Verified! You are now verified.');
             router.push('/login');
@@ -64,7 +64,7 @@ const VerifyOtpContent = () => {
         setResendLoading(true);
         try {
             const email = localStorage.getItem('registerEmail') || '';
-            await axios.post('http://localhost:8080/api/user/resend-otp', { email });
+            await resendUserOtp(email);
             showToast('success', 'OTP resent! Please check your email.');
             setTimer(30);
             setCanResend(false);

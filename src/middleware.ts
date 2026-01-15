@@ -19,7 +19,6 @@ function getRoleFromToken(token: string): string | null {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const adminToken = request.cookies.get('adminAccessToken')?.value;
   const accessToken = request.cookies.get('accessToken')?.value;
   const role = accessToken ? getRoleFromToken(accessToken) : null;
 
@@ -28,7 +27,7 @@ export function middleware(request: NextRequest) {
 
   
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-    if (!adminToken) return NextResponse.redirect(new URL('/admin/login', request.url));
+    if (!accessToken) return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 
 
@@ -48,7 +47,7 @@ export function middleware(request: NextRequest) {
 
   
   if (authRoutes.includes(pathname)) {
-    if (adminToken) return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    if (accessToken) return NextResponse.redirect(new URL('/admin/dashboard', request.url));
 
     if (accessToken && role === 'lawyer') {
       return NextResponse.redirect(new URL('/lawyer/dashboard', request.url));
@@ -58,7 +57,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname === '/admin/login' && adminToken) {
+  if (pathname === '/admin/login' && accessToken) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url));
   }
 

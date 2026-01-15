@@ -18,8 +18,8 @@ export default function LawyerLayout({ children }: { children: React.ReactNode }
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const response = await getprofile();
-                if (response?.success && response?.data?.paymentVerify) {
+                const profile = await getprofile();
+                if (profile?.paymentVerify) {
                     setIsVerified(true);
                 } else {
                     setIsVerified(false);

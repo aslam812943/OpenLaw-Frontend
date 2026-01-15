@@ -33,7 +33,6 @@ const LawyerLandingPage = () => {
             className="w-full h-full object-cover"
           />
      
-          {/* <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-900/50 to-transparent"></div> */}
         </div>
 
         {/* Content */}

@@ -40,11 +40,13 @@ export default function LawyerDashboard() {
   const loadData = async (start?: Date, end?: Date) => {
     try {
       setLoading(true);
-      const [statsData, profileData] = await Promise.all([
+      const [statsRes, profileData] = await Promise.all([
         fetchLawyerDashboardStats(start?.toISOString(), end?.toISOString()),
         getprofile()
       ]);
-      setStats(statsData);
+      if (statsRes?.success) {
+        setStats(statsRes.data);
+      }
       setLawyerName(profileData?.name || 'Counselor');
     } catch (error: any) {
       showToast("error", "Failed to load dashboard data");

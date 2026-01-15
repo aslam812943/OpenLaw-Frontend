@@ -47,8 +47,7 @@ export default function ProfilePage() {
   async function loadProfile() {
     setLoading(true);
     try {
-      const res = await getprofile();
-      const data = res.data;
+      const data = await getprofile();
       setUser(data);
       setFormData({
         name: data.name || "",
@@ -65,7 +64,7 @@ export default function ProfilePage() {
       setImagePreview(data.profileImage || "");
       setIsEditing(false);
       setImageFile(null);
-      setShowChangePassword(data.isPassword);
+      setShowChangePassword(data.isPassword || false);
     } catch (err: any) {
       showToast("error", err?.message || "Failed to fetch profile");
     } finally {

@@ -24,7 +24,7 @@ export default function SuccessPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const sessionId = searchParams.get('session_id');
-    
+
     const calledRef = useRef(false);
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [bookingDetails, setBookingDetails] = useState<BookingDetails | null>(null);
@@ -33,21 +33,21 @@ export default function SuccessPage() {
     useEffect(() => {
         if (!sessionId || calledRef.current) return;
 
-        calledRef.current = true; 
+        calledRef.current = true;
 
         confirmBooking(sessionId)
             .then((response) => {
-                if (response.success && response.booking) {
-                    setBookingDetails(response.booking);
+                if (response.success && response.data) {
+                    setBookingDetails(response.data);
                     setStatus('success');
-                    showToast('success', 'Payment successful! Booking confirmed.');
+                    showToast('success', response.message || 'Payment successful! Booking confirmed.');
                 } else {
                     setStatus('error');
                     setErrorMessage('Failed to retrieve booking details');
                 }
             })
             .catch((err: any) => {
-              
+
                 const message = err.response?.data?.message || err.message || 'Failed to confirm booking';
                 setErrorMessage(message);
                 setStatus('error');
@@ -59,11 +59,11 @@ export default function SuccessPage() {
     const formatDate = (dateString: string) => {
         try {
             const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            return date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
         } catch {
             return dateString;

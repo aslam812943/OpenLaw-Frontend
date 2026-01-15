@@ -27,9 +27,10 @@ const CasesPage = () => {
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        const data = await getLawyerCases();
-        console.log(data.userName)
-        setCases(data || []);
+        const res = await getLawyerCases();
+        if (res?.success) {
+          setCases(res.data || []);
+        }
       } catch (error) {
         showToast('error', 'Failed to fetch cases');
       } finally {
@@ -48,7 +49,7 @@ const CasesPage = () => {
   if (loading) {
     return (
       <div className="flex h-screen bg-slate-50">
-     
+
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
         </div>
@@ -58,7 +59,7 @@ const CasesPage = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
-     
+
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-6 py-10">
@@ -144,7 +145,6 @@ const CasesPage = () => {
                         <MessageSquare size={18} />
                         Message
                       </button>
-                      {/* Can add more actions like 'View Details' or 'Upload Document' here */}
                     </div>
 
                   </div>

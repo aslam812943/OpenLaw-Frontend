@@ -1,5 +1,5 @@
-import axios from "axios";
-import { API_ROUTES, BASE_URL } from "@/constants/routes";
+import { API_ROUTES } from "@/constants/routes";
+import apiClient from "../utils/apiClient";
 
 export interface Lawyer {
   id: string;
@@ -12,7 +12,13 @@ export interface Lawyer {
   practiceAreas: string[];
   languages: string[];
   documentUrls: string[];
-  addresses: string[];
+  address?: any;
+  city?: string;
+  state?: string;
+  profileImage?: string;
+  bio?: string;
+  consultationFee?: number;
+  isPassword?: boolean;
   verificationStatus?: string;
   isVerified: boolean;
   isBlock: boolean;
@@ -24,102 +30,62 @@ export interface PaginatedLawyerResponse {
   total: number;
 }
 
+export interface CommonResponse<T = any> {
+  success: boolean;
+  message: string;
+  hasAccess?: boolean;
+  data: T;
+}
+
 /* ============================================================
    FETCH LAWYERS
 ============================================================ */
 export const fetchLawyers = async (
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  search?: string,
+  filter?: string,
+  sort?: string
 ): Promise<PaginatedLawyerResponse> => {
-  try {
-    const response = await axios.get<PaginatedLawyerResponse>(
-      `${BASE_URL}${API_ROUTES.ADMIN.FETCH_LAWYERS}?page=${page}&limit=${limit}`,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(search && { search }),
+    ...(filter && { filter }),
+    ...(sort && { sort }),
+  });
 
-    return {
-      lawyers: response.data.lawyers || [],
-      total: response.data.total || 0,
-    };
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message ||
-      "Failed to fetch lawyers. Please try again.";
+  const response = await apiClient.get<CommonResponse<PaginatedLawyerResponse>>(
+    `${API_ROUTES.ADMIN.FETCH_LAWYERS}?${queryParams.toString()}`
+  );
 
-    throw new Error(msg);
-  }
+  return {
+    lawyers: response?.data?.lawyers || [],
+    total: response?.data?.total || 0,
+  };
 };
 
 /* ============================================================
     BLOCK LAWYER
 ============================================================ */
 export const blockLawyer = async (id: string) => {
-  try {
-    const response = await axios.patch(
-      `${BASE_URL}${API_ROUTES.ADMIN.BLOCK_LAWYER(id)}`,
-      {},
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    return response.data;
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message || "Failed to block the lawyer.";
-
-    throw new Error(msg);
-  }
+  return apiClient.patch(API_ROUTES.ADMIN.BLOCK_LAWYER(id));
 };
 
 /* ============================================================
     UNBLOCK LAWYER
 ============================================================ */
 export const unBlockLawyer = async (id: string) => {
-  try {
-    const response = await axios.patch(
-      `${BASE_URL}${API_ROUTES.ADMIN.UNBLOCK_LAWYER(id)}`,
-      {},
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    return response.data.message;
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message || "Failed to unblock the lawyer.";
-
-    throw new Error(msg);
-  }
+  const response = await apiClient.patch<CommonResponse>(API_ROUTES.ADMIN.UNBLOCK_LAWYER(id));
+  return response.message;
 };
 
 /* ============================================================
     APPROVE LAWYER
 ============================================================ */
 export const approveLawyer = async (id: string, email: string) => {
-  try {
-    const response = await axios.patch(
-      `${BASE_URL}${API_ROUTES.ADMIN.APPROVE_LAWYER(id)}`,
-      { email },
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    return response.data.message;
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message || "Failed to approve lawyer.";
-
-    throw new Error(msg);
-  }
+  const response = await apiClient.patch<CommonResponse>(API_ROUTES.ADMIN.APPROVE_LAWYER(id), { email });
+  return response.message;
 };
 
 /* ============================================================
@@ -130,304 +96,143 @@ export const rejectLawyer = async (
   email: string,
   reason?: string
 ) => {
-  try {
-    const response = await axios.patch(
-      `${BASE_URL}${API_ROUTES.ADMIN.REJECT_LAWYER(id)}`,
-      { email, reason },
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    return response.data.message;
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message || "Failed to reject lawyer.";
-
-    throw new Error(msg);
-  }
+  const response = await apiClient.patch<CommonResponse>(API_ROUTES.ADMIN.REJECT_LAWYER(id), { email, reason });
+  return response.message;
 };
 
 /* ============================================================
     LOGOUT LAWYER
 ============================================================ */
 export const logoutLawyer = async () => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.LAWYER.LOGOUT_LAWYER}`,
-      {},
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    return response.data.message;
-  } catch (err: any) {
-    const msg =
-      err.response?.data?.message || "Logout failed. Please try again.";
-
-    throw new Error(msg);
-  }
+  const response = await apiClient.post<CommonResponse>(API_ROUTES.LAWYER.LOGOUT_LAWYER);
+  return response.message;
 };
 
 /* ============================================================
     CREATE SCHEDULE
 ============================================================ */
-export const scheduleCreate = async (ruleData: any,) => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.LAWYER.SCHEDULE_CREATE}`,
-      { ruleData },
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+export const scheduleCreate = async (ruleData: any): Promise<CommonResponse> => {
+  return apiClient.post<CommonResponse>(API_ROUTES.LAWYER.SCHEDULE_CREATE, { ruleData });
+};
 
-    return response.data.message;
-  } catch (err: any) {
-    const msg =
-      err.response?.data?.message ||
-      "Failed to create schedule rule. Please check your inputs.";
+export const lawyerRegister = async (data: any): Promise<CommonResponse> => {
+  return apiClient.post(API_ROUTES.LAWYER.REGISTER, data);
+};
 
-    throw new Error(msg);
-  }
+export const submitVerificationDetails = async (formData: FormData): Promise<CommonResponse> => {
+  return apiClient.post(API_ROUTES.LAWYER.VERIFY_DETAILS, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
 
 /* ============================================================
     UPDATE SCHEDULE
 ============================================================ */
-export const scheduleUpdate = async (updatedData: any, ruleId: string) => {
-  try {
-    await axios.put(
-      `${BASE_URL}${API_ROUTES.LAWYER.SCHEDULE_UPDATE}/${ruleId}`,
-      updatedData,
-      { withCredentials: true }
-    );
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message || "Failed to update schedule rule.";
-
-    throw new Error(msg);
-  }
+export const scheduleUpdate = async (updatedData: any, ruleId: string): Promise<CommonResponse> => {
+  return apiClient.put<CommonResponse>(`${API_ROUTES.LAWYER.SCHEDULE_UPDATE}/${ruleId}`, updatedData);
 };
 
 /* ============================================================
     FETCH ALL RULES
 ============================================================ */
-export const fetchAllRules = async () => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.LAWYER.FETCH_SCHEDULT_RULE}`,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-
-    return response.data;
-  } catch (err: any) {
-    const msg =
-      err.response?.data?.message ||
-      "Failed to fetch availability rules.";
-
-    throw new Error(msg);
-  }
+export const fetchAllRules = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.FETCH_SCHEDULT_RULE);
 };
 
 /* ============================================================
     DELETE RULE
 ============================================================ */
-export const deleteRule = async (ruleId: string) => {
-  try {
-    const response = await axios.delete(
-      `${BASE_URL}${API_ROUTES.LAWYER.DELETE_SCHEDULE_RULE}/${ruleId}`,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-
-    return response.data;
-  } catch (error: any) {
-    const msg = "Failed to delete schedule rule.";
-
-    throw new Error(msg);
-  }
-
-
-
-
+export const deleteRule = async (id: string): Promise<CommonResponse> => {
+  return apiClient.delete<CommonResponse>(`${API_ROUTES.LAWYER.DELETE_SCHEDULE_RULE}/${id}`);
+};
+export const getprofile = async () => {
+  const response = await apiClient.get<CommonResponse<Lawyer>>(API_ROUTES.LAWYER.GETPROFILE);
+  return response.data;
 };
 
-
-export const getprofile = async () => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.GETPROFILE}`, {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    })
-    return response.data;
-  } catch (error: any) {
-    console.log(error)
-  }
-
-}
-
-
-
 export const updateProfile = async (formData: FormData) => {
-
-  try {
-    const response = await axios.put(
-      `${BASE_URL}${API_ROUTES.LAWYER.UPDATE_PROFILE}`,
-      formData,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-    return response.data;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || "Failed to update profile.";
-    throw new Error(msg);
-  }
+  return apiClient.put(API_ROUTES.LAWYER.UPDATE_PROFILE, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
 
 /* ============================================================
     CHANGE PASSWORD
 ============================================================ */
 export const changePassword = async (oldPassword: string, newPassword: string) => {
-  try {
-    const response = await axios.put(
-      `${BASE_URL}${API_ROUTES.LAWYER.CHANGE_PASSWORD}`,
-      { oldPassword, newPassword },
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    return response.data;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || "Failed to change password.";
-    throw new Error(msg);
-  }
+  return apiClient.put(API_ROUTES.LAWYER.CHANGE_PASSWORD, { oldPassword, newPassword });
 };
 
-
-
-
-
-export const getallLawyers = async (params?: any) => {
+export const getallLawyers = async (params?: any): Promise<CommonResponse<any>> => {
   try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.USER.GETALL_LAWYERS}`, {
-      params,
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    });
-
-    return response
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.USER.GETALL_LAWYERS, { params });
   } catch (err) {
-
+    return { success: false, message: "Failed to fetch lawyers", data: [] };
   }
 };
 
 
 
-export const getSingleLawyer = async (id: string) => {
-
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.USER.SINGLE_LAWYER(id)}`, {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    }
-    );
-    return response.data;
-  } catch (error: any) {
-
-    throw error;
-  }
+export const getSingleLawyer = async (id: string): Promise<CommonResponse<Lawyer>> => {
+  return apiClient.get<CommonResponse<Lawyer>>(API_ROUTES.USER.SINGLE_LAWYER(id));
 };
 
 
-export const getallslots = async (id: string) => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.USER.GETSLOTS(id)}`, {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    })
 
-    return response.data
+export const getallslots = async (id: string): Promise<CommonResponse<any[]>> => {
+  try {
+    return await apiClient.get<CommonResponse<any[]>>(API_ROUTES.USER.GETSLOTS(id));
   } catch (error) {
-
+    console.error(error);
+    return { success: false, message: "Failed to fetch slots", data: [] };
   }
-}
+};
 
 
 
-
-export const getAppoiments = async () => {
+export const getAppoiments = async (): Promise<CommonResponse<any[]>> => {
   try {
-
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.APPOIMENTS}`, { withCredentials: true })
-    return response.data
+    return await apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.APPOIMENTS);
   } catch (err) {
-
+    console.error(err);
+    return { success: false, message: "Failed to fetch appointments", data: [] };
   }
-}
+};
 
-export const updateAppointmentStatus = async (id: string, status: string) => {
+
+
+export const updateAppointmentStatus = async (id: string, status: string, feedback?: string): Promise<CommonResponse> => {
+  return apiClient.patch<CommonResponse>(API_ROUTES.LAWYER.APPOIMENTS_UPDATE_STATUS(id), { status, feedback });
+};
+
+
+
+export const checksubscription = async (): Promise<CommonResponse<any>> => {
   try {
-    const response = await axios.patch(
-      `${BASE_URL}${API_ROUTES.LAWYER.APPOIMENTS_UPDATE_STATUS(id)}`,
-      { status },
-      { withCredentials: true }
-    );
-    return response.data;
-  } catch (err: any) {
-    const msg = err.response?.data?.message || "Failed to update appointment status.";
-    throw new Error(msg);
-  }
-}
-
-
-export const checksubscription = async () => {
-  try {
-    let response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.CHECKSUBSCRIPTION}`, { withCredentials: true },)
-    return response
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.CHECKSUBSCRIPTION);
   } catch (error) {
-    console.log(error)
+    console.log(error);
+    return { success: false, message: "Failed to check subscription", data: null };
   }
-}
+};
 
-export const getCurrentSubscription = async () => {
+
+
+export const getCurrentSubscription = async (): Promise<CommonResponse<any> | null> => {
   try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.CURRENT_SUBSCRIPTION}`, {
-      withCredentials: true,
-    });
-    return response.data;
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.CURRENT_SUBSCRIPTION);
   } catch (error: any) {
-    const msg = error.response?.data?.message || "Failed to fetch current subscription.";
-    console.error(msg);
+    console.error(error);
     return null;
   }
 };
 
-export const getSubscriptionPlans = async () => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.SUBSCRIPTIONS}`, {
-      withCredentials: true,
-    });
-    return response.data;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || "Failed to fetch subscription plans.";
-    throw new Error(msg);
-  }
+
+
+export const getSubscriptionPlans = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.SUBSCRIPTIONS);
 };
+
 
 export const createSubscriptionCheckout = async (
   lawyerId: string,
@@ -435,109 +240,66 @@ export const createSubscriptionCheckout = async (
   planName: string,
   price: number,
   subscriptionId: string
-) => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.LAWYER.SUBSCRIPTION_CHECKOUT}`,
-      { lawyerId, email, planName, price, subscriptionId },
-      { withCredentials: true }
-    );
-    return response.data;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || "Failed to create checkout session.";
-    throw new Error(msg);
-  }
+): Promise<any> => {
+  return apiClient.post(API_ROUTES.LAWYER.SUBSCRIPTION_CHECKOUT, {
+    lawyerId,
+    email,
+    planName,
+    price,
+    subscriptionId,
+  });
 };
+
+
 
 export const verifySubscriptionPayment = async (session_id: string) => {
+  return apiClient.post(API_ROUTES.LAWYER.SUBSCRIPTION_SUCCESS, { session_id });
+};
+
+
+
+export const fetchLawyerReviews = async (id: string): Promise<CommonResponse<any>> => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.LAWYER.SUBSCRIPTION_SUCCESS}`,
-      { session_id },
-      { withCredentials: true }
-    );
-    return response.data;
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.GET_REVIEWS(id));
   } catch (error: any) {
-    const msg = error.response?.data?.message || "Payment verification failed.";
-    throw new Error(msg);
+    console.error(error);
+    return { success: false, message: "Failed to fetch reviews", data: [] };
   }
 };
 
-export const fetchLawyerReviews = async (id: string) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.LAWYER.GET_REVIEWS(id)}`,
-      { withCredentials: true }
-    );
-    return response.data.data;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || "Failed to fetch reviews.";
 
-    return [];
+
+export const getLawyerCases = async (): Promise<CommonResponse<any>> => {
+  try {
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.GET_CASES);
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: "Failed to fetch cases", data: [] };
   }
 };
 
-export const getLawyerCases = async () => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.LAWYER.GET_CASES}`,
-      { withCredentials: true }
-    );
-    return response.data.data;
-  } catch (error: any) {
-    console.error(error);
-    return [];
-  }
-}
 
-export const getLawyerEarnings = async () => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.LAWYER.GET_EARNINGS}`,
-      { withCredentials: true }
-    );
-    return response.data.data;
-  } catch (error: any) {
-    console.error(error);
-    throw error;
-  }
-}
+
+export const getLawyerEarnings = async (): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.GET_EARNINGS);
+};
+
+
 
 export const requestPayout = async (amount: number) => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}${API_ROUTES.LAWYER.REQUEST_PAYOUT}`,
-      { amount },
-      { withCredentials: true }
-    );
-    return response.data;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || "Failed to request payout.";
-    throw new Error(msg);
-  }
+  return apiClient.post(API_ROUTES.LAWYER.REQUEST_PAYOUT, { amount });
 };
 
-export const getPayoutHistory = async () => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}${API_ROUTES.LAWYER.PAYOUT_HISTORY}`,
-      { withCredentials: true }
-    );
-    return response.data.data;
-  } catch (error: any) {
-    console.error(error);
-    throw error;
-  }
+
+
+export const getPayoutHistory = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.PAYOUT_HISTORY);
 };
 
-export const fetchLawyerDashboardStats = async (startDate?: string, endDate?: string) => {
-  try {
-    const response = await axios.get(`${BASE_URL}${API_ROUTES.LAWYER.DASHBOARD_STATS}`, {
-      params: { startDate, endDate },
-      withCredentials: true
-    });
-    return response.data;
-  } catch (error: any) {
-    throw error.response?.data || error;
-  }
+
+
+export const fetchLawyerDashboardStats = async (startDate?: string, endDate?: string): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.DASHBOARD_STATS, {
+    params: { startDate, endDate },
+  });
 };

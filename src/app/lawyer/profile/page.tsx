@@ -87,8 +87,7 @@ export default function GetProfile() {
 
     const fetchProfile = async () => {
         try {
-            const response = await getprofile();
-            const profileData = response?.data;
+            const profileData = await getprofile();
             setData({
                 barNumber: profileData?.barNumber,
                 barAdmissionDate: profileData?.barAdmissionDate,
@@ -104,7 +103,7 @@ export default function GetProfile() {
                 bio: profileData?.bio || '',
                 consultationFee: profileData?.consultationFee || 0
             })
-            setShowChengePassword(profileData.isPassword)
+            setShowChengePassword(profileData.isPassword || false)
 
 
             const addressArray = profileData?.address || [];

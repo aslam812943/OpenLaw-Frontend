@@ -25,8 +25,10 @@ const AdminPayoutsPage = () => {
 
     const fetchData = async () => {
         try {
-            const data = await fetchPendingPayouts();
-            setPayouts(data);
+            const res = await fetchPendingPayouts();
+            if (res?.success) {
+                setPayouts(res.data);
+            }
         } catch (error) {
             showToast('error', 'Failed to fetch payout requests');
         } finally {

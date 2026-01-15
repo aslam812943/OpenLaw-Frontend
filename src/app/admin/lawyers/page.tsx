@@ -10,9 +10,10 @@ import {
   approveLawyer,
   rejectLawyer,
 } from "@/service/lawyerService";
-import AdminSidebar from "../../../components/AdminSIdeBar";
 import Pagination from "@/components/common/Pagination";
 import { showToast } from "@/utils/alerts";
+import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable";
+import { FilterBar } from "@/components/admin/shared/ReusableFilterBar";
 import { confirmAction } from "@/utils/confirmAction";
 
 export default function LawyersPage() {
@@ -20,8 +21,11 @@ export default function LawyersPage() {
   const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [limit] = useState(3);
+  const [limit] = useState(10);
   const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
+  const [sort, setSort] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -34,11 +38,11 @@ export default function LawyersPage() {
   const loadLawyers = async (pageNum: number) => {
     try {
       setLoading(true);
-      const { lawyers, total } = await fetchLawyers(pageNum, limit);
+      const { lawyers, total } = await fetchLawyers(pageNum, limit, search, filter, sort);
       setLawyers(lawyers);
       setTotal(total);
     } catch (err: any) {
-      showToast("error", err.response?.data?.message || "Failed to load lawyers.");
+      showToast("error", err || "Failed to load lawyers.");
     } finally {
       setLoading(false);
     }
@@ -46,7 +50,22 @@ export default function LawyersPage() {
 
   useEffect(() => {
     loadLawyers(page);
-  }, [page]);
+  }, [page, search, filter, sort]);
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+    setPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSort(value);
+    setPage(1);
+  };
 
   const totalPages = Math.ceil(total / limit);
 
@@ -138,6 +157,56 @@ export default function LawyersPage() {
     setRejectReason("");
   };
 
+  const columns: Column<Lawyer>[] = [
+    { header: "Name", accessor: "name", className: "font-medium" },
+    { header: "Email", accessor: "email" },
+    { header: "Phone", accessor: "phone" },
+    { header: "Years", accessor: "yearsOfPractice" },
+    {
+      header: "Practice Area",
+      render: (lawyer) => lawyer.practiceAreas?.[0] || "—",
+    },
+    {
+      header: "Status",
+      render: (lawyer) =>
+        lawyer.verificationStatus === "Approved" ? (
+          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+            Approved
+          </span>
+        ) : lawyer.verificationStatus === "Rejected" ? (
+          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+            Rejected
+          </span>
+        ) : (
+          <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
+            Pending
+          </span>
+        ),
+    },
+    {
+      header: "Blocked",
+      render: (lawyer) =>
+        lawyer.isBlock ? (
+          <span className="text-red-600 font-medium">Blocked</span>
+        ) : (
+          <span className="text-green-600 font-medium">Active</span>
+        ),
+    },
+    {
+      header: "Action",
+      className: "text-center",
+      render: (lawyer) => (
+        <button
+          onClick={() => setSelectedLawyer(lawyer)}
+          className="text-blue-600 hover:text-blue-800"
+          title="View Details"
+        >
+          <Eye size={20} />
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div >
 
@@ -146,85 +215,40 @@ export default function LawyersPage() {
       >
         <h1 className="text-2xl font-semibold mb-6 text-white">Lawyer Management</h1>
 
-        {loading ? (
-          <p className="text-center text-gray-500">Loading lawyers...</p>
-        ) : lawyers.length === 0 ? (
-          <p className="text-center text-gray-500">No lawyers found.</p>
-        ) : (
-          <>
-            <div className="overflow-x-auto bg-white rounded-lg shadow-md">
-              <table className="min-w-full text-sm text-left border-collapse">
-                <thead className="bg-gray-100 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Years</th>
-                    <th className="px-4 py-3">Practice Area</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Blocked</th>
-                    <th className="px-4 py-3 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lawyers.map((lawyer) => (
-                    <tr
-                      key={lawyer.id}
-                      className="border-b hover:bg-gray-50 transition duration-150"
-                    >
-                      <td className="px-4 py-3 font-medium">{lawyer.name}</td>
-                      <td className="px-4 py-3">{lawyer.email}</td>
-                      <td className="px-4 py-3">{lawyer.phone}</td>
-                      <td className="px-4 py-3">{lawyer.yearsOfPractice}</td>
-                      <td className="px-4 py-3">
-                        {lawyer.practiceAreas?.[0] || "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {lawyer.verificationStatus === "Approved" ? (
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                            Approved
-                          </span>
-                        ) : lawyer.verificationStatus === "Rejected" ? (
-                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
-                            Rejected
-                          </span>
-                        ) : (
-                          <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
-                            Pending
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        {lawyer.isBlock ? (
-                          <span className="text-red-600 font-medium">Blocked</span>
-                        ) : (
-                          <span className="text-green-600 font-medium">Active</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => setSelectedLawyer(lawyer)}
-                          className="text-blue-600 hover:text-blue-800"
-                          title="View Details"
-                        >
-                          <Eye size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <FilterBar
+          onSearch={handleSearch}
+          onFilterChange={handleFilterChange}
+          onSortChange={handleSortChange}
+          placeholder="Search lawyers..."
+          filterOptions={[
+            { label: "Active", value: "active" },
+            { label: "Blocked", value: "blocked" },
+            { label: "Approved", value: "approved" },
+            { label: "Rejected", value: "rejected" },
+            { label: "Pending", value: "pending" },
+          ]}
+          sortOptions={[
+            { label: "Most Experienced", value: "experience-desc" },
+            { label: "Least Experienced", value: "experience-asc" },
+          ]}
+        />
 
-            <div className="mt-6">
-              <Pagination
-                currentPage={page}
-                totalItems={total}
-                limit={limit}
-                onPageChange={(newPage) => setPage(newPage)}
-              />
-            </div>
-          </>
+        <ReusableTable
+          columns={columns}
+          data={lawyers}
+          isLoading={loading}
+          emptyMessage="No lawyers found."
+        />
+
+        {!loading && lawyers.length > 0 && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={page}
+              totalItems={total}
+              limit={limit}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
+          </div>
         )}
 
         {/*  Lawyer Detail Modal */}
@@ -348,7 +372,6 @@ export default function LawyersPage() {
           </div>
         )}
 
-        {/* Action Modal (Block/Unblock/Approve) */}
         {showActionModal.isOpen && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
             <div className="bg-white rounded-lg shadow-xl w-[450px] p-6">

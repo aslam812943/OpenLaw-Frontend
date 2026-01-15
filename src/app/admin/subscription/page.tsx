@@ -1,9 +1,10 @@
-'use client';
+'use client'
 
 import { useState, useEffect, FormEvent } from 'react';
-import { createSubscription, fetchSubscriptions, toggleSubscriptionStatus } from '@/service/adminService';
+import { createSubscription, fetchSubscriptions, toggleSubscriptionStatus, updateSubscription } from '@/service/adminService';
 import { showToast } from '@/utils/alerts';
-import { Plus, List, ArrowLeft, Loader2, DollarSign, Clock, Percent, ShieldCheck, Power, PowerOff } from 'lucide-react';
+import { Plus, List, ArrowLeft, Loader2, DollarSign, Clock, Percent, ShieldCheck, Power, PowerOff, Edit2 } from 'lucide-react';
+import Pagination from '@/components/common/Pagination';
 
 type DurationUnit = 'month' | 'year';
 
@@ -23,8 +24,12 @@ const Subscription = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 3;
 
-  // Form State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [planName, setPlanName] = useState<string>('');
   const [duration, setDuration] = useState<number>(1);
   const [durationUnit, setDurationUnit] = useState<DurationUnit>('month');
@@ -32,15 +37,17 @@ const Subscription = () => {
   const [commissionPercent, setCommissionPercent] = useState<number>(0);
 
   useEffect(() => {
-    loadSubscriptions();
-  }, []);
+    loadSubscriptions(currentPage);
+  }, [currentPage]);
 
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = async (page: number = 1) => {
     try {
       setLoading(true);
-      const res = await fetchSubscriptions();
+      const res = await fetchSubscriptions(page, limit);
       if (res.success) {
-        setPlans(res.data);
+        setPlans(res.data.plans || res.data);
+        setTotalItems(res.data.total || (res.data.length > 0 ? res.data.length : 0));
+        setCurrentPage(page);
       }
     } catch (error: any) {
       showToast('error', error.message || 'Failed to fetch subscriptions');
@@ -56,38 +63,53 @@ const Subscription = () => {
       showToast('warning', 'Plan name is required');
       return;
     }
-
     if (duration <= 0) {
       showToast('warning', 'Duration must be greater than 0');
       return;
     }
 
-    if (price <= 0) {
-      showToast('warning', 'Price must be greater than 0');
+    if (price < 50) {
+      showToast('warning', 'Price must be at least 50');
       return;
     }
-
-    if (commissionPercent < 0 || commissionPercent > 100) {
-      showToast('warning', 'Commission must be between 0 and 100');
+    if (commissionPercent < 0 || commissionPercent > 50) {
+      showToast('warning', 'Commission must be between 0 and 50%');
       return;
     }
 
     try {
       setSubmitting(true);
       const payload = { planName, duration, durationUnit, price, commissionPercent };
-      const res = await createSubscription(payload);
+
+      let res;
+      if (isEditing && editingId) {
+        res = await updateSubscription(editingId, payload);
+      } else {
+        res = await createSubscription(payload);
+      }
 
       if (res.success) {
-        showToast('success', 'Subscription plan created successfully');
+        showToast('success', isEditing ? 'Subscription plan updated successfully' : 'Subscription plan created successfully');
         resetForm();
         setShowForm(false);
-        loadSubscriptions();
+        loadSubscriptions(currentPage);
       }
     } catch (error: any) {
-      showToast('error', error.message || 'Failed to create subscription');
+      showToast('error', error.message || `Failed to ${isEditing ? 'update' : 'create'} subscription`);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (plan: SubscriptionPlan) => {
+    setEditingId(plan.id);
+    setIsEditing(true);
+    setPlanName(plan.planName);
+    setDuration(plan.duration);
+    setDurationUnit(plan.durationUnit as DurationUnit);
+    setPrice(plan.price);
+    setCommissionPercent(plan.commissionPercent);
+    setShowForm(true);
   };
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
@@ -112,6 +134,8 @@ const Subscription = () => {
     setDurationUnit('month');
     setPrice(0);
     setCommissionPercent(0);
+    setIsEditing(false);
+    setEditingId(null);
   };
 
   if (loading && !showForm) {
@@ -134,10 +158,15 @@ const Subscription = () => {
         </div>
 
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              resetForm();
+            }
+            setShowForm(!showForm);
+          }}
           className={`group relative flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${showForm
-              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-lg shadow-teal-900/20 hover:shadow-teal-900/40 hover:-translate-y-0.5'
+            ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-lg shadow-teal-900/20 hover:shadow-teal-900/40 hover:-translate-y-0.5'
             }`}
         >
           {showForm ? (
@@ -176,23 +205,32 @@ const Subscription = () => {
                 <h3 className={`text-xl font-bold transition-colors ${plan.isActive ? 'text-white group-hover:text-teal-400' : 'text-slate-400'}`}>
                   {plan.planName}
                 </h3>
-                <button
-                  disabled={togglingId === plan.id}
-                  onClick={() => handleToggleStatus(plan.id, plan.isActive)}
-                  className={`p-2 rounded-lg transition-all transform active:scale-95 ${plan.isActive
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEdit(plan)}
+                    className="p-2 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all transform active:scale-95"
+                    title="Edit Plan"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    disabled={togglingId === plan.id}
+                    onClick={() => handleToggleStatus(plan.id, plan.isActive)}
+                    className={`p-2 rounded-lg transition-all transform active:scale-95 ${plan.isActive
                       ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
                       : 'bg-teal-500/10 text-teal-500 hover:bg-teal-500/20'
-                    }`}
-                  title={plan.isActive ? 'Deactivate' : 'Activate'}
-                >
-                  {togglingId === plan.id ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : plan.isActive ? (
-                    <PowerOff className="w-5 h-5" />
-                  ) : (
-                    <Power className="w-5 h-5" />
-                  )}
-                </button>
+                      }`}
+                    title={plan.isActive ? 'Deactivate' : 'Activate'}
+                  >
+                    {togglingId === plan.id ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : plan.isActive ? (
+                      <PowerOff className="w-5 h-5" />
+                    ) : (
+                      <Power className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-3 mt-6">
@@ -224,17 +262,30 @@ const Subscription = () => {
               <p className="text-slate-500 mt-2">Start by creating your first subscription plan.</p>
             </div>
           )}
+          {plans.length > 0 && (
+            <div className="col-span-full mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                limit={limit}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div className="max-w-2xl mx-auto bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
           <div className="mb-8 flex items-center gap-4">
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                resetForm();
+                setShowForm(false);
+              }}
               className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold text-white">New Subscription Plan</h2>
+            <h2 className="text-2xl font-bold text-white">{isEditing ? 'Edit Subscription Plan' : 'New Subscription Plan'}</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -281,12 +332,11 @@ const Subscription = () => {
                   </div>
                   <input
                     type="number"
-                    min="0"
                     required
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
                     className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
-                    placeholder="0.00"
+                    placeholder="50.00"
                   />
                 </div>
               </div>
@@ -300,8 +350,6 @@ const Subscription = () => {
                 </div>
                 <input
                   type="number"
-                  min="0"
-                  max="100"
                   required
                   value={commissionPercent}
                   onChange={(e) => setCommissionPercent(Number(e.target.value))}
@@ -309,7 +357,7 @@ const Subscription = () => {
                   placeholder="e.g. 15"
                 />
               </div>
-              <p className="text-xs text-slate-500 ml-1">Percentage taken from lawyer's booking earnings</p>
+              <p className="text-xs text-slate-500 ml-1">Percentage taken from lawyer's booking earnings (Max 50%)</p>
             </div>
 
             <button
@@ -321,8 +369,12 @@ const Subscription = () => {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <span>Create Plan</span>
-                  <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span>{isEditing ? 'Update Plan' : 'Create Plan'}</span>
+                  {isEditing ? (
+                    <Edit2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  ) : (
+                    <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  )}
                 </>
               )}
             </button>
