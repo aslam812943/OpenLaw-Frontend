@@ -201,8 +201,8 @@ export const getAppoiments = async (): Promise<CommonResponse<any[]>> => {
 
 
 
-export const updateAppointmentStatus = async (id: string, status: string): Promise<CommonResponse> => {
-  return apiClient.patch<CommonResponse>(API_ROUTES.LAWYER.APPOIMENTS_UPDATE_STATUS(id), { status });
+export const updateAppointmentStatus = async (id: string, status: string, feedback?: string): Promise<CommonResponse> => {
+  return apiClient.patch<CommonResponse>(API_ROUTES.LAWYER.APPOIMENTS_UPDATE_STATUS(id), { status, feedback });
 };
 
 

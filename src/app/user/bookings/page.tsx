@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { getUserAppointments, cancelAppointment } from '../../../service/userService';
 import CancelAppointmentModal from '../../../components/CancelAppointmentModal';
+import BookingDetailsModal from '../../../components/user/BookingDetailsModal';
 import Pagination from '../../../components/common/Pagination';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, DollarSign, User, AlertCircle, CalendarX, FileText } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, AlertCircle, CalendarX, FileText, CheckCircle } from 'lucide-react';
 import { showToast } from '../../../utils/alerts';
 
 interface Appointment {
@@ -21,6 +22,7 @@ interface Appointment {
     lawyerName?: string;
     refundAmount?: number;
     refundStatus?: string;
+    lawyerFeedback?: string;
 }
 
 const UserAppointmentsPage = () => {
@@ -28,7 +30,9 @@ const UserAppointmentsPage = () => {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+    const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +59,11 @@ const UserAppointmentsPage = () => {
     const handleCancelClick = (id: string) => {
         setSelectedAppointmentId(id);
         setIsModalOpen(true);
+    };
+
+    const handleViewDetails = (appointment: Appointment) => {
+        setSelectedAppointment(appointment);
+        setIsDetailsModalOpen(true);
     };
 
     const handleConfirmCancel = async (reason: string) => {
@@ -200,14 +209,23 @@ const UserAppointmentsPage = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                        {isCancellable && (
+                                                        <div className="flex justify-end gap-2">
                                                             <button
-                                                                onClick={() => handleCancelClick(appointment.id)}
-                                                                className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-white border border-rose-200 rounded-lg hover:bg-rose-50 hover:border-rose-300 transition-all"
+                                                                onClick={() => handleViewDetails(appointment)}
+                                                                className="p-1.5 text-slate-500 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-slate-700 transition-all"
+                                                                title="View Details"
                                                             >
-                                                                Cancel
+                                                                <FileText size={16} />
                                                             </button>
-                                                        )}
+                                                            {isCancellable && (
+                                                                <button
+                                                                    onClick={() => handleCancelClick(appointment.id)}
+                                                                    className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-white border border-rose-200 rounded-lg hover:bg-rose-50 hover:border-rose-300 transition-all"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
@@ -235,6 +253,12 @@ const UserAppointmentsPage = () => {
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     onConfirm={handleConfirmCancel}
+                />
+
+                <BookingDetailsModal
+                    isOpen={isDetailsModalOpen}
+                    onClose={() => setIsDetailsModalOpen(false)}
+                    appointment={selectedAppointment}
                 />
             </div>
         </div>
