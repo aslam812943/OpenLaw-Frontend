@@ -55,7 +55,7 @@ const VerifyOtpContent = () => {
             showToast('success', 'OTP Verified! You are now verified.');
             router.push('/login');
         } catch (err: any) {
-            showToast('error', err.response?.data?.message || 'OTP verification failed.');
+            showToast('error', err.message || 'OTP verification failed.');
         }
         setLoading(false);
     };
@@ -69,7 +69,7 @@ const VerifyOtpContent = () => {
             setTimer(30);
             setCanResend(false);
         } catch (err: any) {
-            showToast('error', err.response?.data?.message || 'Error resending OTP.');
+            showToast('error', err.message || 'Error resending OTP.');
         }
         setResendLoading(false);
     };

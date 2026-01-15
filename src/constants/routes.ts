@@ -18,7 +18,7 @@ export const API_ROUTES = {
     PAYOUT_PENDING: '/api/admin/payout/pending',
     APPROVE_PAYOUT: (id: string) => `/api/admin/payout/${id}/approve`,
     DASHBOARD_STATS: "/api/admin/dashboard/stats",
-    BOOKINGS:`/api/admin/bookings`
+    BOOKINGS: `/api/admin/bookings`
   },
 
   USER: {
@@ -49,7 +49,7 @@ export const API_ROUTES = {
   },
 
   LAWYER: {
-    REGISTER: "/api/lawyer/register",
+    REGISTER: "/api/user/register",
     VERIFY_DETAILS: "/api/lawyer/verifyDetils",
     LOGOUT_LAWYER: `/api/lawyer/logout`,
     SCHEDULE_CREATE: '/api/lawyer/schedule/create',

@@ -63,6 +63,7 @@ const LoginForm = () => {
             }
 
             router.replace("/lawyer/dashboard");
+            return 
         } else if (user.role === "user") {
             dispatch(setUserData({
                 id: user._id || (user as any).id,
@@ -72,6 +73,7 @@ const LoginForm = () => {
                 role: user.role
             }));
             router.replace("/");
+            return 
         }
     };
 
@@ -83,6 +85,7 @@ const LoginForm = () => {
 
         if (emailError || passwordError) return;
 
+        setLoading(true);
         try {
             const response = await userLogin(loginForm);
             processLoginSuccess(response);

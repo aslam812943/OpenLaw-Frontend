@@ -84,7 +84,7 @@ const RegisterForm = () => {
             showToast('success', 'Registration successful! OTP sent to your email/phone.');
             router.push('/verifyOtp');
         } catch (err: any) {
-            showToast('error', err.response?.data?.message || 'Failed to register');
+            showToast('error', err.message || 'Failed to register');
         } finally {
             setLoading(false);
         }

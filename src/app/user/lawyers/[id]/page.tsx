@@ -356,7 +356,7 @@ export default function LawyersSinglePage() {
               {hasChatAccess && (
                 <button
                   onClick={async () => {
-                    const roomRes = await getChatRoom(lawyer?.id as string);
+                    const roomRes = await getChatRoom({ lawyerId: lawyer?.id as string });
                     if (roomRes.success) {
                       router.push(`/user/chat/${roomRes.data.id}`);
                     }
