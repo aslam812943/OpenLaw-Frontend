@@ -2,6 +2,9 @@ import apiClient from "../utils/apiClient";
 import { API_ROUTES } from "../constants/routes";
 import { CommonResponse } from "./userService";
 
+
+
+
 export const adminLogin = async (data: { email: string; password: string }): Promise<CommonResponse<any>> => {
   return apiClient.post<CommonResponse<any>>(API_ROUTES.ADMIN.LOGIN, data);
 };

@@ -65,7 +65,6 @@ const ReviewsPage = () => {
                         </div>
                     </div>
 
-                    {/* Stats Summary (Optional idea, keeping it simple for now) */}
 
                     {reviews.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm">

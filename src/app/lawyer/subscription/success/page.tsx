@@ -26,7 +26,6 @@ const SubscriptionSuccessPage: React.FC = () => {
                     router.push("/lawyer/dashboard");
                 }, 2000);
             } catch (err) {
-                console.error("Payment verification failed", err);
                 setError("Payment verification failed. Please contact support.");
             } finally {
                 setLoading(false);

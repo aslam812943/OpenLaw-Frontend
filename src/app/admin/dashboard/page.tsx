@@ -79,7 +79,6 @@ export default function AdminDashboard() {
     setActiveRange(range);
   };
 
-  // Pre-loading state with dummy structure to preserve layout
   const renderContent = () => {
     if (loading && !stats) {
       return (

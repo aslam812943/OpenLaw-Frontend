@@ -57,7 +57,6 @@ const ForgotPasswordContent = () => {
                             src="/forgotpassword.png"
                             alt="Background"
                             className="w-full h-full object-cover"
-                        // onError={(e) => e.currentTarget.src = 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=1200&q=80'}
                         />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 opacity-60 z-0"></div>

@@ -77,12 +77,12 @@ const SubscriptionsPage = () => {
                 plan.id
             );
 
-            if (response && response.url) {
-
-                window.location.href = response.url;
+            if (response && response.data?.url) {
+                window.location.href = response.data.url;
             } else {
                 throw new Error("Invalid checkout session URL");
             }
+
 
         } catch (error: any) {
             showToast('error', error.message || 'Failed to initiate checkout');
@@ -230,7 +230,7 @@ const SubscriptionsPage = () => {
 
                                 <div className="space-y-3 mt-auto">
                                     <button
-                                        onClick={() => !isDisabled && handleSubscribe(plan)}
+                                        onClick={() =>  handleSubscribe(plan)}
                                         disabled={isDisabled}
                                         className={`w-full py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm tracking-wide ${isCurrent
                                             ? 'bg-slate-100 text-slate-400 cursor-default'

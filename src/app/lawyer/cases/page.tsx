@@ -145,7 +145,6 @@ const CasesPage = () => {
                         <MessageSquare size={18} />
                         Message
                       </button>
-                      {/* Can add more actions like 'View Details' or 'Upload Document' here */}
                     </div>
 
                   </div>

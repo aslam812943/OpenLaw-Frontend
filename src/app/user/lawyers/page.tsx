@@ -33,8 +33,8 @@ interface Lawyer {
   city?: string;
   state?: string;
   consultationFee?: number;
-  // rating?: number; // Mocked for now if not in API
-  // reviewCount?: number; // Mocked for now
+  // rating?: number; 
+  // reviewCount?: number; 
 }
 
 import Pagination from "@/components/common/Pagination";

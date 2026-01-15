@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { fetchBookings } from '../../../service/adminService';
 import { ReusableTable, Column } from '@/components/admin/shared/ReusableTable';
+import { FilterBar } from '@/components/admin/shared/ReusableFilterBar';
 import Pagination from '@/components/common/Pagination';
 
 interface AdminBooking {
@@ -25,12 +26,13 @@ export default function AdminBookingsPage() {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const [statusFilter, setStatusFilter] = useState('');
     const limit = 10;
 
     const loadBookings = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetchBookings(currentPage, limit);
+            const response = await fetchBookings(currentPage, limit, statusFilter);
             if (response.success) {
                 setBookings(response.data.bookings);
                 setTotal(response.data.total);
@@ -40,7 +42,7 @@ export default function AdminBookingsPage() {
         } finally {
             setLoading(false);
         }
-    }, [currentPage]);
+    }, [currentPage, statusFilter]);
 
     useEffect(() => {
         loadBookings();
