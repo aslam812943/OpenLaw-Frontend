@@ -35,6 +35,10 @@ export const toggleSubscriptionStatus = async (id: string, status: boolean): Pro
   return apiClient.patch(`${API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS}/${id}/status`, { status });
 };
 
+export const updateSubscription = async (id: string, data: any): Promise<CommonResponse<any>> => {
+  return apiClient.put(`${API_ROUTES.ADMIN.FETCH_SUBSCRIPTIONS}/${id}`, data);
+};
+
 export interface PaymentFilters {
   page?: number;
   limit?: number;
@@ -63,4 +67,11 @@ export const fetchPendingPayouts = async (): Promise<CommonResponse<any[]>> => {
 
 export const approvePayout = async (id: string) => {
   return apiClient.patch(API_ROUTES.ADMIN.APPROVE_PAYOUT(id));
+};
+
+
+export const fetchBookings = async (page: number = 1, limit: number = 10, status?: string): Promise<CommonResponse<any>> => {
+  return apiClient.get(API_ROUTES.ADMIN.BOOKINGS, {
+    params: { page, limit, status }
+  });
 };

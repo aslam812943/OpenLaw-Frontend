@@ -1,9 +1,9 @@
-'use client';
+'use client'
 
 import { useState, useEffect, FormEvent } from 'react';
-import { createSubscription, fetchSubscriptions, toggleSubscriptionStatus } from '@/service/adminService';
+import { createSubscription, fetchSubscriptions, toggleSubscriptionStatus, updateSubscription } from '@/service/adminService';
 import { showToast } from '@/utils/alerts';
-import { Plus, List, ArrowLeft, Loader2, DollarSign, Clock, Percent, ShieldCheck, Power, PowerOff } from 'lucide-react';
+import { Plus, List, ArrowLeft, Loader2, DollarSign, Clock, Percent, ShieldCheck, Power, PowerOff, Edit2 } from 'lucide-react';
 import Pagination from '@/components/common/Pagination';
 
 type DurationUnit = 'month' | 'year';
@@ -27,6 +27,9 @@ const Subscription = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const limit = 3;
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [planName, setPlanName] = useState<string>('');
   const [duration, setDuration] = useState<number>(1);
   const [durationUnit, setDurationUnit] = useState<DurationUnit>('month');
@@ -77,19 +80,36 @@ const Subscription = () => {
     try {
       setSubmitting(true);
       const payload = { planName, duration, durationUnit, price, commissionPercent };
-      const res = await createSubscription(payload);
+
+      let res;
+      if (isEditing && editingId) {
+        res = await updateSubscription(editingId, payload);
+      } else {
+        res = await createSubscription(payload);
+      }
 
       if (res.success) {
-        showToast('success', 'Subscription plan created successfully');
+        showToast('success', isEditing ? 'Subscription plan updated successfully' : 'Subscription plan created successfully');
         resetForm();
         setShowForm(false);
-        loadSubscriptions();
+        loadSubscriptions(currentPage);
       }
     } catch (error: any) {
-      showToast('error', error.message || 'Failed to create subscription');
+      showToast('error', error.message || `Failed to ${isEditing ? 'update' : 'create'} subscription`);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (plan: SubscriptionPlan) => {
+    setEditingId(plan.id);
+    setIsEditing(true);
+    setPlanName(plan.planName);
+    setDuration(plan.duration);
+    setDurationUnit(plan.durationUnit as DurationUnit);
+    setPrice(plan.price);
+    setCommissionPercent(plan.commissionPercent);
+    setShowForm(true);
   };
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
@@ -114,6 +134,8 @@ const Subscription = () => {
     setDurationUnit('month');
     setPrice(0);
     setCommissionPercent(0);
+    setIsEditing(false);
+    setEditingId(null);
   };
 
   if (loading && !showForm) {
@@ -136,7 +158,12 @@ const Subscription = () => {
         </div>
 
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              resetForm();
+            }
+            setShowForm(!showForm);
+          }}
           className={`group relative flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${showForm
             ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-lg shadow-teal-900/20 hover:shadow-teal-900/40 hover:-translate-y-0.5'
@@ -178,23 +205,32 @@ const Subscription = () => {
                 <h3 className={`text-xl font-bold transition-colors ${plan.isActive ? 'text-white group-hover:text-teal-400' : 'text-slate-400'}`}>
                   {plan.planName}
                 </h3>
-                <button
-                  disabled={togglingId === plan.id}
-                  onClick={() => handleToggleStatus(plan.id, plan.isActive)}
-                  className={`p-2 rounded-lg transition-all transform active:scale-95 ${plan.isActive
-                    ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
-                    : 'bg-teal-500/10 text-teal-500 hover:bg-teal-500/20'
-                    }`}
-                  title={plan.isActive ? 'Deactivate' : 'Activate'}
-                >
-                  {togglingId === plan.id ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : plan.isActive ? (
-                    <PowerOff className="w-5 h-5" />
-                  ) : (
-                    <Power className="w-5 h-5" />
-                  )}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEdit(plan)}
+                    className="p-2 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all transform active:scale-95"
+                    title="Edit Plan"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    disabled={togglingId === plan.id}
+                    onClick={() => handleToggleStatus(plan.id, plan.isActive)}
+                    className={`p-2 rounded-lg transition-all transform active:scale-95 ${plan.isActive
+                      ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+                      : 'bg-teal-500/10 text-teal-500 hover:bg-teal-500/20'
+                      }`}
+                    title={plan.isActive ? 'Deactivate' : 'Activate'}
+                  >
+                    {togglingId === plan.id ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : plan.isActive ? (
+                      <PowerOff className="w-5 h-5" />
+                    ) : (
+                      <Power className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-3 mt-6">
@@ -241,12 +277,15 @@ const Subscription = () => {
         <div className="max-w-2xl mx-auto bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
           <div className="mb-8 flex items-center gap-4">
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                resetForm();
+                setShowForm(false);
+              }}
               className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold text-white">New Subscription Plan</h2>
+            <h2 className="text-2xl font-bold text-white">{isEditing ? 'Edit Subscription Plan' : 'New Subscription Plan'}</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -330,8 +369,12 @@ const Subscription = () => {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <span>Create Plan</span>
-                  <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span>{isEditing ? 'Update Plan' : 'Create Plan'}</span>
+                  {isEditing ? (
+                    <Edit2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  ) : (
+                    <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  )}
                 </>
               )}
             </button>

@@ -748,9 +748,9 @@ export default function App() {
                       </span>
                     </div>
                     <div className="flex gap-2">
-                      {/* <button onClick={() => handleEditRule(rule)} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                      <button onClick={() => handleEditRule(rule)} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors">
                         <Edit size={16} />
-                      </button> */}
+                      </button>
                       <button onClick={() => handleDeleteRule(rule.id)} className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
                         <Trash2 size={16} />
                       </button>
