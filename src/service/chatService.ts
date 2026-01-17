@@ -20,8 +20,11 @@ export const checkChatAccess = async (lawyerId: string): Promise<ChatAccessRespo
     }
 };
 
-export const getChatRoom = async (lawyerId: string): Promise<CommonResponse<ChatRoom>> => {
-    return apiClient.post<CommonResponse<ChatRoom>>(API_ROUTES.CHAT.GET_ROOM, { lawyerId });
+export const getChatRoom = async (params: { lawyerId?: string; userId?: string }): Promise<CommonResponse<ChatRoom>> => {
+    const endpoint = params.userId
+        ? API_ROUTES.CHAT.LAWYER_GET_ROOM
+        : API_ROUTES.CHAT.GET_ROOM;
+    return apiClient.post<CommonResponse<ChatRoom>>(endpoint, params);
 };
 
 export const getMessages = async (roomId: string, role: 'user' | 'lawyer' = 'user'): Promise<CommonResponse<any[]>> => {

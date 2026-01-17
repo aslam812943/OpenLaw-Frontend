@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { submitVerificationDetails } from "@/service/lawyerService";
+import { submitVerificationDetails, fetchSpecializations, Specialization } from "@/service/lawyerService";
 import { RootState } from "@/redux/store";
 import { showToast } from "@/utils/alerts";
 import {
@@ -54,29 +54,52 @@ const LawyerSignup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
 
-  const practiceAreaOptions = [
-    { value: "corporate", label: "Corporate Law", icon: Briefcase },
-    { value: "criminal", label: "Criminal Law", icon: Gavel },
-    { value: "family", label: "Family Law", icon: Heart },
-    { value: "property", label: "Property Law", icon: Home },
-    { value: "civil", label: "Civil Law", icon: Users },
-    { value: "labor", label: "Labor Law", icon: Building },
-    { value: "consumer", label: "Consumer Law", icon: Shield },
-    { value: "tax", label: "Tax Law", icon: Coins },
-    { value: "intellectual", label: "IP Law", icon: FileText },
-    { value: "constitutional", label: "Constitutional", icon: Landmark },
-    { value: "international", label: "International", icon: Globe },
-    { value: "immigration", label: "Immigration", icon: Plane },
-    { value: "securities", label: "Securities", icon: TrendingUp },
-    { value: "environmental", label: "Environmental Law", icon: Leaf },
-    { value: "healthcare", label: "Healthcare", icon: Cross },
-    { value: "civil-rights", label: "Civil Rights", icon: UserCheck },
-    { value: "entertainment", label: "Entertainment Law", icon: Music },
-    { value: "maritime", label: "Maritime Law", icon: Ship },
-    { value: "bankruptcy", label: "Bankruptcy Law", icon: DollarSign },
-    { value: "estate", label: "Estate Planning", icon: ScrollText },
-    { value: "other", label: "Other", icon: Book },
-  ];
+  const [practiceOptions, setPracticeOptions] = useState<{ value: string; label: string; icon: any }[]>([]);
+
+  const getIconForArea = (areaName: string) => {
+    const lower = areaName.toLowerCase();
+    if (lower.includes("corporate")) return Briefcase;
+    if (lower.includes("criminal")) return Gavel;
+    if (lower.includes("family")) return Heart;
+    if (lower.includes("property") || lower.includes("real estate")) return Home;
+    if (lower.includes("civil")) return Users;
+    if (lower.includes("labor") || lower.includes("employment")) return Building;
+    if (lower.includes("consumer")) return Shield;
+    if (lower.includes("tax")) return Coins;
+    if (lower.includes("intellectual") || lower.includes("ip")) return FileText;
+    if (lower.includes("constitutional")) return Landmark;
+    if (lower.includes("international")) return Globe;
+    if (lower.includes("immigration")) return Plane;
+    if (lower.includes("securities") || lower.includes("finance")) return TrendingUp;
+    if (lower.includes("environment")) return Leaf;
+    if (lower.includes("health") || lower.includes("medical")) return Cross;
+    if (lower.includes("rights")) return UserCheck;
+    if (lower.includes("entertainment") || lower.includes("media")) return Music;
+    if (lower.includes("maritime")) return Ship;
+    if (lower.includes("bankrupt")) return DollarSign;
+    if (lower.includes("estate") || lower.includes("probate")) return ScrollText;
+    return Book;
+  };
+
+  useEffect(() => {
+    const loadSpecializations = async () => {
+      try {
+        const response = await fetchSpecializations();
+        if (response.success && response.data) {
+          const options = response.data.map((spec: Specialization) => ({
+            value: spec.name,
+            label: spec.name,
+            icon: getIconForArea(spec.name),
+          }));
+          setPracticeOptions(options);
+        }
+      } catch (error: unknown) {
+        console.error("Failed to fetch specializations", error);
+        showToast("error", "Failed to load practice areas");
+      }
+    };
+    loadSpecializations();
+  }, []);
 
   const languageOptions = [
     { value: "english", label: "English" },
@@ -243,16 +266,16 @@ const LawyerSignup = () => {
   }, [isSubmitted, router]);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 via-white to-green-50">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-[#fafafa]">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <Scale className="w-8 h-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 mb-4">
+            <Scale className="w-8 h-8 text-teal-600" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-slate-900">
             Lawyer Verification
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Complete your profile to get verified and start connecting with clients
           </p>
         </div>
@@ -264,14 +287,14 @@ const LawyerSignup = () => {
                 <div className="flex flex-col items-center flex-1">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${currentStep >= step
-                      ? "bg-green-600 text-white shadow-lg shadow-green-500/30"
-                      : "bg-gray-200 text-gray-500"
+                      ? "bg-teal-600 text-white shadow-lg shadow-teal-500/30"
+                      : "bg-slate-200 text-slate-500"
                       }`}
                   >
                     {step}
                   </div>
                   <span
-                    className={`text-xs mt-2 font-medium ${currentStep >= step ? "text-green-600" : "text-gray-500"
+                    className={`text-xs mt-2 font-medium ${currentStep >= step ? "text-teal-600" : "text-slate-500"
                       }`}
                   >
                     {step === 1 && "Professional"}
@@ -281,7 +304,7 @@ const LawyerSignup = () => {
                 </div>
                 {step < 3 && (
                   <div
-                    className={`h-1 flex-1 mx-2 transition-all duration-300 ${currentStep > step ? "bg-green-600" : "bg-gray-200"
+                    className={`h-1 flex-1 mx-2 transition-all duration-300 ${currentStep > step ? "bg-teal-600" : "bg-slate-200"
                       }`}
                   />
                 )}
@@ -290,12 +313,12 @@ const LawyerSignup = () => {
           </div>
         </div>
 
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6 md:p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 md:p-8">
           {currentStep === 1 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900">Professional Details</h2>
+              <h2 className="text-xl font-bold text-slate-900">Professional Details</h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Bar Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -304,13 +327,13 @@ const LawyerSignup = () => {
                   value={formData.barNumber}
                   onChange={handleInputChange}
                   placeholder="Enter your bar number"
-                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${errors.barNumber ? "border-red-500" : "border-gray-200"
+                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none ${errors.barNumber ? "border-red-500" : "border-slate-200"
                     }`}
                 />
                 {errors.barNumber && <p className="mt-1.5 text-sm text-red-500">{errors.barNumber}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Bar Admission Date <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -318,7 +341,7 @@ const LawyerSignup = () => {
                   name="barAdmissionDate"
                   value={formData.barAdmissionDate}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${errors.barAdmissionDate ? "border-red-500" : "border-gray-200"
+                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none ${errors.barAdmissionDate ? "border-red-500" : "border-slate-200"
                     }`}
                 />
                 {errors.barAdmissionDate && (
@@ -326,7 +349,7 @@ const LawyerSignup = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Years of Practice <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -338,7 +361,7 @@ const LawyerSignup = () => {
                   placeholder="e.g., 5"
                   min={0}
                   max={99}
-                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-green-500/10 focus:border-green-500 focus:outline-none ${errors.yearsOfPractice ? "border-red-500" : "border-gray-200"
+                  className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none ${errors.yearsOfPractice ? "border-red-500" : "border-slate-200"
                     }`}
                 />
                 {errors.yearsOfPractice && (
@@ -351,12 +374,12 @@ const LawyerSignup = () => {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-slate-700 mb-3">
                   Practice Areas <span className="text-red-500">*</span>
                 </label>
-                <p className="text-sm text-gray-500 mb-4">Select all areas you specialize in</p>
+                <p className="text-sm text-slate-500 mb-4">Select all areas you specialize in</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {practiceAreaOptions.map((area) => {
+                  {practiceOptions.map((area) => {
                     const Icon = area.icon;
                     const isSelected = formData.practiceAreas.includes(area.value);
                     return (
@@ -365,20 +388,20 @@ const LawyerSignup = () => {
                         type="button"
                         onClick={() => togglePracticeArea(area.value)}
                         className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${isSelected
-                          ? "border-green-500 bg-green-50 shadow-md shadow-green-500/20"
-                          : "border-gray-200 bg-white hover:border-green-300 hover:shadow-md"
+                          ? "border-teal-500 bg-teal-50 shadow-md shadow-teal-500/20"
+                          : "border-slate-200 bg-white hover:border-teal-300 hover:shadow-md"
                           }`}
                       >
                         <Icon
-                          className={`w-6 h-6 mb-2 ${isSelected ? "text-green-600" : "text-gray-500"}`}
+                          className={`w-6 h-6 mb-2 ${isSelected ? "text-teal-600" : "text-slate-500"}`}
                         />
                         <span
-                          className={`text-xs font-medium text-center ${isSelected ? "text-green-700" : "text-gray-700"
+                          className={`text-xs font-medium text-center ${isSelected ? "text-teal-700" : "text-slate-700"
                             }`}
                         >
                           {area.label}
                         </span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-green-600 mt-1" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-600 mt-1" />}
                       </button>
                     );
                   })}
@@ -388,7 +411,7 @@ const LawyerSignup = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-slate-700 mb-3">
                   Language Preference <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -400,14 +423,14 @@ const LawyerSignup = () => {
                         type="button"
                         onClick={() => selectLanguage(lang.value)}
                         className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${isSelected
-                          ? "border-green-500 bg-green-50 shadow-md shadow-green-500/20"
-                          : "border-gray-200 bg-white hover:border-green-300 hover:shadow-md"
+                          ? "border-teal-500 bg-teal-50 shadow-md shadow-teal-500/20"
+                          : "border-slate-200 bg-white hover:border-teal-300 hover:shadow-md"
                           }`}
                       >
-                        <span className={`font-medium ${isSelected ? "text-green-700" : "text-gray-700"}`}>
+                        <span className={`font-medium ${isSelected ? "text-teal-700" : "text-slate-700"}`}>
                           {lang.label}
                         </span>
-                        {isSelected && <CheckCircle2 className="w-5 h-5 text-green-600 ml-2" />}
+                        {isSelected && <CheckCircle2 className="w-5 h-5 text-teal-600 ml-2" />}
                       </button>
                     );
                   })}
@@ -419,16 +442,16 @@ const LawyerSignup = () => {
 
           {currentStep === 3 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900">Verification Documents</h2>
+              <h2 className="text-xl font-bold text-slate-900">Verification Documents</h2>
               <div
-                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-500 transition-all duration-300 group cursor-pointer"
+                className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-teal-500 transition-all duration-300 group cursor-pointer"
                 onClick={() => document.getElementById("documentUpload")?.click()}
               >
-                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400 group-hover:text-green-600 transition-colors duration-300" />
-                <p className="text-sm text-gray-600 mb-2 font-medium">
+                <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400 group-hover:text-teal-600 transition-colors duration-300" />
+                <p className="text-sm text-slate-600 mb-2 font-medium">
                   Upload Bar License & Professional ID
                 </p>
-                <p className="text-xs text-gray-500">PDF, JPG or PNG (Max. 10MB each)</p>
+                <p className="text-xs text-slate-500">PDF, JPG or PNG (Max. 10MB each)</p>
                 <input
                   id="documentUpload"
                   type="file"
@@ -439,17 +462,17 @@ const LawyerSignup = () => {
                 />
               </div>
               {files.length > 0 && (
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="bg-slate-50 p-4 rounded-lg space-y-2">
                   <h3 className="text-sm font-semibold mb-3">Selected Files ({files.length}):</h3>
                   {files.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200"
+                      className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileText className="w-5 h-5 text-green-600 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                        <span className="text-xs text-gray-500 flex-shrink-0">
+                        <FileText className="w-5 h-5 text-teal-600 flex-shrink-0" />
+                        <span className="text-sm text-slate-700 truncate">{file.name}</span>
+                        <span className="text-xs text-slate-500 flex-shrink-0">
                           ({(file.size / 1024 / 1024).toFixed(2)} MB)
                         </span>
                       </div>
@@ -475,13 +498,13 @@ const LawyerSignup = () => {
             </div>
           )}
 
-          <div className="mt-8 pt-6 border-t border-gray-200 flex gap-4">
+          <div className="mt-8 pt-6 border-t border-slate-200 flex gap-4">
             {currentStep > 1 && (
               <button
                 type="button"
                 onClick={handlePrevious}
                 disabled={isSubmitting}
-                className="flex-1 h-14 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 h-14 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Previous
@@ -491,7 +514,7 @@ const LawyerSignup = () => {
               <button
                 type="button"
                 onClick={handleNext}
-                className="flex-1 h-14 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 flex items-center justify-center gap-2"
+                className="flex-1 h-14 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 flex items-center justify-center gap-2"
               >
                 Next
                 <ArrowRight className="w-5 h-5" />
@@ -501,7 +524,7 @@ const LawyerSignup = () => {
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex-1 h-14 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 h-14 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -520,9 +543,9 @@ const LawyerSignup = () => {
         </div>
 
         <div className="text-center mt-6">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             Need help?{" "}
-            <a href="#" className="text-green-600 font-medium hover:underline">
+            <a href="#" className="text-teal-600 font-medium hover:underline">
               Contact Support
             </a>
           </p>

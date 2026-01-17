@@ -1,6 +1,7 @@
 "use client";
 
 import { getallLawyers } from "@/service/lawyerService";
+import { fetchSpecializations, Specialization } from "@/service/userService";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useRouter } from "next/navigation";
@@ -46,6 +47,7 @@ const AllLawyers = () => {
   const [filterPracticeArea, setFilterPracticeArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const limit = 1;
 
 
@@ -97,7 +99,22 @@ const AllLawyers = () => {
     }
 
     fetchUpdated();
+    fetchUpdated();
   }, [debouncedSearch, sort, filterPracticeArea, currentPage]);
+
+  useEffect(() => {
+    const loadSpecializations = async () => {
+      try {
+        const response = await fetchSpecializations();
+        if (response.success && response.data) {
+          setSpecializations(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch specializations", error);
+      }
+    };
+    loadSpecializations();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -260,18 +277,18 @@ const AllLawyers = () => {
 
               {expandedFilters.specialization && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="space-y-3">
-                  {['Criminal Law', 'Family Law', 'Corporate Law', 'Property Law', 'Immigration Law', 'Personal Injury'].map((area) => (
-                    <label key={area} className="flex items-center cursor-pointer group hover:bg-slate-50 p-2 rounded-lg -mx-2 transition-colors">
+                  {specializations.map((spec) => (
+                    <label key={spec.id} className="flex items-center cursor-pointer group hover:bg-slate-50 p-2 rounded-lg -mx-2 transition-colors">
                       <div className="relative flex items-center">
                         <input
                           type="radio"
                           name="specialization"
-                          checked={filterPracticeArea === area.split(' ')[0].toLowerCase()}
-                          onChange={() => setFilterPracticeArea(area.split(' ')[0].toLowerCase())}
+                          checked={filterPracticeArea === spec.name}
+                          onChange={() => setFilterPracticeArea(spec.name)}
                           className="peer h-4 w-4 border-2 border-slate-300 text-teal-600 focus:ring-teal-600 rounded-full cursor-pointer checked:border-teal-600"
                         />
                       </div>
-                      <span className="ml-3 text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{area}</span>
+                      <span className="ml-3 text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{spec.name}</span>
                     </label>
                   ))}
                 </motion.div>

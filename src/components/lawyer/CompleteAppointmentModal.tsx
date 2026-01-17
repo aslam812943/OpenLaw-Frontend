@@ -12,6 +12,8 @@ interface Appointment {
     endTime: string;
     consultationFee: number;
     desctiption: string;
+    status: string;
+    lawyerFeedback?: string;
 }
 
 interface CompleteAppointmentModalProps {
@@ -29,7 +31,14 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
     appointment,
     isSubmitting
 }) => {
-    const [feedback, setFeedback] = useState('')
+    const isReadOnly = appointment?.status === 'completed';
+    const [feedback, setFeedback] = useState(appointment?.lawyerFeedback || '')
+
+    React.useEffect(() => {
+        if (appointment) {
+            setFeedback(appointment.lawyerFeedback || '');
+        }
+    }, [appointment]);
 
     if (!appointment) return null;
 
@@ -46,8 +55,14 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                         {/* Header */}
                         <div className="px-8 py-6 bg-slate-900 text-white flex justify-between items-center">
                             <div className="flex items-center gap-3">
-                                <CheckCircle className="w-6 h-6 text-teal-400" />
-                                <h2 className="text-xl font-bold tracking-tight">Complete Consultation</h2>
+                                {isReadOnly ? (
+                                    <FileText className="w-6 h-6 text-teal-400" />
+                                ) : (
+                                    <CheckCircle className="w-6 h-6 text-teal-400" />
+                                )}
+                                <h2 className="text-xl font-bold tracking-tight">
+                                    {isReadOnly ? 'Consultation Summary' : 'Complete Consultation'}
+                                </h2>
                             </div>
                             <button
                                 onClick={onClose}
@@ -109,44 +124,59 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                             <div className="space-y-3">
                                 <label className="text-xs uppercase font-extrabold tracking-widest text-slate-500 flex justify-between">
                                     Post-Consultation Notes & Feedback
-                                    <span className="text-slate-300 font-medium">Required for completion</span>
+                                    {!isReadOnly && <span className="text-slate-300 font-medium">Required for completion</span>}
                                 </label>
                                 <textarea
                                     value={feedback}
                                     onChange={(e) => setFeedback(e.target.value)}
-                                    placeholder="Enter a summary of the consultation, advice given, or next steps for the client..."
-                                    className="w-full min-h-[120px] p-5 rounded-2xl border-2 border-slate-100 focus:border-teal-500 focus:outline-none transition-all text-sm placeholder:text-slate-300"
+                                    readOnly={isReadOnly}
+                                    placeholder={isReadOnly ? "No feedback provided." : "Enter a summary of the consultation, advice given, or next steps for the client..."}
+                                    className={`w-full min-h-[120px] p-5 rounded-2xl border-2 transition-all text-sm placeholder:text-slate-300 ${isReadOnly
+                                        ? 'bg-slate-50 border-slate-100 text-slate-600 focus:outline-none'
+                                        : 'border-slate-100 focus:border-teal-500 focus:outline-none'
+                                        }`}
                                 />
                             </div>
 
                             {/* Actions */}
                             <div className="flex items-center gap-4 mt-10">
-                                <button
-                                    onClick={onClose}
-                                    className="px-6 py-3.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    disabled={!feedback.trim() || isSubmitting}
-                                    onClick={() => onConfirm(feedback)}
-                                    className={`flex-1 flex items-center justify-center gap-3 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 shadow-lg ${!feedback.trim() || isSubmitting
-                                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
-                                            : 'bg-teal-600 text-white hover:bg-teal-700 shadow-teal-200 active:scale-[0.98]'
-                                        }`}
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckCircle className="w-5 h-5" />
-                                            COMPLETE & SUBMIT
-                                        </>
-                                    )}
-                                </button>
+                                {isReadOnly ? (
+                                    <button
+                                        onClick={onClose}
+                                        className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-sm font-bold transition-all"
+                                    >
+                                        CLOSE WINDOW
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={onClose}
+                                            className="px-6 py-3.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            disabled={!feedback.trim() || isSubmitting}
+                                            onClick={() => onConfirm(feedback)}
+                                            className={`flex-1 flex items-center justify-center gap-3 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 shadow-lg ${!feedback.trim() || isSubmitting
+                                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+                                                : 'bg-teal-600 text-white hover:bg-teal-700 shadow-teal-200 active:scale-[0.98]'
+                                                }`}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle className="w-5 h-5" />
+                                                    COMPLETE & SUBMIT
+                                                </>
+                                            )}
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </motion.div>

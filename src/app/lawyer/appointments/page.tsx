@@ -5,9 +5,11 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { showToast } from "@/utils/alerts"
 import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable"
-import { Info, CheckCircle, XCircle, CheckCheck, Clock } from "lucide-react"
+import { Info, CheckCircle, XCircle, CheckCheck, Clock, FileText, MessageSquare } from "lucide-react"
 import Swal from "sweetalert2"
 import CompleteAppointmentModal from "@/components/lawyer/CompleteAppointmentModal"
+import { getChatRoom } from "@/service/chatService"
+import { useRouter } from "next/navigation"
 
 interface Appointment {
   id: string;
@@ -20,6 +22,8 @@ interface Appointment {
   paymentStatus: string;
   desctiption: string;
   userName: string;
+  commissionPercent?: number;
+  lawyerFeedback?: string;
 }
 
 const Appointments = () => {
@@ -28,6 +32,7 @@ const Appointments = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const fetchAppointments = async () => {
     try {
@@ -86,6 +91,17 @@ const Appointments = () => {
       toast.error("Failed to complete appointment");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleChat = async (userId: string) => {
+    try {
+      const response = await getChatRoom({ userId });
+      if (response.success) {
+        router.push(`/lawyer/chat/${response.data.id}`);
+      }
+    } catch (error) {
+      toast.error("Failed to initiate chat");
     }
   };
 
@@ -184,6 +200,24 @@ const Appointments = () => {
             >
               <CheckCheck className="w-4 h-4" />
               MARK COMPLETED
+            </button>
+          )}
+          {row.status === 'completed' && (
+            <button
+              onClick={() => handleStatusUpdate(row.id, 'completed', row)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all"
+            >
+              <FileText className="w-4 h-4 text-slate-500" />
+              VIEW SUMMARY
+            </button>
+          )}
+          {['confirmed', 'completed', 'pending'].includes(row.status) && (
+            <button
+              onClick={() => handleChat(row.userId)}
+              className="p-2 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
+              title="Message Client"
+            >
+              <MessageSquare className="w-5 h-5" />
             </button>
           )}
         </div>

@@ -73,8 +73,28 @@ export const approvePayout = async (id: string) => {
 };
 
 
+
 export const fetchBookings = async (page: number = 1, limit: number = 10, status?: string): Promise<CommonResponse<any>> => {
   return apiClient.get(API_ROUTES.ADMIN.BOOKINGS, {
     params: { page, limit, status }
   });
+};
+
+/* ============================================================
+    SPECIALIZATION MANAGEMENT
+============================================================ */
+export const fetchSpecializations = async (): Promise<CommonResponse<any[]>> => {
+  return apiClient.get<CommonResponse<any[]>>(API_ROUTES.ADMIN.SPECIALIZATIONS);
+};
+
+export const createSpecialization = async (data: { name: string; description?: string }): Promise<CommonResponse<any>> => {
+  return apiClient.post<CommonResponse<any>>(API_ROUTES.ADMIN.SPECIALIZATIONS, data);
+};
+
+export const updateSpecialization = async (id: string, data: { name?: string; description?: string; isActive?: boolean }): Promise<CommonResponse<any>> => {
+  return apiClient.put<CommonResponse<any>>(API_ROUTES.ADMIN.SPECIALIZATION(id), data);
+};
+
+export const deleteSpecialization = async (id: string): Promise<CommonResponse<any>> => {
+  return apiClient.delete<CommonResponse<any>>(API_ROUTES.ADMIN.SPECIALIZATION(id));
 };

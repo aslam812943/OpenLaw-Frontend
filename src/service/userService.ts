@@ -21,6 +21,13 @@ export interface User {
   };
 }
 
+export interface Specialization {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+}
+
 export interface CommonResponse<T = any> {
   success: boolean;
   message: string;
@@ -81,7 +88,7 @@ export const getprofile = async (): Promise<User> => {
   return response.data;
 };
 
-export const updateProfileInfo = async (formData: FormData): Promise<User> => {
+export const updateProfileInfo = async (formData: FormData): Promise<CommonResponse<User>> => {
   const response = await apiClient.put<CommonResponse<User>>(
     API_ROUTES.USER.UPDATE_PROFILE_INFO,
     formData,
@@ -89,18 +96,18 @@ export const updateProfileInfo = async (formData: FormData): Promise<User> => {
       headers: { "Content-Type": "multipart/form-data" },
     }
   );
-  return response.data;
+  return response as any;
 };
 
 export const changePassword = async (payload: {
   oldPassword: string;
   newPassword: string;
-}) => {
+}): Promise<CommonResponse> => {
   const response = await apiClient.put<CommonResponse>(
     API_ROUTES.USER.CHANGE_PASSWORD,
     payload
   );
-  return response.data;
+  return response as any;
 };
 
 export const userLogin = async (data: { email: string; password: string }): Promise<CommonResponse<LoginResponse>> => {
@@ -170,3 +177,6 @@ export const allReview = async (id: string): Promise<CommonResponse<any[]>> => {
     return { success: false, message: "Failed to fetch reviews", data: [] };
   }
 }
+export const fetchSpecializations = async (): Promise<CommonResponse<Specialization[]>> => {
+  return apiClient.get<CommonResponse<Specialization[]>>(API_ROUTES.USER.SPECIALIZATIONS);
+};

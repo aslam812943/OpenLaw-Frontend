@@ -40,7 +40,7 @@ export default function LawyerChatListPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-slate-900">Patient Chats</h1>
+                <h1 className="text-2xl font-bold text-slate-900">  Chats</h1>
                 <p className="text-sm text-slate-500">{rooms.length} Active Conversations</p>
             </div>
 
