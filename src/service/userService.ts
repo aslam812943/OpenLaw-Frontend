@@ -21,6 +21,13 @@ export interface User {
   };
 }
 
+export interface Specialization {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+}
+
 export interface CommonResponse<T = any> {
   success: boolean;
   message: string;
@@ -170,3 +177,6 @@ export const allReview = async (id: string): Promise<CommonResponse<any[]>> => {
     return { success: false, message: "Failed to fetch reviews", data: [] };
   }
 }
+export const fetchSpecializations = async (): Promise<CommonResponse<Specialization[]>> => {
+  return apiClient.get<CommonResponse<Specialization[]>>(API_ROUTES.USER.SPECIALIZATIONS);
+};

@@ -41,7 +41,8 @@ export const API_ROUTES = {
     ADDREVIEW: '/api/user/review',
     GETALLREVIEWS: (id: string) => `/api/user/review/${id}`,
     CANCELAPPOINMENT: (id: string) => `/api/booking/appointments/${id}/cancel`,
-    GETAPPOINMENT: '/api/booking/appointments'
+    GETAPPOINMENT: '/api/booking/appointments',
+    SPECIALIZATIONS: '/api/user/specializations'
 
   },
 
@@ -73,7 +74,8 @@ export const API_ROUTES = {
     GET_EARNINGS: '/api/lawyer/earnings',
     REQUEST_PAYOUT: '/api/lawyer/payout/request',
     PAYOUT_HISTORY: '/api/lawyer/payout/history',
-    DASHBOARD_STATS: '/api/lawyer/dashboard/stats'
+    DASHBOARD_STATS: '/api/lawyer/dashboard/stats',
+    SPECIALIZATIONS: '/api/lawyer/specializations'
   },
   CHAT: {
     CHECK_ACCESS: (lawyerId: string) => `/api/user/chat/access/${lawyerId}`,

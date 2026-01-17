@@ -37,6 +37,13 @@ export interface CommonResponse<T = any> {
   data: T;
 }
 
+export interface Specialization {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+}
+
 /* ============================================================
    FETCH LAWYERS
 ============================================================ */
@@ -302,4 +309,8 @@ export const fetchLawyerDashboardStats = async (startDate?: string, endDate?: st
   return apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.DASHBOARD_STATS, {
     params: { startDate, endDate },
   });
+};
+
+export const fetchSpecializations = async (): Promise<CommonResponse<Specialization[]>> => {
+  return apiClient.get<CommonResponse<Specialization[]>>(API_ROUTES.LAWYER.SPECIALIZATIONS);
 };
