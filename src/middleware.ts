@@ -47,7 +47,7 @@ export function middleware(request: NextRequest) {
 
   
   if (authRoutes.includes(pathname)) {
-    if (accessToken) return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    // if (accessToken) return NextResponse.redirect(new URL('/admin/dashboard', request.url));
 
     if (accessToken && role === 'lawyer') {
       return NextResponse.redirect(new URL('/lawyer/dashboard', request.url));
