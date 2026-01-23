@@ -157,8 +157,10 @@ export const confirmBooking = async (sessionId: string): Promise<CommonResponse<
   return apiClient.post<CommonResponse<any>>(API_ROUTES.PAYMENT.CONFIRM, { sessionId });
 }
 
-export const getUserAppointments = async (page: number = 1, limit: number = 5): Promise<CommonResponse<any>> => {
-  return apiClient.get<CommonResponse<any>>(`${API_ROUTES.USER.GETAPPOINMENT}?page=${page}&limit=${limit}`);
+export const getUserAppointments = async (page: number = 1, limit: number = 5, status?: string, search?: string, date?: string): Promise<CommonResponse<any>> => {
+  return apiClient.get<CommonResponse<any>>(API_ROUTES.USER.GETAPPOINMENT, {
+    params: { page, limit, status, search, date }
+  });
 };
 
 export const cancelAppointment = async (id: string, reason: string) => {

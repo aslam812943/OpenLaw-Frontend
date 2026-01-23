@@ -35,6 +35,7 @@ export interface CommonResponse<T = any> {
   message: string;
   hasAccess?: boolean;
   data: T;
+  total?: number;
 }
 
 export interface Specialization {
@@ -197,9 +198,11 @@ export const getallslots = async (id: string): Promise<CommonResponse<any[]>> =>
 
 
 
-export const getAppoiments = async (): Promise<CommonResponse<any[]>> => {
+export const getAppoiments = async (page: number = 1, limit: number = 10, status?: string, search?: string, date?: string): Promise<CommonResponse<any>> => {
   try {
-    return await apiClient.get<CommonResponse<any[]>>(API_ROUTES.LAWYER.APPOIMENTS);
+    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.APPOIMENTS, {
+      params: { page, limit, status, search, date }
+    });
   } catch (err) {
     console.error(err);
     return { success: false, message: "Failed to fetch appointments", data: [] };

@@ -10,32 +10,49 @@ interface ReusableFilterBarProps {
     onSearch: (value: string) => void;
     onFilterChange?: (value: string) => void;
     onSortChange?: (value: string) => void;
+    onDateChange?: (value: string) => void;
     filterOptions?: Option[];
     sortOptions?: Option[];
     placeholder?: string;
     initialSearch?: string;
     initialFilter?: string;
     initialSort?: string;
+    initialDate?: string;
 }
 
 export const FilterBar: React.FC<ReusableFilterBarProps> = ({
     onSearch,
     onFilterChange,
     onSortChange,
+    onDateChange,
     filterOptions = [],
     sortOptions = [],
     placeholder = "Search...",
     initialSearch = "",
     initialFilter = "",
     initialSort = "",
+    initialDate = "",
 }) => {
     const [searchValue, setSearchValue] = useState(initialSearch);
     const [selectedFilter, setSelectedFilter] = useState(initialFilter);
     const [selectedSort, setSelectedSort] = useState(initialSort);
+    const [selectedDate, setSelectedDate] = useState(initialDate);
+    const isFirstMount = React.useRef(true);
+    const lastNotifiedSearch = React.useRef(initialSearch);
 
     useEffect(() => {
+        if (isFirstMount.current) {
+            isFirstMount.current = false;
+            return;
+        }
+
+        if (searchValue === lastNotifiedSearch.current) {
+            return;
+        }
+
         const timer = setTimeout(() => {
             onSearch(searchValue);
+            lastNotifiedSearch.current = searchValue;
         }, 500);
 
         return () => clearTimeout(timer);
@@ -43,23 +60,35 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
 
     const handleFilterSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
-        setSelectedFilter(value);
-        if (onFilterChange) onFilterChange(value);
+        if (value !== selectedFilter) {
+            setSelectedFilter(value);
+            if (onFilterChange) onFilterChange(value);
+        }
     };
 
     const handleSortSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
-        setSelectedSort(value);
-        if (onSortChange) onSortChange(value);
+        if (value !== selectedSort) {
+            setSelectedSort(value);
+            if (onSortChange) onSortChange(value);
+        }
+    };
+
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSelectedDate(value);
+        if (onDateChange) onDateChange(value);
     };
 
     const clearFilters = () => {
         setSearchValue("");
         setSelectedFilter("");
         setSelectedSort("");
+        setSelectedDate("");
         onSearch("");
         if (onFilterChange) onFilterChange("");
         if (onSortChange) onSortChange("");
+        if (onDateChange) onDateChange("");
     };
 
     return (
@@ -133,8 +162,20 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
                     </div>
                 )}
 
+                {/* Date Filter */}
+                {onDateChange && (
+                    <div className="relative">
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={handleDateChange}
+                            className="pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm cursor-pointer hover:bg-gray-50 min-w-[140px]"
+                        />
+                    </div>
+                )}
+
                 {/* Reset Button */}
-                {(selectedFilter || selectedSort || searchValue) && (
+                {(selectedFilter || selectedSort || searchValue || selectedDate) && (
                     <button
                         onClick={clearFilters}
                         className="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors font-medium"

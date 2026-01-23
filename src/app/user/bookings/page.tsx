@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { getUserAppointments, cancelAppointment } from '../../../service/userService';
 import CancelAppointmentModal from '../../../components/CancelAppointmentModal';
 import BookingDetailsModal from '../../../components/user/BookingDetailsModal';
@@ -8,6 +8,7 @@ import Pagination from '../../../components/common/Pagination';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, DollarSign, User, AlertCircle, CalendarX, FileText, CheckCircle } from 'lucide-react';
 import { showToast } from '../../../utils/alerts';
+import { FilterBar } from '@/components/admin/shared/ReusableFilterBar';
 
 interface Appointment {
     id: string;
@@ -37,24 +38,48 @@ const UserAppointmentsPage = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
+    const [statusFilter, setStatusFilter] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [dateFilter, setDateFilter] = useState("");
     const limit = 5;
 
-    const fetchAppointments = async (page: number = 1) => {
+    const fetchAppointments = useCallback(async (page: number = 1) => {
         try {
             setLoading(true);
-            const data = await getUserAppointments(page, limit);
+            const data = await getUserAppointments(page, limit, statusFilter, searchTerm, dateFilter);
             setAppointments(data.data?.appointments || []);
-            setTotalItems(data.data?.pagination?.totalItems || 0);
+            setTotalItems(data.data?.total || 0);
         } catch (error) {
             showToast("error", "Failed to fetch appointments. Please try again.");
         } finally {
             setLoading(false);
         }
-    };
+    }, [statusFilter, searchTerm, dateFilter]);
+
+    const handleSearch = useCallback((value: string) => {
+        setSearchTerm(prev => {
+            if (prev !== value) setCurrentPage(1);
+            return value;
+        });
+    }, []);
+
+    const handleFilter = useCallback((value: string) => {
+        setStatusFilter(prev => {
+            if (prev !== value) setCurrentPage(1);
+            return value;
+        });
+    }, []);
+
+    const handleDateChange = useCallback((value: string) => {
+        setDateFilter(prev => {
+            if (prev !== value) setCurrentPage(1);
+            return value;
+        });
+    }, []);
 
     useEffect(() => {
         fetchAppointments(currentPage);
-    }, [currentPage]);
+    }, [currentPage, fetchAppointments]);
 
     const handleCancelClick = (id: string) => {
         setSelectedAppointmentId(id);
@@ -72,7 +97,7 @@ const UserAppointmentsPage = () => {
         try {
             await cancelAppointment(selectedAppointmentId, reason);
             showToast("success", "Appointment cancelled successfully.");
-            fetchAppointments();
+            fetchAppointments(currentPage);
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || "Failed to cancel appointment. Please try again.";
             showToast("error", errorMessage);
@@ -96,6 +121,21 @@ const UserAppointmentsPage = () => {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-slate-900">My Appointments</h1>
                     <p className="text-slate-500 mt-2">Manage your upcoming and past legal consultations.</p>
+                </div>
+
+                <div className="mb-6">
+                    <FilterBar
+                        onSearch={handleSearch}
+                        onFilterChange={handleFilter}
+                        onDateChange={handleDateChange}
+                        filterOptions={[
+                            { label: "Confirmed", value: "confirmed" },
+                            { label: "Pending", value: "pending" },
+                            { label: "Completed", value: "completed" },
+                            { label: "Cancelled", value: "cancelled" },
+                        ]}
+                        placeholder="Search by lawyer name..."
+                    />
                 </div>
 
                 {appointments.length === 0 ? (

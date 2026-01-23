@@ -27,12 +27,14 @@ export default function AdminBookingsPage() {
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dateFilter, setDateFilter] = useState('');
     const limit = 10;
 
     const loadBookings = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetchBookings(currentPage, limit, statusFilter);
+            const response = await fetchBookings(currentPage, limit, statusFilter, searchTerm, dateFilter);
             if (response.success) {
                 setBookings(response.data.bookings);
                 setTotal(response.data.total);
@@ -42,15 +44,15 @@ export default function AdminBookingsPage() {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, statusFilter]);
+    }, [currentPage, statusFilter, searchTerm, dateFilter]);
 
     useEffect(() => {
         loadBookings();
     }, [loadBookings]);
 
-  
 
-  
+
+
 
     const columns: Column<AdminBooking>[] = [
         {
@@ -105,6 +107,27 @@ export default function AdminBookingsPage() {
 
 
 
+    const handleSearch = useCallback((value: string) => {
+        setSearchTerm(prev => {
+            if (prev !== value) setCurrentPage(1);
+            return value;
+        });
+    }, []);
+
+    const handleFilter = useCallback((value: string) => {
+        setStatusFilter(prev => {
+            if (prev !== value) setCurrentPage(1);
+            return value;
+        });
+    }, []);
+
+    const handleDate = useCallback((value: string) => {
+        setDateFilter(prev => {
+            if (prev !== value) setCurrentPage(1);
+            return value;
+        });
+    }, []);
+
     return (
         <div className="min-h-screen bg-slate-50/50 p-8">
             <div className="max-w-7xl mx-auto">
@@ -115,7 +138,18 @@ export default function AdminBookingsPage() {
                     </div>
                 </div>
 
-              
+                <FilterBar
+                    onSearch={handleSearch}
+                    onFilterChange={handleFilter}
+                    onDateChange={handleDate}
+                    filterOptions={[
+                        { label: 'Confirmed', value: 'confirmed' },
+                        { label: 'Pending', value: 'pending' },
+                        { label: 'Completed', value: 'completed' },
+                        { label: 'Cancelled', value: 'cancelled' },
+                    ]}
+                    placeholder="Search by user or lawyer name..."
+                />
 
                 <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden transition-all duration-300">
                     <ReusableTable

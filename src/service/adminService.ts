@@ -74,9 +74,9 @@ export const approvePayout = async (id: string) => {
 
 
 
-export const fetchBookings = async (page: number = 1, limit: number = 10, status?: string): Promise<CommonResponse<any>> => {
+export const fetchBookings = async (page: number = 1, limit: number = 10, status?: string, search?: string, date?: string): Promise<CommonResponse<any>> => {
   return apiClient.get(API_ROUTES.ADMIN.BOOKINGS, {
-    params: { page, limit, status }
+    params: { page, limit, status, search, date }
   });
 };
 

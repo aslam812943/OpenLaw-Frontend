@@ -1,10 +1,12 @@
 'use client'
 
 import { getAppoiments, updateAppointmentStatus } from "@/service/lawyerService"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { showToast } from "@/utils/alerts"
 import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable"
+import { FilterBar } from "@/components/admin/shared/ReusableFilterBar"
+import Pagination from "@/components/common/Pagination"
 import { Info, CheckCircle, XCircle, CheckCheck, Clock, FileText, MessageSquare } from "lucide-react"
 import Swal from "sweetalert2"
 import CompleteAppointmentModal from "@/components/lawyer/CompleteAppointmentModal"
@@ -32,24 +34,53 @@ const Appointments = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const limit = 10;
   const router = useRouter();
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await getAppoiments();
-      if (response) {
-        setData(response.data);
+      const response = await getAppoiments(currentPage, limit, statusFilter, searchTerm, dateFilter);
+      if (response.success) {
+        setData(response.data.appointments || []);
+        setTotalItems(response.data.total || 0);
       }
     } catch (error) {
       showToast("error", "Failed to fetch appointments");
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, statusFilter, searchTerm, dateFilter]);
+
+  const handleSearch = useCallback((value: string) => {
+    setSearchTerm(prev => {
+      if (prev !== value) setCurrentPage(1);
+      return value;
+    });
+  }, []);
+
+  const handleFilter = useCallback((value: string) => {
+    setStatusFilter(prev => {
+      if (prev !== value) setCurrentPage(1);
+      return value;
+    });
+  }, []);
+
+  const handleDateChange = useCallback((value: string) => {
+    setDateFilter(prev => {
+      if (prev !== value) setCurrentPage(1);
+      return value;
+    });
+  }, []);
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
 
   const handleStatusUpdate = async (id: string, status: string, appointment?: Appointment) => {
     if (status === 'completed' && appointment) {
@@ -235,8 +266,23 @@ const Appointments = () => {
           </div>
           <div className="bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
             <div className="w-3 h-3 bg-teal-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-bold text-slate-700">{data.length} Total Bookings</span>
+            <span className="text-sm font-bold text-slate-700">{totalItems} Total Bookings</span>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <FilterBar
+            onSearch={handleSearch}
+            onFilterChange={handleFilter}
+            onDateChange={handleDateChange}
+            filterOptions={[
+              { label: "Confirmed", value: "confirmed" },
+              { label: "Pending", value: "pending" },
+              { label: "Completed", value: "completed" },
+              { label: "Cancelled", value: "cancelled" },
+            ]}
+            placeholder="Search by client name..."
+          />
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
@@ -245,6 +291,15 @@ const Appointments = () => {
             data={data}
             isLoading={loading}
             emptyMessage="No consultations scheduled yet."
+          />
+        </div>
+
+        <div className="mt-8">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={totalItems}
+            limit={limit}
+            onPageChange={setCurrentPage}
           />
         </div>
       </div>
