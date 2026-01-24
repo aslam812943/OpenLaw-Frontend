@@ -19,7 +19,6 @@ const Header: React.FC<HeaderProps> = ({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
-  const notificationRef = React.useRef<HTMLDivElement>(null);
   const router = useRouter()
   const lawyer = useSelector((state: RootState) => state.lawyer);
 
@@ -28,9 +27,7 @@ const Header: React.FC<HeaderProps> = ({
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
+    
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -83,67 +80,15 @@ const Header: React.FC<HeaderProps> = ({
         {/* Right Side */}
         <div className="flex items-center space-x-3">
 
-          {/* Notifications */}
-          <div className="relative" ref={notificationRef}>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowNotifications(!showNotifications)}
-              className={`relative p-2.5 rounded-xl transition-all ${showNotifications ? 'bg-teal-50 text-teal-600' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                }`}
-            >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-2 right-2.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full flex items-center justify-center" />
-              )}
-            </motion.button>
-
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden shadow-slate-200/50"
-                >
-                  <div className="px-5 py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center text-sm">
-                    <h3 className="font-bold text-slate-800">Notifications</h3>
-                    <button className="text-teal-600 hover:text-teal-700 font-bold text-xs uppercase tracking-wider">
-                      Mark all read
-                    </button>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
-                    {notifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        className={`px-5 py-4 border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors relative group ${notif.unread ? 'after:absolute after:left-0 after:top-0 after:bottom-0 after:w-1 after:bg-teal-500' : ''
-                          }`}
-                      >
-                        <p className={`text-sm ${notif.unread ? 'text-slate-900 font-semibold' : 'text-slate-600'}`}>
-                          {notif.text}
-                        </p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-wider">{notif.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="px-5 py-3 text-center border-t border-slate-50">
-                    <button className="text-xs font-bold text-slate-500 hover:text-teal-600 transition-colors uppercase tracking-widest">
-                      View all notifications
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
+    
           {/* Settings icon */}
-          <motion.button
+          {/* <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="p-2.5 bg-slate-50 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
           >
             <Settings className="w-5 h-5" />
-          </motion.button>
+          </motion.button> */}
 
           {/* Divider */}
           <div className="w-px h-8 bg-slate-200/50 mx-2" />
@@ -200,7 +145,7 @@ const Header: React.FC<HeaderProps> = ({
                       </div>
                       <span className="font-semibold text-slate-600 group-hover:text-slate-900">My Profile</span>
                     </button >
-                    <button
+                    {/* <button
                       className="w-full px-3 py-2.5 rounded-xl text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center space-x-3 group transition-colors"
                     >
                       <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all text-slate-500 group-hover:text-teal-600">
@@ -215,17 +160,17 @@ const Header: React.FC<HeaderProps> = ({
                         <HelpCircle className="w-4 h-4" />
                       </div>
                       <span className="font-semibold text-slate-600 group-hover:text-slate-900">Help Center</span>
-                    </button>
+                    </button> */}
                   </div>
                   <div className="p-2 border-t border-slate-50 bg-slate-50/30">
-                    <button
+                    {/* <button
                       className="w-full px-3 py-2.5 rounded-xl text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3 group transition-colors"
                     >
                       <div className="p-1.5 bg-red-100/50 rounded-lg group-hover:bg-red-500 group-hover:text-white transition-all text-red-600">
                         <LogOut className="w-4 h-4" />
                       </div>
                       <span className="font-bold text-red-600">Sign Out</span>
-                    </button>
+                    </button> */}
                   </div>
                 </motion.div>
               )}

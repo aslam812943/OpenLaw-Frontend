@@ -107,13 +107,6 @@ const UserAppointmentsPage = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-screen bg-slate-50">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-600"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans">
@@ -128,6 +121,9 @@ const UserAppointmentsPage = () => {
                         onSearch={handleSearch}
                         onFilterChange={handleFilter}
                         onDateChange={handleDateChange}
+                        initialSearch={searchTerm}
+                        initialFilter={statusFilter}
+                        initialDate={dateFilter}
                         filterOptions={[
                             { label: "Confirmed", value: "confirmed" },
                             { label: "Pending", value: "pending" },
@@ -138,19 +134,31 @@ const UserAppointmentsPage = () => {
                     />
                 </div>
 
-                {appointments.length === 0 ? (
+                {loading ? (
+                    <div className="flex justify-center items-center h-64 bg-white rounded-3xl border border-slate-200">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-600"></div>
+                    </div>
+                ) : appointments.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-dashed border-slate-200 text-center">
                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                             <CalendarX className="text-slate-400" size={32} />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-700">No Appointments Yet</h3>
-                        <p className="text-slate-500 mt-2 max-w-sm mx-auto">You haven't booked any consultations. Find a lawyer and book your first session today.</p>
-                        <button
-                            onClick={() => router.push('/user/lawyers')}
-                            className="mt-6 px-6 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200"
-                        >
-                            Find a Lawyer
-                        </button>
+                        <h3 className="text-xl font-bold text-slate-700">
+                            {(statusFilter || searchTerm || dateFilter) ? "No Matching Appointments" : "No Appointments Yet"}
+                        </h3>
+                        <p className="text-slate-500 mt-2 max-w-sm mx-auto">
+                            {(statusFilter || searchTerm || dateFilter)
+                                ? "Try adjusting your filters or search terms to find what you're looking for."
+                                : "You haven't booked any consultations. Find a lawyer and book your first session today."}
+                        </p>
+                        {!(statusFilter || searchTerm || dateFilter) && (
+                            <button
+                                onClick={() => router.push('/user/lawyers')}
+                                className="mt-6 px-6 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200"
+                            >
+                                Find a Lawyer
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <>

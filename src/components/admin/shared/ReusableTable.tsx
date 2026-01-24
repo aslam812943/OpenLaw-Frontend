@@ -28,7 +28,11 @@ export function ReusableTable<T extends { id?: string | number; _id?: string | n
     };
 
     if (isLoading) {
-        return <div className="p-6 text-center text-gray-500">Loading...</div>;
+        return (
+            <div className="flex justify-center items-center h-64 bg-white/50 backdrop-blur-sm">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-600"></div>
+            </div>
+        );
     }
 
     if (!data || data.length === 0) {

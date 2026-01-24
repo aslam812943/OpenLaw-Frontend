@@ -92,13 +92,6 @@ const AdminPayoutsPage = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-neutral-900">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -119,7 +112,11 @@ const AdminPayoutsPage = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                    {payouts.length === 0 ? (
+                    {loading ? (
+                        <div className="flex justify-center items-center py-24 text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+                        </div>
+                    ) : payouts.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <div className="p-6 bg-gray-50 dark:bg-neutral-900 rounded-full mb-4">
                                 <Clock size={48} className="text-gray-300 dark:text-neutral-700" />

@@ -142,6 +142,9 @@ export default function AdminBookingsPage() {
                     onSearch={handleSearch}
                     onFilterChange={handleFilter}
                     onDateChange={handleDate}
+                    initialSearch={searchTerm}
+                    initialFilter={statusFilter}
+                    initialDate={dateFilter}
                     filterOptions={[
                         { label: 'Confirmed', value: 'confirmed' },
                         { label: 'Pending', value: 'pending' },
@@ -156,7 +159,7 @@ export default function AdminBookingsPage() {
                         columns={columns}
                         data={bookings}
                         isLoading={loading}
-                        emptyMessage="No bookings found for the selected criteria."
+                        emptyMessage={(statusFilter || searchTerm || dateFilter) ? "No bookings match your search criteria." : "No bookings found."}
                     />
                 </div>
 

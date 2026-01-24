@@ -46,16 +46,6 @@ const CasesPage = () => {
     router.push(`/lawyer/chat?userId=${userId}`);
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-slate-50">
-
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -86,7 +76,11 @@ const CasesPage = () => {
           </div>
 
           {/* Cases List */}
-          {cases.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center py-32 bg-white rounded-3xl border border-slate-100 shadow-sm">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
+            </div>
+          ) : cases.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-slate-200 shadow-sm text-center">
               <div className="p-6 bg-slate-50 rounded-full mb-6">
                 <Briefcase size={48} className="text-slate-300" />

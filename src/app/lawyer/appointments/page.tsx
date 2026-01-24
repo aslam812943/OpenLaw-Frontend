@@ -275,6 +275,9 @@ const Appointments = () => {
             onSearch={handleSearch}
             onFilterChange={handleFilter}
             onDateChange={handleDateChange}
+            initialSearch={searchTerm}
+            initialFilter={statusFilter}
+            initialDate={dateFilter}
             filterOptions={[
               { label: "Confirmed", value: "confirmed" },
               { label: "Pending", value: "pending" },
@@ -290,7 +293,7 @@ const Appointments = () => {
             columns={columns}
             data={data}
             isLoading={loading}
-            emptyMessage="No consultations scheduled yet."
+            emptyMessage={(statusFilter || searchTerm || dateFilter) ? "No appointments match your search criteria." : "No consultations scheduled yet."}
           />
         </div>
 
