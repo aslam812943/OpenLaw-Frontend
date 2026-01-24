@@ -63,7 +63,7 @@ const LoginForm = () => {
             }
 
             router.replace("/lawyer/dashboard");
-            return 
+            return
         } else if (user.role === "user") {
             dispatch(setUserData({
                 id: user._id || (user as any).id,
@@ -72,8 +72,8 @@ const LoginForm = () => {
                 phone: user.phone as any,
                 role: user.role
             }));
-            router.replace("/");
-            return 
+            window.location.href = "/";
+            return
         }
     };
 
