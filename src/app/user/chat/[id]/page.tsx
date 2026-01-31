@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useSocket } from '@/context/SocketContext';
-import { getMessages, getRoomById, uploadFile, getUserRooms } from '@/service/chatService';
+import { getMessages, getRoomById, uploadFile, getUserRooms, Message, ChatRoomDetails } from '@/service/chatService';
 import { Send, Menu, MoreVertical, User, Paperclip, FileIcon, ChevronLeft, Search, Dot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/components/ui/ImageModal';
@@ -26,12 +26,12 @@ export default function UserChatPage() {
     const { socket, isConnected } = useSocket();
     const user = useSelector((state: RootState) => state.user);
 
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
-    const [rooms, setRooms] = useState<any[]>([]);
-    const [roomInfo, setRoomInfo] = useState<any>(null);
+    const [rooms, setRooms] = useState<ChatRoomDetails[]>([]);
+    const [roomInfo, setRoomInfo] = useState<ChatRoomDetails | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -115,12 +115,12 @@ export default function UserChatPage() {
         const content = newMessage.trim();
         if (!content || !socket || !isConnected) return;
 
-        const tempMessage = {
+        const tempMessage: Message = {
             id: `temp-${Date.now()}`,
-            roomId,
-            senderId: user.id,
+            senderId: user.id || '',
             content,
-            senderRole: 'user' as const,
+            senderRole: 'user',
+            type: 'text',
             createdAt: new Date().toISOString(),
             readAt: null
         };
@@ -312,7 +312,7 @@ export default function UserChatPage() {
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="text-sm font-bold truncate">{msg.fileName || 'Document'}</p>
-                                                        {msg.fileSize && <p className="text-[10px] opacity-70 font-bold uppercase">{(parseInt(msg.fileSize) / 1024).toFixed(1)} KB</p>}
+                                                        {msg.fileSize && <p className="text-[10px] opacity-70 font-bold uppercase">{(Number(msg.fileSize) / 1024).toFixed(1)} KB</p>}
                                                     </div>
                                                 </a>
                                             ) : (

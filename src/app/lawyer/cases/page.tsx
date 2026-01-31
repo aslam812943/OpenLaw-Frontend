@@ -2,22 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getLawyerCases } from '@/service/lawyerService';
+import { getLawyerCases, Case } from '@/service/lawyerService';
 import { showToast } from '@/utils/alerts';
-
 import { Calendar, Clock, MessageSquare, Briefcase, Plus } from 'lucide-react';
-
-
-interface Case {
-  id: string;
-  userId: string;
-  userName: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  desctiption: string;
-  status: string;
-}
 
 const CasesPage = () => {
   const router = useRouter();

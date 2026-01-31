@@ -317,7 +317,7 @@ export default function App() {
 
     try {
       const res = await scheduleCreate(newRule);
-      showToast('success', res?.data?.message || 'Rule created successfully');
+      showToast('success', res?.message || 'Rule created successfully');
 
 
       const response = await fetchAllRules();

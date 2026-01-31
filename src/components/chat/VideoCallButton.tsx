@@ -21,14 +21,14 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role }) =>
 
         try {
             const res = await canJoinCall(bookingId);
-            if (res.canJoin) {
+            if (res.success && res.data?.canJoin) {
                 if (role === 'lawyer') {
 
                     await joinCall(bookingId);
                 }
                 router.push(`/video-call/${bookingId}`);
             } else {
-                showToast('warning', res.message);
+                showToast('warning', res.message || 'Cannot join call at this time');
             }
         } catch (error: any) {
             showToast('error', error.message || 'Error occurred while joining call');

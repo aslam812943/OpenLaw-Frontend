@@ -45,8 +45,8 @@ const Subscription = () => {
       setLoading(true);
       const res = await fetchSubscriptions(page, limit);
       if (res.success) {
-        setPlans(res.data.plans || res.data);
-        setTotalItems(res.data.total || (res.data.length > 0 ? res.data.length : 0));
+        setPlans(res.data.plans);
+        setTotalItems(res.data.total);
         setCurrentPage(page);
       }
     } catch (error: any) {

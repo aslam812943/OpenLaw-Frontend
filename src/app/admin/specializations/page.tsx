@@ -2,17 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { ReusableTable, Column } from '@/components/admin/shared/ReusableTable';
-import { fetchSpecializations, createSpecialization, updateSpecialization, deleteSpecialization } from '@/service/adminService';
+import { fetchSpecializations, createSpecialization, updateSpecialization, deleteSpecialization, Specialization } from '@/service/adminService';
 import { showToast } from '@/utils/alerts';
 import Swal from 'sweetalert2';
 import { Edit2, Trash2, Plus, Info } from 'lucide-react';
-
-interface Specialization {
-    id: string;
-    name: string;
-    description: string;
-    isActive: boolean;
-}
 
 const SpecializationsPage = () => {
     const [data, setData] = useState<Specialization[]>([]);

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { getUserAppointments, cancelAppointment } from '../../../service/userService';
+import { getUserAppointments, cancelAppointment, Appointment } from '../../../service/userService';
 import CancelAppointmentModal from '../../../components/CancelAppointmentModal';
 import BookingDetailsModal from '../../../components/user/BookingDetailsModal';
 import Pagination from '../../../components/common/Pagination';
@@ -9,22 +9,6 @@ import { useRouter } from 'next/navigation';
 import { Calendar, Clock, DollarSign, User, AlertCircle, CalendarX, FileText, CheckCircle } from 'lucide-react';
 import { showToast } from '../../../utils/alerts';
 import { FilterBar } from '@/components/admin/shared/ReusableFilterBar';
-
-interface Appointment {
-    id: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    status: string;
-    consultationFee: number;
-    description?: string;
-    cancellationReason?: string;
-    lawyerId: string;
-    lawyerName?: string;
-    refundAmount?: number;
-    refundStatus?: string;
-    lawyerFeedback?: string;
-}
 
 const UserAppointmentsPage = () => {
     const router = useRouter();

@@ -4,8 +4,6 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { getSingleLawyer, getallslots } from "@/service/lawyerService";
-import { handlepayAndBook, addReview, allReview } from "@/service/userService";
 import {
   Mail, Phone, MapPin, Award, Scale, Calendar,
   BookOpen, Briefcase, Languages, ExternalLink,
@@ -16,24 +14,8 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { checkChatAccess, getChatRoom } from "@/service/chatService";
 import { showToast } from "@/utils/alerts";
-
-interface LawyerData {
-  id: string;
-  barNumber: string;
-  barAdmissionDate: string;
-  yearsOfPractice: number;
-  practiceAreas: string[];
-  languages: string[];
-  address: string;
-  city: string;
-  state: string;
-  name: string;
-  email: string;
-  phone: string;
-  profileImage: string;
-  bio: string;
-  consultationFee?: number;
-}
+import { getSingleLawyer, getallslots, Lawyer, Slot } from "@/service/lawyerService";
+import { handlepayAndBook, addReview, allReview, Review } from "@/service/userService";
 
 export default function LawyersSinglePage() {
   const { id } = useParams();
@@ -41,8 +23,8 @@ export default function LawyersSinglePage() {
   const [calendarDays, setCalendarDays] = useState<{ date: string, available: boolean }[]>([]);
   const [selectedTime, setSelectedTime] = useState<{ start: string; end: string } | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const [lawyer, setLawyer] = useState<LawyerData | null>(null);
-  const [slots, setSlots] = useState<any[]>([]);
+  const [lawyer, setLawyer] = useState<Lawyer | null>(null);
+  const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingMode, setBookingMode] = useState(false);
@@ -55,7 +37,7 @@ export default function LawyersSinglePage() {
   const [rating, setRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   const router = useRouter();
 
@@ -72,7 +54,7 @@ export default function LawyersSinglePage() {
         }
 
         const lawyerData = response.data;
-        setLawyer(lawyerData as unknown as LawyerData);
+        setLawyer(lawyerData);
         if (lawyerData?.consultationFee) {
           setConsultationFee(Number(lawyerData.consultationFee));
         }

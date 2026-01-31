@@ -3,25 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { TrendingUp, Briefcase, DollarSign, Activity, ArrowUpRight, Target, Users, Calendar, Sparkles, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchLawyerDashboardStats, getprofile } from '@/service/lawyerService';
+import { fetchLawyerDashboardStats, getprofile, LawyerDashboardStats } from '@/service/lawyerService';
 import { LawyerKPICard } from '@/components/lawyer/dashboard/LawyerKPICard';
 import { RevenueChart } from '@/components/admin/dashboard/RevenueChart';
 import { BookingStatusChart } from '@/components/admin/dashboard/BookingStatusChart';
 import { DashboardFilter } from '@/components/admin/dashboard/DashboardFilter';
 import { showToast } from '@/utils/alerts';
-
-interface LawyerDashboardStats {
-  totalEarnings: number;
-  totalConsultations: number;
-  bookingStats: {
-    completed: number;
-    cancelled: number;
-    pending: number;
-    rejected: number;
-    confirmed: number;
-  };
-  monthlyEarnings: { month: string; earnings: number }[];
-}
 
 export default function LawyerDashboard() {
   const [stats, setStats] = useState<LawyerDashboardStats | null>(null);

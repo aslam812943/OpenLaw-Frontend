@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Check, Shield, Zap, Star, AlertCircle } from 'lucide-react';
 import { getSubscriptionPlans, getCurrentSubscription, createSubscriptionCheckout } from '@/service/lawyerService';
 import { showToast } from '@/utils/alerts';
-
+import Pagination from '@/components/common/Pagination';
 interface SubscriptionPlan {
     id: string;
     planName: string;
@@ -32,17 +32,20 @@ const SubscriptionsPage = () => {
     const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 3;
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [plansResponse, currentResponse] = await Promise.all([
-                    getSubscriptionPlans(),
+                    getSubscriptionPlans(currentPage, limit),
                     getCurrentSubscription()
                 ]);
 
                 if (plansResponse?.data) {
-                    setPlans(plansResponse.data);
+                    setPlans(plansResponse.data.plans);
+                    setTotalItems(plansResponse.data.total)
                 }
 
                 if (currentResponse?.data) {
@@ -56,7 +59,7 @@ const SubscriptionsPage = () => {
         };
 
         fetchData();
-    }, []);
+    }, [currentPage]);
 
     const handleSubscribe = async (plan: SubscriptionPlan) => {
         try {
@@ -230,7 +233,7 @@ const SubscriptionsPage = () => {
 
                                 <div className="space-y-3 mt-auto">
                                     <button
-                                        onClick={() =>  handleSubscribe(plan)}
+                                        onClick={() => handleSubscribe(plan)}
                                         disabled={isDisabled}
                                         className={`w-full py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm tracking-wide ${isCurrent
                                             ? 'bg-slate-100 text-slate-400 cursor-default'
@@ -267,6 +270,16 @@ const SubscriptionsPage = () => {
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 mb-2">No Plans Available</h3>
                         <p className="text-slate-500">Check back later for new subscription options.</p>
+                    </div>
+                )}
+                {plans.length > 0 && (
+                    <div className="col-span-full mt-8">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalItems={totalItems}
+                            limit={limit}
+                            onPageChange={(page) => setCurrentPage(page)}
+                        />
                     </div>
                 )}
             </div>
