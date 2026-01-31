@@ -32,7 +32,7 @@ const AllLawyers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
-  const limit = 1;
+  const limit = 6;
 
 
   const [locationFilter, setLocationFilter] = useState("");
@@ -74,7 +74,7 @@ const AllLawyers = () => {
       });
 
       const list = res?.data?.lawyers;
-      const total = res?.data?.total || 0;
+      const total = res?.data?.totalCount || res?.data?.total || 0;
 
       if (Array.isArray(list)) {
         setLawyers(list);
@@ -190,7 +190,7 @@ const AllLawyers = () => {
       </div>
 
       {/* Search & Filter Bar Section */}
-      <div className="sticky top-20 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+      <div className="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row gap-4 items-center justify-between">
 
           {/* Search Input */}

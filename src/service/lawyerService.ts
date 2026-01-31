@@ -29,6 +29,7 @@ export interface Lawyer {
 export interface PaginatedLawyerResponse {
   lawyers: Lawyer[];
   total: number;
+  totalCount?: number;
 }
 
 export interface CommonResponse<T = any> {
