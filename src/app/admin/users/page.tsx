@@ -28,8 +28,10 @@ export default function AdminUsersPage() {
     try {
       setLoading(true);
       const response = await fetchUsers(pageNum, limit, search, filter, sort);
-      setUsers(response.users);
-      setTotal(response.total);
+      if (response.success && response.data) {
+        setUsers(response.data.users);
+        setTotal(response.data.total);
+      }
     } catch (e: any) {
       setError(e.message);
       showToast("error", e.message || "Failed to load users.");
@@ -57,7 +59,7 @@ export default function AdminUsersPage() {
     setPage(1);
   };
 
-  
+
   const handleAction = async (type: string, id: string) => {
     try {
       const user = users.find((u) => u._id === id);
@@ -142,7 +144,7 @@ export default function AdminUsersPage() {
       >
         <h1 className="text-2xl text-white font-semibold mb-6">User Management</h1>
 
-      
+
         {error ? (
           <div className="p-6 text-red-500 text-center">Error: {error}</div>
         ) : (

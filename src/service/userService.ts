@@ -52,13 +52,50 @@ export interface FetchUsersResponse {
   total: number;
 }
 
+export interface Appointment {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  consultationFee: number;
+  description?: string;
+  cancellationReason?: string;
+  lawyerId: string;
+  lawyerName?: string;
+  refundAmount?: number;
+  refundStatus?: string;
+  lawyerFeedback?: string;
+}
+
+export interface BookingDetails {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  consultationFee: number;
+  lawyerName: string;
+  lawyerImage?: string;
+  paymentId?: string;
+  sessionId?: string;
+  description?: string;
+}
+
+export interface Review {
+  id: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 export async function fetchUsers(
   page = 1,
   limit = 5,
   search?: string,
   filter?: string,
   sort?: string
-): Promise<FetchUsersResponse> {
+): Promise<CommonResponse<{ users: User[]; total: number }>> {
   const queryParams = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
@@ -66,7 +103,9 @@ export async function fetchUsers(
     ...(filter && { filter }),
     ...(sort && { sort }),
   });
-  return apiClient.get(`${API_ROUTES.ADMIN.FETCH_USERS}?${queryParams.toString()}`);
+  return apiClient.get<CommonResponse<{ users: User[]; total: number }>>(
+    `${API_ROUTES.ADMIN.FETCH_USERS}?${queryParams.toString()}`
+  );
 }
 
 export const blockUser = async (id: string): Promise<string> => {
@@ -79,7 +118,7 @@ export const unBlockUser = async (id: string): Promise<string> => {
   return response.message;
 };
 
-export const logoutUser = async (): Promise<CommonResponse<any>> => {
+export const logoutUser = async (): Promise<CommonResponse<void>> => {
   return apiClient.post(API_ROUTES.USER.LOGOUT_USER);
 };
 
@@ -89,25 +128,23 @@ export const getprofile = async (): Promise<User> => {
 };
 
 export const updateProfileInfo = async (formData: FormData): Promise<CommonResponse<User>> => {
-  const response = await apiClient.put<CommonResponse<User>>(
+  return apiClient.put<CommonResponse<User>>(
     API_ROUTES.USER.UPDATE_PROFILE_INFO,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
     }
   );
-  return response as any;
 };
 
 export const changePassword = async (payload: {
   oldPassword: string;
   newPassword: string;
-}): Promise<CommonResponse> => {
-  const response = await apiClient.put<CommonResponse>(
+}): Promise<CommonResponse<void>> => {
+  return apiClient.put<CommonResponse<void>>(
     API_ROUTES.USER.CHANGE_PASSWORD,
     payload
   );
-  return response as any;
 };
 
 export const userLogin = async (data: { email: string; password: string }): Promise<CommonResponse<LoginResponse>> => {
@@ -120,15 +157,15 @@ export const userRegister = async (data: {
   phone: string;
   password?: string;
   role: string;
-}): Promise<CommonResponse> => {
+}): Promise<CommonResponse<void>> => {
   return apiClient.post(API_ROUTES.USER.REGISTER, data);
 };
 
-export const verifyUserOtp = async (data: { email: string, otp: string }): Promise<CommonResponse> => {
+export const verifyUserOtp = async (data: { email: string, otp: string }): Promise<CommonResponse<void>> => {
   return apiClient.post(API_ROUTES.USER.VERIFY_OTP, data);
 };
 
-export const resendUserOtp = async (email: string): Promise<CommonResponse> => {
+export const resendUserOtp = async (email: string): Promise<CommonResponse<void>> => {
   return apiClient.post(API_ROUTES.USER.RESEND_OTP, { email });
 };
 
@@ -136,7 +173,7 @@ export const userGoogleAuth = async (token: string, role?: string): Promise<Comm
   return apiClient.post(API_ROUTES.USER.GOOGLE_AUTH, { token, role });
 };
 
-export const userForgotPassword = async (email: string): Promise<CommonResponse> => {
+export const userForgotPassword = async (email: string): Promise<CommonResponse<void>> => {
   return apiClient.post(API_ROUTES.USER.FORGOT_PASSWORD, { email });
 };
 
@@ -145,36 +182,46 @@ export const userResetPassword = async (data: {
   email: string;
   password?: string;
   conformpassword?: string;
-}): Promise<CommonResponse> => {
+}): Promise<CommonResponse<void>> => {
   return apiClient.post(API_ROUTES.USER.RESET_PASSWORD, data);
 };
 
-export const handlepayAndBook = async (data: any): Promise<CommonResponse<any>> => {
-  return apiClient.post<CommonResponse<any>>(API_ROUTES.PAYMENT.PAYMENT, data);
+export const handlepayAndBook = async (data: {
+  userId: string | null;
+  lawyerId: string;
+  lawyerName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  consultationFee: number | undefined;
+  description?: string;
+  slotId: string | null;
+}): Promise<CommonResponse<{ url: string }>> => {
+  return apiClient.post<CommonResponse<{ url: string }>>(API_ROUTES.PAYMENT.PAYMENT, data);
 }
 
-export const confirmBooking = async (sessionId: string): Promise<CommonResponse<any>> => {
-  return apiClient.post<CommonResponse<any>>(API_ROUTES.PAYMENT.CONFIRM, { sessionId });
+export const confirmBooking = async (sessionId: string): Promise<CommonResponse<BookingDetails>> => {
+  return apiClient.post<CommonResponse<BookingDetails>>(API_ROUTES.PAYMENT.CONFIRM, { sessionId });
 }
 
-export const getUserAppointments = async (page: number = 1, limit: number = 5, status?: string, search?: string, date?: string): Promise<CommonResponse<any>> => {
-  return apiClient.get<CommonResponse<any>>(API_ROUTES.USER.GETAPPOINMENT, {
+export const getUserAppointments = async (page: number = 1, limit: number = 5, status?: string, search?: string, date?: string): Promise<CommonResponse<{ appointments: Appointment[], total: number }>> => {
+  return apiClient.get<CommonResponse<{ appointments: Appointment[], total: number }>>(API_ROUTES.USER.GETAPPOINMENT, {
     params: { page, limit, status, search, date }
   });
 };
 
-export const cancelAppointment = async (id: string, reason: string) => {
-  const response = await apiClient.patch<CommonResponse>(API_ROUTES.USER.CANCELAPPOINMENT(id), { reason });
+export const cancelAppointment = async (id: string, reason: string): Promise<void> => {
+  const response = await apiClient.patch<CommonResponse<void>>(API_ROUTES.USER.CANCELAPPOINMENT(id), { reason });
   return response.data;
 };
 
-export const addReview = async (reviewData: { userId: string; lawyerId: string; rating: number; comment: string }): Promise<CommonResponse> => {
-  return apiClient.post<CommonResponse>(API_ROUTES.USER.ADDREVIEW, reviewData);
+export const addReview = async (reviewData: { userId: string; lawyerId: string; rating: number; comment: string }): Promise<CommonResponse<Review>> => {
+  return apiClient.post<CommonResponse<Review>>(API_ROUTES.USER.ADDREVIEW, reviewData);
 };
 
-export const allReview = async (id: string): Promise<CommonResponse<any[]>> => {
+export const allReview = async (id: string): Promise<CommonResponse<Review[]>> => {
   try {
-    return await apiClient.get<CommonResponse<any[]>>(API_ROUTES.USER.GETALLREVIEWS(id));
+    return await apiClient.get<CommonResponse<Review[]>>(API_ROUTES.USER.GETALLREVIEWS(id));
   } catch (error) {
     return { success: false, message: "Failed to fetch reviews", data: [] };
   }

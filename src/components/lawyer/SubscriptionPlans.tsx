@@ -25,7 +25,7 @@ const SubscriptionPlans: React.FC = () => {
             try {
                 const response = await getSubscriptionPlans();
                 if (response.success) {
-                    setPlans(response.data);
+                    setPlans(response.data.plans);
                 } else {
                     showToast("error", "Failed to load plans.");
                 }

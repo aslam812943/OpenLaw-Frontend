@@ -8,18 +8,21 @@ interface PaginationProps {
 }
 
 const Pagination: React.FC<PaginationProps> = ({
-  currentPage,
-  totalItems,
-  limit,
+  currentPage = 1,
+  totalItems = 0,
+  limit = 10,
   onPageChange,
 }) => {
-  const totalPages = Math.ceil(totalItems / limit)
-  if (totalItems === 0) return null;
+  const safeTotalItems = Number.isNaN(Number(totalItems)) ? 0 : Number(totalItems);
+  const safeLimit = (Number.isNaN(Number(limit)) || Number(limit) <= 0) ? 10 : Number(limit);
+  const totalPages = Math.max(1, Math.ceil(safeTotalItems / safeLimit));
+
+  if (safeTotalItems === 0) return null;
 
   return (
     <div className="flex justify-between items-center mt-6 px-6 py-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
       <p className="text-sm font-semibold text-slate-700">
-        Showing page <span className="text-teal-600">{currentPage}</span> of <span className="text-teal-600">{totalPages}</span> ({totalItems} total results)
+        Showing page <span className="text-teal-600">{currentPage}</span> of <span className="text-teal-600">{totalPages}</span> ({safeTotalItems} total results)
       </p>
 
       <div className="flex gap-3">

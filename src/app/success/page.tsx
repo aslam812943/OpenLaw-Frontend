@@ -2,23 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { confirmBooking } from '@/service/userService';
+import { confirmBooking, BookingDetails } from '@/service/userService';
 import { CheckCircle, Calendar, Clock, FileText, CreditCard, User, ArrowLeft } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
 import Image from 'next/image';
-
-interface BookingDetails {
-    id: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    consultationFee: number;
-    lawyerName: string;
-    lawyerImage?: string;
-    paymentId?: string;
-    sessionId?: string;
-    description?: string;
-}
 
 export default function SuccessPage() {
     const searchParams = useSearchParams();

@@ -1,6 +1,6 @@
 "use client";
 
-import { getallLawyers } from "@/service/lawyerService";
+import { getallLawyers, Lawyer } from "@/service/lawyerService";
 import { fetchSpecializations, Specialization } from "@/service/userService";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -21,22 +21,6 @@ import {
   ShieldCheck,
   Phone
 } from "lucide-react";
-
-interface Lawyer {
-  id: string;
-  userId: string;
-  profileImage: string;
-  name: string;
-  email: string;
-  phone: string;
-  yearsOfPractice?: number;
-  practiceAreas?: string[];
-  city?: string;
-  state?: string;
-  consultationFee?: number;
-  // rating?: number; 
-  // reviewCount?: number; 
-}
 
 import Pagination from "@/components/common/Pagination";
 
@@ -90,7 +74,7 @@ const AllLawyers = () => {
       });
 
       const list = res?.data?.lawyers;
-      const total = res?.data?.totalCount || 0;
+      const total = res?.data?.total || 0;
 
       if (Array.isArray(list)) {
         setLawyers(list);
