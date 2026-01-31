@@ -41,7 +41,7 @@ export interface ChatRoomDetails {
 export const checkChatAccess = async (lawyerId: string): Promise<ChatAccessResponse> => {
     try {
         const response = await apiClient.get<CommonResponse<ChatAccessResponse>>(API_ROUTES.CHAT.CHECK_ACCESS(lawyerId));
-        return { hasAccess: response?.hasAccess ?? false };
+        return { hasAccess: response?.data?.hasAccess ?? false };
     } catch (error: any) {
         return { hasAccess: false };
     }

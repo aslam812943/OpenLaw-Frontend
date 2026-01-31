@@ -730,9 +730,7 @@ export default function LawyersSinglePage() {
         </div>
       )}
 
-      {/* 5. BOOKING MODAL (PRE-PAYMENT) */}
 
-      {/* 5. BOOKING MODAL (PRE-PAYMENT) */}
       {bookingSlot && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <motion.div
