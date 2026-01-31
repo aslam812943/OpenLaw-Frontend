@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-   
+
     if (!email || !password) {
       showToast("error", "Please fill in all fields.");
       return;
@@ -51,14 +51,14 @@ export default function AdminLoginPage() {
 
       const response = await adminLogin(data);
 
- 
+
       if (response && response.data) {
         showToast("success", "✅ Login successful!");
-   router.replace("/admin/dashboard"); 
-       
+        router.replace("/admin/dashboard");
+
       }
     } catch (err: any) {
- 
+
       showToast(
         "error",
         `❌ Login failed: ${err.response?.data?.message || err.message || "Invalid credentials"}`
@@ -72,9 +72,12 @@ export default function AdminLoginPage() {
     <div
       style={{
         textAlign: "center",
-        marginTop: "80px",
+        minHeight: "100vh",
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#0a0a0a", // Deep black background
+        color: "#fff",
       }}
     >
       <form
@@ -83,59 +86,81 @@ export default function AdminLoginPage() {
         style={{
           display: "flex",
           flexDirection: "column",
-          width: "300px",
-          gap: "15px",
-          border: "1px solid #ccc",
-          padding: "30px",
-          borderRadius: "10px",
-          backgroundColor: "#fff",
-          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+          width: "350px",
+          gap: "20px",
+          border: "1px solid #333",
+          padding: "40px",
+          borderRadius: "16px",
+          backgroundColor: "#111", // Dark form background
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+          backdropFilter: "blur(10px)",
         }}
       >
-        <h2 style={{ marginBottom: "10px", color: "#333" }}>Admin Login</h2>
+        <div style={{ marginBottom: "10px" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: "bold", margin: "0", color: "#fff" }}>Admin Portal</h2>
+          <p style={{ color: "#888", fontSize: "14px", marginTop: "5px" }}>Please sign in to continue</p>
+        </div>
 
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter email"
-          required
-          style={{
-            padding: "10px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-            outline: "none",
-          }}
-        />
+        <div style={{ display: "flex", flexDirection: "column", textAlign: "left", gap: "5px" }}>
+          <label style={{ fontSize: "12px", color: "#aaa", marginLeft: "2px" }}>Email Address</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@example.com"
+            required
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid #333",
+              backgroundColor: "#1a1a1a",
+              color: "#fff",
+              outline: "none",
+              transition: "border-color 0.2s",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#444")}
+            onBlur={(e) => (e.target.style.borderColor = "#333")}
+          />
+        </div>
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter password"
-          required
-          style={{
-            padding: "10px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-            outline: "none",
-          }}
-        />
+        <div style={{ display: "flex", flexDirection: "column", textAlign: "left", gap: "5px" }}>
+          <label style={{ fontSize: "12px", color: "#aaa", marginLeft: "2px" }}>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid #333",
+              backgroundColor: "#1a1a1a",
+              color: "#fff",
+              outline: "none",
+              transition: "border-color 0.2s",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#444")}
+            onBlur={(e) => (e.target.style.borderColor = "#333")}
+          />
+        </div>
 
         <button
           type="submit"
           disabled={loading}
           style={{
-            padding: "10px",
-            backgroundColor: loading ? "#999" : "#007bff",
-            color: "white",
+            marginTop: "10px",
+            padding: "12px",
+            backgroundColor: loading ? "#333" : "#fff",
+            color: loading ? "#666" : "#000",
             border: "none",
-            borderRadius: "5px",
+            borderRadius: "8px",
+            fontWeight: "600",
             cursor: loading ? "not-allowed" : "pointer",
             transition: "all 0.3s ease",
           }}
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Verifying..." : "Sign In"}
         </button>
       </form>
     </div>
