@@ -219,6 +219,35 @@ export const addReview = async (reviewData: { userId: string; lawyerId: string; 
   return apiClient.post<CommonResponse<Review>>(API_ROUTES.USER.ADDREVIEW, reviewData);
 };
 
+
+export interface WalletTransaction {
+  type: 'credit' | 'debit';
+  amount: number;
+  date: string;
+  status: 'pending' | 'completed' | 'failed';
+  bookingId?: string;
+  description?: string;
+  metadata?: {
+    reason?: string;
+    lawyerName?: string;
+    lawyerId?: string;
+    date?: string;
+    time?: string;
+    displayId?: string;
+  };
+}
+
+export interface Wallet {
+  userId: string;
+  balance: number;
+  transactions: WalletTransaction[];
+  id?: string;
+}
+
+export const getWallet = async (): Promise<CommonResponse<Wallet>> => {
+  return apiClient.get<CommonResponse<Wallet>>(API_ROUTES.USER.GETWALLET);
+}
+
 export const allReview = async (id: string): Promise<CommonResponse<Review[]>> => {
   try {
     return await apiClient.get<CommonResponse<Review[]>>(API_ROUTES.USER.GETALLREVIEWS(id));

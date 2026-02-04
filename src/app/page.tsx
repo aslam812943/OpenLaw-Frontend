@@ -25,26 +25,26 @@ const LawyerLandingPage = () => {
 
       {/* Hero Section */}
       <section className="relative min-h-[500px] lg:min-h-[650px] flex items-center overflow-hidden">
-    
+
         <div className="absolute inset-0 z-0">
           <img
             src="/bgimage.png"
             alt="Lawyer Consultation"
             className="w-full h-full object-cover"
           />
-     
+
         </div>
 
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:ml-20 w-full py-12 sm:py-16 lg:py-20">
           <div className="max-w-2xl">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black leading-[1.1] mb-6 sm:mb-8 tracking-tight">
-            Justice should not exist only<br className="hidden sm:block" />
-              <span className="text-black">for those who can afford it</span>
+              Accessible legal justice<br className="hidden sm:block" />
+              for everyone
             </h1>
 
             {/* Search Box */}
-            <div className="relative max-w-lg w-full mb-8 sm:mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-lg bg-white">
+            <div className="relative max-w-lg lg:max-w-[750px] w-full mb-8 sm:mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-lg bg-white">
               <div className="flex items-center">
                 <div className="pl-4 text-slate-400">
                   <Search className="h-5 w-10" />

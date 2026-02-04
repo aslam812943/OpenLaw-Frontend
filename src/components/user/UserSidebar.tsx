@@ -34,6 +34,7 @@ const UserSidebar = () => {
         { icon: <User size={22} />, label: 'Profile', path: '/user/profile' },
         { icon: <Calendar size={22} />, label: 'bookings', path: '/user/bookings' },
         { icon: <MessageSquare size={22} />, label: 'Messages', path: '/user/chat' },
+        { icon: <MessageSquare size={22} />, label: 'Wallet', path: '/user/wallet' },
     ];
 
     return (

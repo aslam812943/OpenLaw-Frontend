@@ -207,7 +207,7 @@ const UserAppointmentsPage = () => {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center gap-1 text-sm font-bold text-emerald-600">
-                                                            <DollarSign size={14} />
+                                                           
                                                             <span>₹{appointment.consultationFee}</span>
                                                         </div>
                                                     </td>

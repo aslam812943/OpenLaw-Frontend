@@ -99,7 +99,6 @@ export default function AdminUsersPage() {
           );
       }
     } catch (err: any) {
-      console.error(`Error performing ${type}:`, err);
       showToast(
         "error",
         `Failed to ${type.toLowerCase()} user. Please try again.`
