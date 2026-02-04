@@ -20,7 +20,6 @@ interface SchedulingRule {
   slotDuration: string;
   maxBookings: string;
   sessionType: string;
-  consultationFee: number;
   exceptionDays: string[];
 }
 
@@ -76,7 +75,6 @@ export default function App() {
             availableDays: rule.availableDays || [],
             bufferTime: String(rule.bufferTime),
             slotDuration: String(rule.slotDuration),
-            consultationFee: Number(rule.consultationFee),
             maxBookings: String(rule.maxBookings),
             sessionType: rule.sessionType,
             exceptionDays: rule.exceptionDays || []
@@ -107,8 +105,7 @@ export default function App() {
     slotDuration: '',
     maxBookings: '1',
     sessionType: 'Online Video Call',
-    exceptionDays: [],
-    consultationFee: 0
+    exceptionDays: []
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -240,9 +237,6 @@ export default function App() {
     if (!formData.slotDuration) e.slotDuration = 'Slot duration is required';
     if (!formData.maxBookings) e.maxBookings = 'Max bookings required';
     if (!formData.sessionType) e.sessionType = 'Session type required';
-    if (!formData.consultationFee || formData.consultationFee <= 0) {
-      e.consultationFee = 'Consultation Fee must be greater than 0';
-    }
     const now = new Date();
     let start: Date | null = null;
     let end: Date | null = null;
@@ -338,8 +332,7 @@ export default function App() {
             slotDuration: String(rule.slotDuration),
             maxBookings: String(rule.maxBookings),
             sessionType: rule.sessionType,
-            exceptionDays: rule.exceptionDays || [],
-            consultationFee: rule.consultationFee || 0
+            exceptionDays: rule.exceptionDays || []
           };
         });
         setRules(mappedRules);
@@ -365,8 +358,7 @@ export default function App() {
       slotDuration: '',
       maxBookings: '1',
       sessionType: 'Online Video Call',
-      exceptionDays: [],
-      consultationFee: 0
+      exceptionDays: []
     });
     setErrors({});
     setIsCreating(false);
@@ -415,8 +407,7 @@ export default function App() {
       slotDuration: rule.slotDuration,
       maxBookings: rule.maxBookings,
       sessionType: rule.sessionType,
-      exceptionDays: rule.exceptionDays,
-      consultationFee: rule.consultationFee ?? 0
+      exceptionDays: rule.exceptionDays
     });
     setIsCreating(true);
   };
@@ -656,26 +647,6 @@ export default function App() {
                       />
 
                       {errors.sessionType && <p className="text-red-500 text-sm mt-1">{errors.sessionType}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Consultation Fee
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.consultationFee}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setFormData({ ...formData, consultationFee: Number(value) });
-                          // const error = validateBufferTime(value);
-                          // setErrors(prev => ({ ...prev, bufferTime: error }));
-                        }}
-                        title="Consultation Fee"
-                        className="w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md"
-                      />
-
-                      {errors.consultationFee && <p className="text-red-500 text-sm mt-1">{errors.consultationFee}</p>}
                     </div>
 
                   </div>

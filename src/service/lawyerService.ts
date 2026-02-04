@@ -60,7 +60,6 @@ export interface ScheduleRule {
   slotDuration: string | number;
   maxBookings: string | number;
   sessionType: string;
-  consultationFee: number;
   exceptionDays: string[];
 }
 

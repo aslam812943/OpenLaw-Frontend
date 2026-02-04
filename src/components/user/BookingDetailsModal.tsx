@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, AlertCircle } from 'lucide-react'
+import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, AlertCircle, Hash } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Appointment {
@@ -15,6 +15,8 @@ interface Appointment {
     lawyerFeedback?: string;
     status: string;
     cancellationReason?: string;
+    paymentId?: string;
+    bookingId?: string;
 }
 
 interface BookingDetailsModalProps {
@@ -94,6 +96,20 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                         <div>
                                             <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Time Slot</p>
                                             <p className="text-sm font-bold text-slate-900">{appointment.startTime} - {appointment.endTime}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-slate-600">
+                                        <Hash className="w-4 h-4 text-teal-600" />
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Booking Id</p>
+                                            <p className="text-sm font-bold text-slate-900">{appointment.bookingId || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-slate-600">
+                                        <CreditCard className="w-4 h-4 text-teal-600" />
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Payment Id</p>
+                                            <p className="text-sm font-bold text-slate-900">{appointment.paymentId || 'N/A'}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 text-slate-600">
