@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { getWallet, Wallet, WalletTransaction } from "@/service/userService"
 import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, XCircle, AlertCircle, Info, Calendar, User, UserCheck, X, Copy, ExternalLink } from "lucide-react"
 import { showToast } from "@/utils/alerts"
+import Pagination from "@/components/common/Pagination"
 
 const Badge = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${className}`}>
@@ -154,28 +155,40 @@ const TransactionModal = ({ isOpen, onClose, transaction }: { isOpen: boolean, o
 
 const WalletPage = () => {
     const [wallet, setWallet] = useState<Wallet | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [isTableLoading, setIsTableLoading] = useState(false);
     const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 5;
+
+    const fetchWallet = async (page: number) => {
+        try {
+            if (!wallet) {
+                setInitialLoading(true);
+            } else {
+                setIsTableLoading(true);
+            }
+
+            const response = await getWallet(page, limit);
+            if (response.success) {
+                setWallet(response.data);
+                setTotalItems(response.data.total);
+            } else {
+                showToast("error", response.message || "Failed to fetch wallet details");
+            }
+        } catch (error) {
+            showToast("error", "An error occurred while fetching wallet details");
+        } finally {
+            setInitialLoading(false);
+            setIsTableLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchWallet = async () => {
-            try {
-                const response = await getWallet();
-                if (response.success) {
-                    setWallet(response.data);
-                } else {
-                    showToast("error", response.message || "Failed to fetch wallet details");
-                }
-            } catch (error) {
-                showToast("error", "An error occurred while fetching wallet details");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchWallet();
-    }, []);
+        fetchWallet(currentPage);
+    }, [currentPage]);
 
     const handleOpenModal = (tx: WalletTransaction) => {
         setSelectedTx(tx);
@@ -207,7 +220,7 @@ const WalletPage = () => {
         }
     };
 
-    if (loading) {
+    if (initialLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -265,12 +278,20 @@ const WalletPage = () => {
             </div>
 
             {/* Transactions Section */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative">
+                {isTableLoading && (
+                    <div className="absolute inset-x-0 bottom-0 top-[57px] bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center animate-in fade-in duration-200">
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Updating</span>
+                        </div>
+                    </div>
+                )}
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <h2 className="font-bold text-slate-800">Transaction History</h2>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto transition-opacity duration-200 ${isTableLoading ? 'opacity-40' : 'opacity-100'}`}>
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-widest font-bold">
@@ -284,7 +305,7 @@ const WalletPage = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {wallet?.transactions && wallet.transactions.length > 0 ? (
-                                [...wallet.transactions].reverse().map((tx, index) => (
+                                wallet.transactions.map((tx, index) => (
                                     <tr key={index} className="hover:bg-slate-50/50 transition-all group">
                                         <td className="px-6 py-4 text-sm whitespace-nowrap">
                                             <div className="font-semibold text-slate-700">
@@ -358,6 +379,18 @@ const WalletPage = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {totalItems > limit && (
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalItems={totalItems}
+                            limit={limit}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="mt-8 flex items-center justify-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
