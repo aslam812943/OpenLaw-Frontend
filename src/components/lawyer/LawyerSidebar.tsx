@@ -20,6 +20,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from "next/navigation";
 import { showToast } from '@/utils/alerts';
 import { logoutLawyer } from '../../service/lawyerService';
+import { useDispatch } from 'react-redux';
+import { clearLawyerData } from '../../redux/lawyerSlice';
+import { clearUserData } from '../../redux/userSlice';
 
 interface SidebarLinkProps {
   icon: React.ReactNode;
@@ -63,12 +66,15 @@ const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
   const pathname = usePathname();
 
   const handleLogout = async () => {
     try {
       const response = await logoutLawyer();
       if (response) {
+        dispatch(clearLawyerData());
+        dispatch(clearUserData());
         showToast('success', 'Logout successful');
         router.push('/login');
       }

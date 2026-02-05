@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Scale, User, FileText, MessageSquare, LogOut, ChevronDown, Menu, X } from "lucide-react";
+import { Scale, User, FileText, MessageSquare, LogOut, ChevronDown, Menu, X, Bell } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/utils/alerts";
 import { logoutUser } from "@/service/userService";
 import { clearUserData } from "@/redux/userSlice";
+import { clearLawyerData } from "@/redux/lawyerSlice";
+import { useSocket } from "@/context/SocketContext";
 
 const UserHeader: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -17,6 +19,8 @@ const UserHeader: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const user = useSelector((state: RootState) => state.user);
+  const { notifications, unreadCount, clearNotifications, markAsRead } = useSocket();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -24,6 +28,7 @@ const UserHeader: React.FC = () => {
 
       if (result.success) {
         dispatch(clearUserData());
+        dispatch(clearLawyerData());
         localStorage.removeItem("userData");
         showToast("success", result.message);
         setDropdownOpen(false);
@@ -33,7 +38,7 @@ const UserHeader: React.FC = () => {
         showToast("error", result.message);
       }
     } catch (error) {
-    
+
       showToast("error", "Logout failed. Please try again later.");
     }
   };
@@ -79,6 +84,72 @@ const UserHeader: React.FC = () => {
             >
               Consultation
             </Link>
+
+            {/* Notification Section */}
+            {user?.name && (
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    markAsRead();
+                  }}
+                  className="p-2.5 text-slate-600 hover:bg-slate-50 hover:text-teal-600 rounded-xl transition-all relative group"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full ring-2 ring-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 origin-top-right ring-1 ring-slate-900/5"
+                    >
+                      <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Notifications</p>
+                        {notifications.length > 0 && (
+                          <button
+                            onClick={() => clearNotifications()}
+                            className="text-[10px] font-bold text-teal-600 hover:text-teal-700"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="max-h-96 overflow-y-auto">
+                        {notifications.length > 0 ? (
+                          notifications.map((notif: any) => (
+                            <div
+                              key={notif.id}
+                              className="px-5 py-4 border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                            >
+                              <p className={`text-sm leading-snug ${notif.isRead ? 'text-slate-500' : 'text-slate-900 font-semibold'}`}>
+                                {notif.message}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-1 font-bold">
+                                {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-5 py-10 text-center">
+                            <Bell className="w-8 h-8 text-slate-200 mx-auto mb-3" />
+                            <p className="text-sm text-slate-400 font-medium">No new notifications</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
             {/* Auth Section */}
             {user?.name ? (

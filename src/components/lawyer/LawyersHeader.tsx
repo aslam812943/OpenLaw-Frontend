@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSocket } from "@/context/SocketContext";
 
 interface HeaderProps {
   lawyerName?: string;
@@ -27,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
-    
+
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -35,14 +36,7 @@ const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
-  const notifications = [
-    { id: 1, text: "New case assigned: Johnson v. Smith", time: "5 min ago", unread: true },
-    { id: 2, text: "Court hearing scheduled for tomorrow", time: "1 hour ago", unread: true },
-    { id: 3, text: "Document uploaded by client", time: "2 hours ago", unread: true },
-    { id: 4, text: "Payment received for Case #2847", time: "3 hours ago", unread: false },
-  ];
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const { notifications, unreadCount, markAsRead } = useSocket();
 
   return (
     <header className="sticky top-0 right-0 bg-white/70 backdrop-blur-xl z-50 border-b border-slate-100/50 w-full">
@@ -80,7 +74,65 @@ const Header: React.FC<HeaderProps> = ({
         {/* Right Side */}
         <div className="flex items-center space-x-3">
 
-    
+
+          {/* Notifications */}
+          <div className="relative">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                if (!showNotifications) markAsRead();
+              }}
+              className="p-2.5 bg-slate-50 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors relative group"
+            >
+              <Bell className="w-5 h-5 group-hover:text-teal-600" />
+              {unreadCount > 0 && (
+                <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full ring-2 ring-white">
+                  {unreadCount}
+                </span>
+              )}
+            </motion.button>
+
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 origin-top-right ring-1 ring-slate-900/5"
+                >
+                  <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                    <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Notifications</p>
+                  </div>
+
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      notifications.map((notif: any) => (
+                        <div
+                          key={notif.id}
+                          className="px-5 py-4 border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                        >
+                          <p className={`text-sm leading-snug ${notif.isRead ? 'text-slate-500' : 'text-slate-900 font-semibold'}`}>
+                            {notif.message}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1 font-bold">
+                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-5 py-10 text-center">
+                        <Bell className="w-8 h-8 text-slate-200 mx-auto mb-3" />
+                        <p className="text-sm text-slate-400 font-medium">No new notifications</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {/* Settings icon */}
           {/* <motion.button
             whileHover={{ scale: 1.05 }}
