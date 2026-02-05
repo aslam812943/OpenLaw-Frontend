@@ -1,6 +1,6 @@
 import apiClient from "../utils/apiClient";
 import { API_ROUTES } from "@/constants/routes";
-import { CommonResponse } from "./lawyerService";
+import { CommonResponse } from "./userService";
 
 export interface ChatAccessResponse {
     hasAccess: boolean;
