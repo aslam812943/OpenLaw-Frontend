@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
-  const { notifications, unreadCount, markAsRead } = useSocket();
+  const { notifications, unreadCount, markAsRead, clearNotifications } = useSocket();
 
   return (
     <header className="sticky top-0 right-0 bg-white/70 backdrop-blur-xl z-50 border-b border-slate-100/50 w-full">
@@ -104,6 +104,14 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
                     <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Notifications</p>
+                    {notifications.length > 0 && (
+                      <button
+                        onClick={() => clearNotifications()}
+                        className="text-[10px] font-bold text-teal-600 hover:text-teal-700"
+                      >
+                        Clear all
+                      </button>
+                    )}
                   </div>
 
                   <div className="max-h-96 overflow-y-auto">
