@@ -238,14 +238,15 @@ export interface WalletTransaction {
 }
 
 export interface Wallet {
-  userId: string;
   balance: number;
   transactions: WalletTransaction[];
-  id?: string;
+  total: number;
 }
 
-export const getWallet = async (): Promise<CommonResponse<Wallet>> => {
-  return apiClient.get<CommonResponse<Wallet>>(API_ROUTES.USER.GETWALLET);
+export const getWallet = async (page: number = 1, limit: number = 5): Promise<CommonResponse<Wallet>> => {
+  return apiClient.get<CommonResponse<Wallet>>(API_ROUTES.USER.GETWALLET, {
+    params: { page, limit }
+  });
 }
 
 export const allReview = async (id: string): Promise<CommonResponse<Review[]>> => {

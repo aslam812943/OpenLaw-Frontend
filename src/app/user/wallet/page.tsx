@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { getWallet, Wallet, WalletTransaction } from "@/service/userService"
 import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, XCircle, AlertCircle, Info, Calendar, User, UserCheck, X, Copy, ExternalLink } from "lucide-react"
 import { showToast } from "@/utils/alerts"
+import Pagination from "@/components/common/Pagination"
 
 const Badge = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${className}`}>
@@ -29,7 +30,7 @@ const TransactionModal = ({ isOpen, onClose, transaction }: { isOpen: boolean, o
             <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                        <Info className="w-4 h-4 text-blue-600" />
+                        <Info className="w-4 h-4 text-teal-600" />
                         Transaction Details
                     </h3>
                     <button onClick={onClose} className="p-1 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
@@ -52,8 +53,8 @@ const TransactionModal = ({ isOpen, onClose, transaction }: { isOpen: boolean, o
                         {/* Transaction Info */}
                         <div className="grid grid-cols-1 gap-4">
                             <div className="flex items-start gap-3">
-                                <div className="p-2 bg-blue-50 rounded-lg shrink-0">
-                                    <AlertCircle className="w-4 h-4 text-blue-600" />
+                                <div className="p-2 bg-teal-50 rounded-lg shrink-0">
+                                    <AlertCircle className="w-4 h-4 text-teal-600" />
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-400 font-medium">Description</p>
@@ -63,8 +64,8 @@ const TransactionModal = ({ isOpen, onClose, transaction }: { isOpen: boolean, o
 
                             {transaction.metadata?.lawyerName && (
                                 <div className="flex items-start gap-3">
-                                    <div className="p-2 bg-indigo-50 rounded-lg shrink-0">
-                                        <User className="w-4 h-4 text-indigo-600" />
+                                    <div className="p-2 bg-teal-50 rounded-lg shrink-0">
+                                        <User className="w-4 h-4 text-teal-600" />
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-400 font-medium">Lawyer</p>
@@ -97,14 +98,14 @@ const TransactionModal = ({ isOpen, onClose, transaction }: { isOpen: boolean, o
                                         </p>
                                         <button
                                             onClick={() => handleCopy(bookingIdToDisplay)}
-                                            className="p-1.5 hover:bg-slate-200 rounded-md transition-all text-slate-400 hover:text-blue-600 group/copy"
+                                            className="p-1.5 hover:bg-slate-200 rounded-md transition-all text-slate-400 hover:text-teal-600 group/copy"
                                             title="Copy ID"
                                         >
                                             {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                                         </button>
                                         <a
                                             href="/user/bookings"
-                                            className="p-1.5 hover:bg-slate-200 rounded-md transition-all text-slate-400 hover:text-blue-600"
+                                            className="p-1.5 hover:bg-slate-200 rounded-md transition-all text-slate-400 hover:text-teal-600"
                                             title="Go to Bookings"
                                         >
                                             <ExternalLink className="w-3.5 h-3.5" />
@@ -154,28 +155,40 @@ const TransactionModal = ({ isOpen, onClose, transaction }: { isOpen: boolean, o
 
 const WalletPage = () => {
     const [wallet, setWallet] = useState<Wallet | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [isTableLoading, setIsTableLoading] = useState(false);
     const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 5;
+
+    const fetchWallet = async (page: number) => {
+        try {
+            if (!wallet) {
+                setInitialLoading(true);
+            } else {
+                setIsTableLoading(true);
+            }
+
+            const response = await getWallet(page, limit);
+            if (response.success) {
+                setWallet(response.data);
+                setTotalItems(response.data.total);
+            } else {
+                showToast("error", response.message || "Failed to fetch wallet details");
+            }
+        } catch (error) {
+            showToast("error", "An error occurred while fetching wallet details");
+        } finally {
+            setInitialLoading(false);
+            setIsTableLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchWallet = async () => {
-            try {
-                const response = await getWallet();
-                if (response.success) {
-                    setWallet(response.data);
-                } else {
-                    showToast("error", response.message || "Failed to fetch wallet details");
-                }
-            } catch (error) {
-                showToast("error", "An error occurred while fetching wallet details");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchWallet();
-    }, []);
+        fetchWallet(currentPage);
+    }, [currentPage]);
 
     const handleOpenModal = (tx: WalletTransaction) => {
         setSelectedTx(tx);
@@ -207,10 +220,10 @@ const WalletPage = () => {
         }
     };
 
-    if (loading) {
+    if (initialLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
             </div>
         );
     }
@@ -226,8 +239,8 @@ const WalletPage = () => {
 
             {/* Header */}
             <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 bg-blue-50 rounded-xl">
-                    <WalletIcon className="w-8 h-8 text-blue-600" />
+                <div className="p-3 bg-teal-50 rounded-xl">
+                    <WalletIcon className="w-8 h-8 text-teal-600" />
                 </div>
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Wallet</h1>
@@ -237,11 +250,11 @@ const WalletPage = () => {
 
             <div className="grid gap-6 md:grid-cols-3 mb-8">
                 {/* Balance Card */}
-                <div className="md:col-span-1 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-200/50">
-                    <p className="text-blue-100 text-sm font-medium mb-1">Available Balance</p>
+                <div className="md:col-span-1 bg-gradient-to-br from-teal-600 to-teal-700 rounded-2xl p-6 text-white shadow-xl shadow-teal-500/20">
+                    <p className="text-teal-100 text-sm font-medium mb-1">Available Balance</p>
                     <div className="text-4xl font-bold tracking-tight">₹{wallet?.balance.toLocaleString() || 0}</div>
-                    <div className="mt-4 flex items-center gap-2 text-xs text-blue-100/90 bg-white/10 w-fit px-3 py-1.5 rounded-lg border border-white/10">
-                        <UserCheck className="w-3.5 h-3.5 text-blue-200" />
+                    <div className="mt-4 flex items-center gap-2 text-xs text-teal-100/90 bg-white/10 w-fit px-3 py-1.5 rounded-lg border border-white/10">
+                        <UserCheck className="w-3.5 h-3.5 text-teal-200" />
                         Verified Account
                     </div>
                 </div>
@@ -249,8 +262,8 @@ const WalletPage = () => {
                 {/* Info Card */}
                 <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                     <div className="flex items-start gap-4">
-                        <div className="p-2 bg-blue-50 rounded-lg shrink-0">
-                            <AlertCircle className="w-5 h-5 text-blue-500" />
+                        <div className="p-2 bg-teal-50 rounded-lg shrink-0">
+                            <AlertCircle className="w-5 h-5 text-teal-500" />
                         </div>
                         <div>
                             <h3 className="font-bold text-slate-800 mb-1.5">Wallet Information</h3>
@@ -265,12 +278,20 @@ const WalletPage = () => {
             </div>
 
             {/* Transactions Section */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative">
+                {isTableLoading && (
+                    <div className="absolute inset-x-0 bottom-0 top-[57px] bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center animate-in fade-in duration-200">
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                            <span className="text-[10px] font-bold text-teal-600 uppercase tracking-widest">Updating</span>
+                        </div>
+                    </div>
+                )}
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <h2 className="font-bold text-slate-800">Transaction History</h2>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto transition-opacity duration-200 ${isTableLoading ? 'opacity-40' : 'opacity-100'}`}>
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-widest font-bold">
@@ -284,7 +305,7 @@ const WalletPage = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {wallet?.transactions && wallet.transactions.length > 0 ? (
-                                [...wallet.transactions].reverse().map((tx, index) => (
+                                wallet.transactions.map((tx, index) => (
                                     <tr key={index} className="hover:bg-slate-50/50 transition-all group">
                                         <td className="px-6 py-4 text-sm whitespace-nowrap">
                                             <div className="font-semibold text-slate-700">
@@ -330,7 +351,7 @@ const WalletPage = () => {
                                         <td className="px-6 py-4 text-center whitespace-nowrap">
                                             <button
                                                 onClick={() => handleOpenModal(tx)}
-                                                className="p-2 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all active:scale-95 group/btn"
+                                                className="p-2 hover:bg-teal-50 text-slate-400 hover:text-teal-600 rounded-xl transition-all active:scale-95 group/btn"
                                                 title="View Details"
                                             >
                                                 <Info className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
@@ -358,6 +379,18 @@ const WalletPage = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {totalItems > limit && (
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalItems={totalItems}
+                            limit={limit}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="mt-8 flex items-center justify-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
