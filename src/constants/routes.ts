@@ -43,7 +43,7 @@ export const API_ROUTES = {
     CANCELAPPOINMENT: (id: string) => `/api/booking/appointments/${id}/cancel`,
     GETAPPOINMENT: '/api/booking/appointments',
     SPECIALIZATIONS: '/api/user/specializations',
-    GETWALLET:`/api/user/wallet`
+    GETWALLET: `/api/user/wallet`
   },
 
   PAYMENT: {
@@ -90,6 +90,12 @@ export const API_ROUTES = {
     UPLOAD_FILE: "/api/user/chat/upload",
     CAN_JOIN_CALL: (bookingId: string) => `/api/video-call/${bookingId}/can-join`,
     JOIN_CALL: (bookingId: string) => `/api/video-call/${bookingId}/join`
+  },
+  NOTIFICATION: {
+    GET_USER: (userId: string) => `/api/user/notifications/${userId}`,
+    GET_LAWYER: (userId: string) => `/api/lawyer/notifications/${userId}`,
+    MARK_READ_USER: (id: string) => `/api/user/notifications/${id}/read`,
+    MARK_READ_LAWYER: (id: string) => `/api/lawyer/notifications/${id}/read`,
   }
 }
 

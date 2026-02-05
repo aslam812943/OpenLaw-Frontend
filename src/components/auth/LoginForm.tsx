@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from "next/navigation";
-import { setUserData } from '../../redux/userSlice';
-import { setLawyerData } from '../../redux/lawyerSlice';
+import { setUserData, clearUserData } from '../../redux/userSlice';
+import { setLawyerData, clearLawyerData } from '../../redux/lawyerSlice';
 import { useDispatch } from 'react-redux';
 import { userLogin, userGoogleAuth, CommonResponse, LoginResponse, User } from '@/service/userService';
-import { API_ROUTES } from '@/constants/routes';
 import { showToast } from '@/utils/alerts';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import RoleSelectionModal from '../RoleSelectionModal';
@@ -42,6 +41,7 @@ const LoginForm = () => {
         const user = data.data?.user;
 
         if (user.role === "lawyer") {
+            dispatch(clearUserData()); 
             dispatch(setLawyerData({
                 id: user._id || (user as any).id,
                 email: user.email,
@@ -65,6 +65,7 @@ const LoginForm = () => {
             router.replace("/lawyer/dashboard");
             return
         } else if (user.role === "user") {
+            dispatch(clearLawyerData()); 
             dispatch(setUserData({
                 id: user._id || (user as any).id,
                 email: user.email,

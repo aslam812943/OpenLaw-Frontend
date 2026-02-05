@@ -89,6 +89,16 @@ export interface Review {
   createdAt: string;
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  message: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+  metadata?: Record<string, any>;
+}
+
 export async function fetchUsers(
   page = 1,
   limit = 5,
@@ -258,4 +268,16 @@ export const allReview = async (id: string): Promise<CommonResponse<Review[]>> =
 }
 export const fetchSpecializations = async (): Promise<CommonResponse<Specialization[]>> => {
   return apiClient.get<CommonResponse<Specialization[]>>(API_ROUTES.USER.SPECIALIZATIONS);
+};
+
+export const fetchNotifications = async (userId: string): Promise<CommonResponse<Notification[]>> => {
+  return apiClient.get<CommonResponse<Notification[]>>(API_ROUTES.NOTIFICATION.GET_USER(userId));
+};
+
+export const markNotificationAsRead = async (id: string): Promise<CommonResponse<void>> => {
+  return apiClient.patch<CommonResponse<void>>(API_ROUTES.NOTIFICATION.MARK_READ_USER(id));
+};
+
+export const markAllNotificationsAsRead = async (userId: string): Promise<CommonResponse<void>> => {
+  return apiClient.patch<CommonResponse<void>>(`${API_ROUTES.NOTIFICATION.MARK_READ_USER('all')}?userId=${userId}&all=true`);
 };

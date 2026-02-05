@@ -1,5 +1,18 @@
 import { API_ROUTES } from "@/constants/routes";
 import apiClient from "../utils/apiClient";
+import { Notification, CommonResponse } from "./userService";
+
+export const fetchLawyerNotifications = async (userId: string): Promise<CommonResponse<Notification[]>> => {
+  return apiClient.get<CommonResponse<Notification[]>>(API_ROUTES.NOTIFICATION.GET_LAWYER(userId));
+};
+
+export const markLawyerNotificationAsRead = async (id: string): Promise<CommonResponse<void>> => {
+  return apiClient.patch<CommonResponse<void>>(API_ROUTES.NOTIFICATION.MARK_READ_LAWYER(id));
+};
+
+export const markAllLawyerNotificationsAsRead = async (userId: string): Promise<CommonResponse<void>> => {
+  return apiClient.patch<CommonResponse<void>>(`${API_ROUTES.NOTIFICATION.MARK_READ_LAWYER('all')}?userId=${userId}&all=true`);
+};
 
 export interface Lawyer {
   id: string;
@@ -32,13 +45,7 @@ export interface PaginatedLawyerResponse {
   totalCount?: number;
 }
 
-export interface CommonResponse<T = any> {
-  success: boolean;
-  message: string;
-  hasAccess?: boolean;
-  data: T;
-  total?: number;
-}
+// Using CommonResponse from userService
 
 export interface Specialization {
   id: string;
