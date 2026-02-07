@@ -6,11 +6,13 @@ import { getUserRooms } from '@/service/chatService';
 import { MessageSquare, Clock, ArrowRight, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showToast } from '@/utils/alerts';
+import { useSocket } from '@/context/SocketContext';
 
 export default function UserChatListPage() {
     const [rooms, setRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const { socket, isConnected } = useSocket();
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -29,10 +31,47 @@ export default function UserChatListPage() {
         fetchRooms();
     }, []);
 
+    useEffect(() => {
+        if (socket && isConnected && rooms.length > 0) {
+            rooms.forEach(room => {
+                socket.emit('join-room', { roomId: room.id });
+            });
+
+            const handleNewMessage = (message: any) => {
+                setRooms(prevRooms => {
+                    const roomIndex = prevRooms.findIndex(r => r.id === message.roomId);
+                    if (roomIndex === -1) return prevRooms;
+
+                    const updatedRoom = {
+                        ...prevRooms[roomIndex],
+                        lastMessage: {
+                            content: message.type === 'image' ? 'Sent an image' :
+                                message.type === 'video' ? 'Sent a video' :
+                                    message.type === 'document' ? 'Sent a document' :
+                                        message.content,
+                            createdAt: message.createdAt
+                        },
+                        updatedAt: message.createdAt
+                    };
+
+                    const newRooms = [...prevRooms];
+                    newRooms.splice(roomIndex, 1);
+                    return [updatedRoom, ...newRooms];
+                });
+            };
+
+            socket.on('new-message', handleNewMessage);
+
+            return () => {
+                socket.off('new-message', handleNewMessage);
+            };
+        }
+    }, [socket, isConnected, rooms.length]);
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-teal-500"></div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
             </div>
         );
     }
@@ -82,7 +121,6 @@ export default function UserChatListPage() {
                                             <User size={32} className="text-slate-300" />
                                         )}
                                     </div>
-                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-teal-500 border-4 border-white rounded-full shadow-sm"></div>
                                 </div>
 
                                 <div className="flex-1 min-w-0">
@@ -96,15 +134,22 @@ export default function UserChatListPage() {
                                     </div>
 
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-1.5 text-sm text-slate-500 font-medium">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-teal-500"></div>
-                                            Active Consultation
+                                        <div className="flex flex-col">
+                                            <span>
+                                                {room.lastMessage ? (
+                                                    room.lastMessage.content
+                                                ) : (
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock size={14} /> Created {new Date(room.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                )}
+                                            </span>
+                                            {room.lastMessage && (
+                                                <span className="text-[10px] text-slate-400 mt-0.5">
+                                                    {new Date(room.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            )}
                                         </div>
-                                        {room.lastMessage && (
-                                            <p className="text-sm text-slate-400 truncate max-w-[200px]">
-                                                {room.lastMessage.content}
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
 

@@ -29,12 +29,21 @@ export interface ChatRoomDetails {
         id: string;
         name: string;
         profileImage?: string;
+        isOnline?: boolean;
     };
-    userId: string;
+    userId: {
+        id: string;
+        name: string;
+        profileImage?: string;
+        isOnline?: boolean;
+    } | string;
     bookingId?: string;
     lawyerName: string;
     userName: string;
-    lastMessage?: string;
+    lastMessage?: {
+        content: string;
+        createdAt: string;
+    };
     updatedAt: string;
 }
 
@@ -42,7 +51,7 @@ export const checkChatAccess = async (lawyerId: string): Promise<ChatAccessRespo
     try {
         const response = await apiClient.get<CommonResponse<ChatAccessResponse>>(API_ROUTES.CHAT.CHECK_ACCESS(lawyerId));
         return { hasAccess: response?.data?.hasAccess ?? false };
-    } catch (error: any) {
+    } catch (error: unknown|string) {
         return { hasAccess: false };
     }
 };

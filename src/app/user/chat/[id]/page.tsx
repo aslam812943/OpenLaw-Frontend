@@ -48,8 +48,12 @@ export default function UserChatPage() {
                     getMessages(roomId as string)
                 ]);
 
-                if (roomsRes.success) setRooms(roomsRes.data);
-                if (roomRes.success) setRoomInfo(roomRes.data);
+                if (roomsRes.success) {
+                    setRooms(roomsRes.data);
+                }
+                if (roomRes.success) {
+                    setRoomInfo(roomRes.data);
+                }
                 if (messagesRes.success) setMessages(messagesRes.data);
             } catch (error) {
                 showToast('error', 'Failed to load chat data');
@@ -60,6 +64,21 @@ export default function UserChatPage() {
 
         if (roomId) fetchInitialData();
     }, [roomId]);
+
+    useEffect(() => {
+        if (socket) {
+            const handleMessagesRead = ({ roomId: rId, readBy }: { roomId: string, readBy: string }) => {
+                if (rId === roomId && readBy !== user.id) {
+                    setMessages(prev => prev.map(m => ({ ...m, readAt: m.readAt || new Date().toISOString() })));
+                }
+            };
+
+            socket.on('messages-read', handleMessagesRead);
+            return () => {
+                socket.off('messages-read', handleMessagesRead);
+            };
+        }
+    }, [socket, roomId, user.id]);
 
     useEffect(() => {
         if (socket && roomId) {
@@ -80,23 +99,50 @@ export default function UserChatPage() {
                 });
             };
 
-            const handleMessagesRead = () => {
-                setMessages(prev => prev.map(msg =>
-                    msg.senderId === user.id && !msg.readAt ? { ...msg, readAt: new Date().toISOString() } : msg
-                ));
-            };
-
             socket.on('new-message', handleNewMessage);
-            socket.on('messages-read', handleMessagesRead)
             socket.on('chat-error', (error: any) => showToast('error', error.message || 'An error occurred'));
 
             return () => {
                 socket.off('new-message', handleNewMessage);
-                socket.off('messages-read', handleMessagesRead);
                 socket.off('chat-error');
             };
         }
     }, [socket, roomId, user.id]);
+
+    useEffect(() => {
+        if (socket && isConnected) {
+            rooms.forEach(room => {
+                socket.emit('join-room', { roomId: room.id });
+            });
+
+            const handleSidebarUpdate = (message: any) => {
+                setRooms(prevRooms => {
+                    const roomIndex = prevRooms.findIndex(r => r.id === message.roomId);
+                    if (roomIndex === -1) return prevRooms;
+
+                    const updatedRoom = {
+                        ...prevRooms[roomIndex],
+                        lastMessage: {
+                            content: message.type === 'image' ? 'Sent an image' :
+                                message.type === 'video' ? 'Sent a video' :
+                                    message.type === 'document' ? 'Sent a document' :
+                                        message.content,
+                            createdAt: message.createdAt
+                        },
+                        updatedAt: message.createdAt
+                    };
+
+                    const newRooms = [...prevRooms];
+                    newRooms.splice(roomIndex, 1);
+                    return [updatedRoom, ...newRooms];
+                });
+            }
+            socket.on('new-message', handleSidebarUpdate);
+            return () => {
+                socket.off('new-message', handleSidebarUpdate);
+            };
+        }
+    }, [socket, isConnected, rooms.length]);
 
     useEffect(() => {
         if (!socket || !roomId || !user?.id || messages.length === 0) return;
@@ -156,6 +202,29 @@ export default function UserChatPage() {
         }
     };
 
+    useEffect(() => {
+        if (messages.length > 0 && roomId) {
+            const lastMsg = messages[messages.length - 1];
+            setRooms(prev => prev.map(room => {
+                if (room.id === roomId) {
+                    if (room.lastMessage?.createdAt !== lastMsg.createdAt) {
+                        return {
+                            ...room,
+                            lastMessage: {
+                                content: lastMsg.type === 'image' ? 'Sent an image' :
+                                    lastMsg.type === 'video' ? 'Sent a video' :
+                                        lastMsg.type === 'document' ? 'Sent a document' :
+                                            lastMsg.content,
+                                createdAt: lastMsg.createdAt
+                            }
+                        };
+                    }
+                }
+                return room;
+            }));
+        }
+    }, [messages, roomId]);
+
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-white">
@@ -204,14 +273,28 @@ export default function UserChatPage() {
                                     {room.lawyerId?.profileImage ? (
                                         <img src={room.lawyerId.profileImage} alt="" className="w-full h-full object-cover" />
                                     ) : (
-                                        <User className="w-full h-full p-2 text-slate-400" />
+                                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center relative">
+                                            <User size={20} className="text-slate-400" />
+                                        </div>
                                     )}
                                 </div>
-                                <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-2 border-white rounded-full ${isConnected && room.id === roomId ? 'bg-teal-500' : 'bg-slate-300'}`}></div>
                             </div>
                             <div className="text-left min-w-0">
                                 <p className="font-bold text-sm truncate">{room.lawyerId?.name}</p>
-                                <p className="text-xs text-slate-400 truncate">Online Consultation</p>
+                                <div className="flex flex-col">
+                                    {room.lastMessage ? (
+                                        <>
+                                            <p className="text-xs text-slate-500 truncate">
+                                                {room.lastMessage.content}
+                                            </p>
+                                            <span className="text-[10px] text-slate-400">
+                                                {new Date(room.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <p className="text-xs text-slate-400 truncate">Online Consultation</p>
+                                    )}
+                                </div>
                             </div>
                         </button>
                     ))}
@@ -239,16 +322,10 @@ export default function UserChatPage() {
                                         <User size={24} className="text-teal-600" />
                                     )}
                                 </div>
-                                <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${isConnected ? 'bg-teal-500' : 'bg-slate-400'}`}></div>
                             </div>
-                            <div className="min-w-0">
-                                <h2 className="font-bold text-slate-900 truncate">
-                                    {roomInfo?.lawyerId?.name || 'Legal Expert'}
-                                </h2>
-                                <div className="flex items-center text-xs font-semibold uppercase tracking-wider text-teal-600">
-                                    <Dot className="animate-pulse" size={24} />
-                                    <span>{isConnected ? 'Active Now' : 'Disconnected'}</span>
-                                </div>
+                            <div>
+                                <h2 className="font-bold text-slate-900">{roomInfo?.lawyerId?.name || 'Loading...'}</h2>
+                                <p className="text-xs text-slate-500">Legal Consultation</p>
                             </div>
                         </div>
                     </div>
