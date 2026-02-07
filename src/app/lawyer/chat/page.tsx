@@ -6,11 +6,13 @@ import { getLawyerRooms } from '@/service/chatService';
 import { MessageSquare, Clock, ArrowRight, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showToast } from '@/utils/alerts';
+import { useSocket } from '@/context/SocketContext';
 
 export default function LawyerChatListPage() {
     const [rooms, setRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const { socket, isConnected } = useSocket();
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -28,6 +30,43 @@ export default function LawyerChatListPage() {
 
         fetchRooms();
     }, []);
+
+    useEffect(() => {
+        if (socket && isConnected) {
+            rooms.forEach(room => {
+                socket.emit('join-room', { roomId: room.id });
+            });
+
+            const handleNewMessage = (message: any) => {
+                setRooms(prevRooms => {
+                    const roomIndex = prevRooms.findIndex(r => r.id === message.roomId);
+                    if (roomIndex === -1) return prevRooms;
+
+                    const updatedRoom = {
+                        ...prevRooms[roomIndex],
+                        lastMessage: {
+                            content: message.type === 'image' ? 'Sent an image' :
+                                message.type === 'video' ? 'Sent a video' :
+                                    message.type === 'document' ? 'Sent a document' :
+                                        message.content,
+                            createdAt: message.createdAt
+                        },
+                        updatedAt: message.createdAt
+                    };
+
+                    const newRooms = [...prevRooms];
+                    newRooms.splice(roomIndex, 1);
+                    return [updatedRoom, ...newRooms];
+                });
+            };
+
+            socket.on('new-message', handleNewMessage);
+
+            return () => {
+                socket.off('new-message', handleNewMessage);
+            };
+        }
+    }, [socket, isConnected, rooms.length]);
 
     if (loading) {
         return (
@@ -61,21 +100,32 @@ export default function LawyerChatListPage() {
                             className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-500 hover:shadow-md transition-all cursor-pointer group"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden">
-                                    {room.userId?.profileImage ? (
-                                        <img src={room.userId.profileImage} alt={room.userId.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <User size={24} className="text-slate-400" />
-                                    )}
+                                <div className="relative">
+                                    <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden">
+                                        {room.userId?.profileImage ? (
+                                            <img src={room.userId.profileImage} alt={room.userId.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={24} className="text-slate-400" />
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
                                         {room.userId?.name || 'Unknown Patient'}
                                     </h3>
-                                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                                        <span className="flex items-center gap-1">
-                                            <Clock size={14} /> Created {new Date(room.createdAt).toLocaleDateString()}
+                                    <div className="flex flex-col">
+                                        <span>
+                                            {room.lastMessage ? room.lastMessage.content :
+                                                <span className="flex items-center gap-1">
+                                                    <Clock size={14} /> Created {new Date(room.createdAt).toLocaleDateString()}
+                                                </span>
+                                            }
                                         </span>
+                                        {room.lastMessage && (
+                                            <span className="text-[10px] text-slate-400 mt-0.5">
+                                                {new Date(room.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <ArrowRight size={20} className="text-slate-300 group-hover:text-teal-500 group-hover:translate-x-1 transition-all" />

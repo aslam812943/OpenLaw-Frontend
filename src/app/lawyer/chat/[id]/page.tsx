@@ -12,10 +12,8 @@ import ImageModal from '@/components/ui/ImageModal';
 import { showToast } from '@/utils/alerts';
 import VideoCallButton from '@/components/chat/VideoCallButton';
 
-
 const isImageUrl = (url: string): boolean => {
     if (!url) return false;
-
     return url.includes('cloudinary.com') &&
         (url.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url));
 };
@@ -74,12 +72,10 @@ export default function LawyerChatRoomPage() {
             socket.emit('join-room', { roomId });
 
             const handleNewMessage = (message: any) => {
-
                 setMessages((prev) => {
                     const exists = prev.some(msg => msg.id === message.id ||
                         (msg.id?.startsWith('temp-') && msg.content === message.content && msg.senderId === message.senderId));
                     if (exists && message.id && !message.id.startsWith('temp-')) {
-
                         return prev.map(msg =>
                             (msg.id?.startsWith('temp-') && msg.content === message.content && msg.senderId === message.senderId)
                                 ? message : msg
@@ -121,7 +117,6 @@ export default function LawyerChatRoomPage() {
 
     useEffect(() => {
         if (!socket || !roomId || !lawyer?.id || messages.length == 0) return
-
 
         const isPageVisible = document.visibilityState === 'visible';
         const isWindowFocused = document.hasFocus();
@@ -174,21 +169,19 @@ export default function LawyerChatRoomPage() {
         e.preventDefault();
         const messageContent = newMessage.trim();
 
-
         if (!messageContent) return;
         if (!socket) {
             showToast('error', 'Connection error: Please refresh the page and try again.');
             return;
         }
         if (!isConnected) {
-            showToast('warning', 'You are disconnected. Please wait for connection and try again.');
+            showToast('warning', 'You are disconnected. Checking connection...');
             return;
         }
         if (!lawyer?.id) {
             showToast('error', 'Authentication error: Please log in again.');
             return;
         }
-
 
         const tempMessage = {
             id: `temp-${Date.now()}`,
@@ -203,12 +196,10 @@ export default function LawyerChatRoomPage() {
         setNewMessage('');
 
         try {
-
             socket.emit('send-message', {
                 roomId,
                 content: messageContent,
             });
-
 
             const errorHandler = (error: any) => {
                 setMessages((prev) => prev.filter(msg => msg.id !== tempMessage.id));
@@ -217,7 +208,6 @@ export default function LawyerChatRoomPage() {
             };
 
             socket.once('chat-error', errorHandler);
-
 
             setTimeout(() => {
                 socket.off('chat-error', errorHandler);
@@ -231,8 +221,8 @@ export default function LawyerChatRoomPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center p-10">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-teal-500"></div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
             </div>
         );
     }
@@ -246,19 +236,14 @@ export default function LawyerChatRoomPage() {
                         <ArrowLeft size={20} className="text-slate-600" />
                     </button>
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center relative">
                             <User size={20} className="text-slate-400" />
                         </div>
                         <div>
                             <h2 className="font-bold text-slate-900">
-                                {roomInfo?.userId?.name || 'Patient Chat'}
+                                {roomInfo?.userId?.name || 'Client Chat'}
                             </h2>
-                            <div className="flex items-center gap-1.5">
-                                <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-teal-500' : 'bg-slate-300'}`}></span>
-                                <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
-                                    {isConnected ? 'Online' : 'Offline'}
-                                </span>
-                            </div>
+                            <p className="text-xs text-slate-500">Active Consultation</p>
                         </div>
                     </div>
                 </div>
@@ -299,28 +284,6 @@ export default function LawyerChatRoomPage() {
                                         />
                                         {msg.fileName && <p className="text-xs opacity-70 truncate">{msg.fileName}</p>}
                                     </div>
-                                ) : msg.type === 'document' || (msg.content && msg.content.startsWith('http')) ? (
-
-                                    msg.type === 'document' || msg.fileUrl ? (
-                                        <div className="flex items-center gap-3 p-1">
-                                            <div className="bg-white/20 p-2 rounded-lg">
-                                                <FileIcon size={24} />
-                                            </div>
-                                            <div className="overflow-hidden">
-                                                <a
-                                                    href={msg.content || msg.fileUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-sm font-medium hover:underline truncate block"
-                                                >
-                                                    {msg.fileName || 'Document'}
-                                                </a>
-                                                {msg.fileSize && <p className="text-xs opacity-70">{(parseInt(msg.fileSize) / 1024).toFixed(1)} KB</p>}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <p className="text-[14px] leading-relaxed break-words">{msg.content}</p>
-                                    )
                                 ) : (
                                     <p className="text-[14px] leading-relaxed break-words">{msg.content}</p>
                                 )}
@@ -353,18 +316,18 @@ export default function LawyerChatRoomPage() {
                         type="submit"
                         disabled={!newMessage.trim() || !isConnected}
                         className="p-3 bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl transition-all shadow-md shadow-teal-200"
-                        title={!isConnected ? 'Disconnected - Please wait' : 'Send message'}
+                        title={!isConnected ? 'Disconnected - Waiting for connection...' : 'Send message'}
                     >
                         <Send size={20} />
                     </button>
                 </form>
-            </footer >
+            </footer>
 
             <ImageModal
                 isOpen={!!selectedImage}
                 onClose={() => setSelectedImage(null)}
                 imageUrl={selectedImage || ''}
             />
-        </div >
+        </div>
     );
 }

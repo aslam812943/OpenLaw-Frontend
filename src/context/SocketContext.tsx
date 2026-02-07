@@ -46,9 +46,14 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const lawyer = useSelector((state: RootState) => state.lawyer);
 
     const isLawyerRole = !!(lawyer.id && lawyer.role === 'lawyer');
-    const currentId = isLawyerRole ? lawyer.id : user.id;
+    const currentId = React.useMemo(() => {
+        return isLawyerRole ? lawyer.id : user.id;
+    }, [isLawyerRole, lawyer.id, user.id]);
 
-    
+    const socketInitialized = React.useRef(false);
+    const previousIdRef = React.useRef<string | null>(null);
+
+
     useEffect(() => {
         if (!currentId) {
             setNotifications([]);
@@ -78,40 +83,62 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }, [currentId, isLawyerRole]);
 
     useEffect(() => {
-        if (currentId) {
-            const socketInstance = io(BASE_URL, {
-                withCredentials: true,
-                transports: ['websocket', 'polling'],
-                reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000,
-            });
+        console.log('SocketContext: currentId changed to:', currentId, 'Previous:', previousIdRef.current);
 
-            socketInstance.on('connect', () => {
-                setIsConnected(true);
-            });
-
-            socketInstance.on('connect_error', (err) => {
+        if (!currentId || typeof currentId !== 'string') {
+            if (socket) {
+                socket.disconnect();
+                setSocket(null);
                 setIsConnected(false);
-            });
-
-            socketInstance.on('disconnect', () => {
-                setIsConnected(false);
-            });
-
-            socketInstance.on('notification', (data: any) => {
-                
-                setNotifications(prev => [data, ...prev]);
-                setUnreadCount(prev => prev + 1);
-                
-            });
-
-            setSocket(socketInstance);
-
-            return () => {
-                socketInstance.disconnect();
-            };
+                socketInitialized.current = false;
+            }
+            previousIdRef.current = null;
+            return;
         }
+
+        if (previousIdRef.current === currentId && socketInitialized.current) {
+            return;
+        }
+
+        if (previousIdRef.current && previousIdRef.current !== currentId && socket) {
+            socket.disconnect();
+            socketInitialized.current = false;
+        }
+
+        previousIdRef.current = currentId;
+
+        const socketInstance = io(BASE_URL, {
+            withCredentials: true,
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+        });
+
+        socketInstance.on('connect', () => {
+            setIsConnected(true);
+            socketInitialized.current = true;
+        });
+
+        socketInstance.on('connect_error', (err) => {
+            setIsConnected(false);
+        });
+
+        socketInstance.on('disconnect', (reason) => {
+            setIsConnected(false);
+        });
+
+        socketInstance.on('notification', (data: any) => {
+            setNotifications(prev => [data, ...prev]);
+            setUnreadCount(prev => prev + 1);
+        });
+
+        setSocket(socketInstance);
+
+        return () => {
+            socketInstance.disconnect();
+            socketInitialized.current = false;
+        };
     }, [currentId]);
 
     const clearNotifications = () => {
