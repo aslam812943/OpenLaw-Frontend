@@ -6,9 +6,10 @@ import CancelAppointmentModal from '../../../components/CancelAppointmentModal';
 import BookingDetailsModal from '../../../components/user/BookingDetailsModal';
 import Pagination from '../../../components/common/Pagination';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, DollarSign, User, AlertCircle, CalendarX, FileText, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, AlertCircle, CalendarX, FileText, CheckCircle, MessageSquare } from 'lucide-react';
 import { showToast } from '../../../utils/alerts';
 import { FilterBar } from '@/components/admin/shared/ReusableFilterBar';
+import { getChatRoom } from '@/service/chatService';
 
 const UserAppointmentsPage = () => {
     const router = useRouter();
@@ -88,6 +89,17 @@ const UserAppointmentsPage = () => {
         } finally {
             setIsModalOpen(false);
             setSelectedAppointmentId(null);
+        }
+    };
+
+    const handleChat = async (lawyerId: string) => {
+        try {
+            const response = await getChatRoom({ lawyerId });
+            if (response.success) {
+                router.push(`/user/chat/${response.data.id}`);
+            }
+        } catch (error) {
+            showToast("error", "Failed to initiate chat");
         }
     };
 
@@ -207,7 +219,7 @@ const UserAppointmentsPage = () => {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center gap-1 text-sm font-bold text-emerald-600">
-                                                           
+
                                                             <span>₹{appointment.consultationFee}</span>
                                                         </div>
                                                     </td>
@@ -249,6 +261,15 @@ const UserAppointmentsPage = () => {
                                                             >
                                                                 <FileText size={16} />
                                                             </button>
+                                                            {['confirmed', 'completed', 'pending'].includes(appointment.status) && (
+                                                                <button
+                                                                    onClick={() => handleChat(appointment.lawyerId)}
+                                                                    className="p-1.5 text-teal-600 bg-teal-50 border border-teal-100 rounded-lg hover:bg-teal-100 transition-all"
+                                                                    title="Message Lawyer"
+                                                                >
+                                                                    <MessageSquare size={16} />
+                                                                </button>
+                                                            )}
                                                             {isCancellable && (
                                                                 <button
                                                                     onClick={() => handleCancelClick(appointment.id)}

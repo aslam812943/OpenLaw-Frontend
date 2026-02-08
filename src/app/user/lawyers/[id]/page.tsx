@@ -102,7 +102,6 @@ export default function LawyersSinglePage() {
     const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
     const firstDayOfMonth = new Date(Date.UTC(year, month, 1)).getUTCDay();
 
-    // Create empty slots for days before the first day of the month
     const emptyDays = Array(firstDayOfMonth).fill(null);
 
     const days = [...Array(daysInMonth)].map((_, i) => {
@@ -145,6 +144,11 @@ export default function LawyersSinglePage() {
 
   const HandlePayment = async () => {
     if (!selectedDate || !selectedTime || !lawyer) return;
+
+    if (!description.trim()) {
+      showToast("error", "Please enter your consultation concern in the notes.");
+      return;
+    }
 
     const obj = {
       userId: user.id,
@@ -189,6 +193,19 @@ export default function LawyersSinglePage() {
     } else {
       setCurrentMonth(prev => prev + 1);
     }
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    if (bookingMode) {
+      setBookingMode(false);
+    }
+
+    setTimeout(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   };
 
   const handleReviewSubmit = async () => {
@@ -361,18 +378,18 @@ export default function LawyersSinglePage() {
             {[
               { id: 'overview', label: 'Overview', icon: BookOpen },
               { id: 'expertise', label: 'Expertise', icon: Scale },
-              { id: 'credentials', label: 'Credentials', icon: Award },
+
               { id: 'reviews', label: 'Reviews', icon: Star },
-              { id: 'contact', label: 'Contact', icon: Phone },
+
             ].map(item => (
-              <a
+              <button
                 key={item.id}
-                href={`#${item.id}`}
-                className="flex items-center gap-2 py-4 text-sm font-semibold text-slate-600 hover:text-teal-600 border-b-2 border-transparent hover:border-teal-600 transition-all"
+                onClick={() => scrollToSection(item.id)}
+                className="flex items-center gap-2 py-4 text-sm font-semibold text-slate-600 hover:text-teal-600 border-b-2 border-transparent hover:border-teal-600 transition-all whitespace-nowrap"
               >
                 <item.icon size={16} />
                 {item.label}
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -760,7 +777,7 @@ export default function LawyersSinglePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes (Optional)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

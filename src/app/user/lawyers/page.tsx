@@ -35,9 +35,6 @@ const AllLawyers = () => {
   const limit = 6;
 
 
-  const [locationFilter, setLocationFilter] = useState("");
-  const [experienceFilter, setExperienceFilter] = useState("");
-  const [feeFilter, setFeeFilter] = useState("");
 
   const router = useRouter();
   const debouncedSearch = useDebounce(search, 500);
@@ -54,10 +51,16 @@ const AllLawyers = () => {
     setExpandedFilters(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const scrollToLawyers = () => {
+    const target = document.getElementById('lawyer-list');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const clickHandle = (id: string) => {
     router.push(`/user/lawyers/${id}`);
   };
-
 
   useEffect(() => {
     setCurrentPage(1);
@@ -149,18 +152,26 @@ const AllLawyers = () => {
             transition={{ delay: 0.6, duration: 0.8 }}
             className="flex flex-col md:flex-row gap-8 items-start md:items-center mt-6"
           >
-            <button className="group relative px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold uppercase tracking-wider text-sm transition-all duration-300 overflow-hidden shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.5)]">
-              <span className="relative z-10 flex items-center gap-2">
-                Get Your Free Consultation
-                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <button
+              onClick={scrollToLawyers}
+              className="group relative px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold uppercase tracking-wider text-sm transition-all duration-300 overflow-hidden shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.5)]"
+            >
+              <span className="relative z-10 flex items-center gap-2 pointer-events-none">
+                Get Your Consultation
+                <ChevronDown className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </button>
 
             <div className="flex items-center gap-4 text-slate-300">
               <div className="flex -space-x-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-xs text-slate-400">
-                    <UserIcon /> {/* Placeholder for user avatars */}
+                {['/lawboy7.jpg', '/lawboy8.jpg', '/lawgirl9.jpg'].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-xs text-slate-400 overflow-hidden">
+                    <img
+                      src={i}
+                      alt="Pro"
+                      className="w-full h-full object-cover"
+                      onError={(e) => e.currentTarget.src = 'https://placehold.co/40x40/1e293b/94a3b8?text=U'}
+                    />
                   </div>
                 ))}
               </div>
@@ -190,7 +201,7 @@ const AllLawyers = () => {
       </div>
 
       {/* Search & Filter Bar Section */}
-      <div className="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+      <div id="lawyer-list" className="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row gap-4 items-center justify-between">
 
           {/* Search Input */}
@@ -239,9 +250,7 @@ const AllLawyers = () => {
                   setSearch("");
                   setSort("");
                   setFilterPracticeArea("");
-                  setLocationFilter("");
-                  setExperienceFilter("");
-                  setFeeFilter("");
+
                 }}
                 className="text-sm text-teal-600 hover:text-teal-800 font-semibold transition-colors"
               >
@@ -338,7 +347,7 @@ const AllLawyers = () => {
                           <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2">
                             <div>
                               <h3 className="text-xl font-bold text-slate-900 group-hover:text-teal-700 transition-colors">{lawyer.name}</h3>
-                              <p className="text-sm text-slate-500 font-medium">{lawyer.city || "New York"}, {lawyer.state || "NY"}</p>
+                              <p className="text-sm text-slate-500 font-medium">{lawyer.email || "New York"},</p>
                             </div>
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-100">
                               <Star className="w-3 h-3 fill-current" />
@@ -356,7 +365,6 @@ const AllLawyers = () => {
                               <span className="font-medium">{lawyer.yearsOfPractice || 5}+ Years Exp.</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <DollarSign size={16} className="text-teal-500" />
                               <span className="font-medium">Min ₹{lawyer.consultationFee || 200} / hr</span>
                             </div>
                           </div>

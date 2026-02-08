@@ -1,5 +1,8 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { BASE_URL } from "../constants/routes";
+import { store } from "@/redux/store";
+import { clearUserData } from "@/redux/userSlice";
+import { clearLawyerData } from "@/redux/lawyerSlice";
 
 
 export const apiInstance = axios.create({
@@ -16,10 +19,15 @@ apiInstance.interceptors.response.use(
         return response.data;
     },
     (error) => {
-        const massage = error.response?.data?.message || "An unexpected error occurred.";
+        const message = error.response?.data?.message || "An unexpected error occurred.";
 
+        if (error.response?.status === 401 || message === "No token provided.") {
+            store.dispatch(clearUserData());
+            store.dispatch(clearLawyerData());
+            localStorage.removeItem("userData");
+        }
 
-        return Promise.reject(new Error(massage));
+        return Promise.reject(new Error(message));
     }
 );
 
