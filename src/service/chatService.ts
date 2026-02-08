@@ -51,7 +51,7 @@ export const checkChatAccess = async (lawyerId: string): Promise<ChatAccessRespo
     try {
         const response = await apiClient.get<CommonResponse<ChatAccessResponse>>(API_ROUTES.CHAT.CHECK_ACCESS(lawyerId));
         return { hasAccess: response?.data?.hasAccess ?? false };
-    } catch (error: unknown|string) {
+    } catch (error: unknown | string) {
         return { hasAccess: false };
     }
 };
@@ -95,7 +95,7 @@ export const uploadFile = async (file: File): Promise<CommonResponse<{ fileUrl: 
     });
 };
 
-export const canJoinCall = async (bookingId: string): Promise<CommonResponse<{ canJoin: boolean, callId: string }>> => {
+export const canJoinCall = async (bookingId: string): Promise<CommonResponse<{ canJoin: boolean, callId?: string, message?: string }>> => {
     return apiClient.get(API_ROUTES.CHAT.CAN_JOIN_CALL(bookingId));
 };
 

@@ -5,12 +5,12 @@ import { Search, CheckCircle, Scale, Users, FileText, Briefcase, Globe, Home, Ar
 import MyGlobe from "../components/Globe";
 import UserFooter from '../components/user/userFooter'
 import UserHeader from '../components/user/userHeader'
-
+import { useRouter } from 'next/navigation';
 const LawyerLandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState('/homemiddle1.png');
-
+const router = useRouter();
   const imageOptions = [
     '/homemiddle1.png',
     '/homemiddle2.png',
@@ -24,24 +24,26 @@ const LawyerLandingPage = () => {
       <UserHeader />
 
       {/* Hero Section */}
-      <section className="relative min-h-[500px] lg:min-h-[650px] flex items-center overflow-hidden">
+      <section className="relative min-h-[500px] lg:min-h-[645px] flex items-center overflow-hidden">
 
         <div className="absolute inset-0 z-0">
           <img
             src="/bgimage.png"
             alt="Lawyer Consultation"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-[50%_70%]"
           />
 
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:ml-20 w-full py-12 sm:py-16 lg:py-20">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-7 lg:px-8 lg:ml-[10%] w-full py-12 sm:py-16 lg:py-20">
           <div className="max-w-2xl">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black leading-[1.1] mb-6 sm:mb-8 tracking-tight">
-              Accessible legal justice<br className="hidden sm:block" />
+              Justice without barriers<br className="hidden sm:block" />
               for everyone
             </h1>
+
+
 
             {/* Search Box */}
             <div className="relative max-w-lg lg:max-w-[750px] w-full mb-8 sm:mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-lg bg-white">
@@ -50,6 +52,7 @@ const LawyerLandingPage = () => {
                   <Search className="h-5 w-10" />
                 </div>
                 <input
+                onClick={()=>router.push("/user/lawyers")}
                   type="text"
                   className="block w-full px-4 py-3 sm:py-4 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 text-sm sm:text-base rounded-lg"
                   placeholder="What legal help do you need?"
@@ -63,7 +66,7 @@ const LawyerLandingPage = () => {
             {/* Social Proof */}
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3 sm:-space-x-4">
-                {[{ a: 1, img: '/lawyerBoy6.jpg' }, { b: 2, img: '/lawyerBoy4.jpg' }, { c: 3, img: '/laweyrGirl20.jpg' }, { d: 4, img: '/profile.jpg' }].map((item, index) => (
+                {[{ a: 1, img: '/lawboy7.jpg' }, { b: 2, img: '/lawboy8.jpg' }, { c: 3, img: '/laweyrGirl20.jpg' }, { d: 4, img: '/profile.jpg' }].map((item, index) => (
                   <img
                     key={index}
                     className="h-10 w-10 sm:h-12 sm:w-13 rounded-full border-2 border-white object-cover"
@@ -85,14 +88,14 @@ const LawyerLandingPage = () => {
       </section>
 
       {/* How it Works */}
-      <div className="w-full min-h-[500px] sm:min-h-[600px] bg-teal-700 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-['Montserrat']">
+      <div className="w-full min-h-[500px] sm:min-h-[600px] bg-teal-700 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-['Montserrat'] overflow-hidden">
         <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
 
           {/* Left Side - Stats & Clock */}
           <div className="text-white relative">
 
             {/* Clock Background Animation */}
-            <div className="absolute -top-16 -left-10 w-80 h-80 opacity-20 pointer-events-none select-none">
+            <div className="absolute -top-4 -left-4 w-64 h-64 sm:-top-16 sm:-left-10 sm:w-80 sm:h-80 opacity-20 pointer-events-none select-none">
               <svg viewBox="0 0 100 100" className="w-full h-full">
                 <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1" fill="none" />
                 <motion.line
