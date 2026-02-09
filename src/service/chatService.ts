@@ -56,7 +56,7 @@ export const checkChatAccess = async (lawyerId: string): Promise<ChatAccessRespo
     }
 };
 
-export const getChatRoom = async (params: { lawyerId?: string; userId?: string }): Promise<CommonResponse<ChatRoom>> => {
+export const getChatRoom = async (params: { lawyerId?: string; userId?: string; bookingId?: string }): Promise<CommonResponse<ChatRoom>> => {
     const endpoint = params.userId
         ? API_ROUTES.CHAT.LAWYER_GET_ROOM
         : API_ROUTES.CHAT.GET_ROOM;
@@ -87,10 +87,11 @@ export const getRoomById = async (roomId: string, role: 'user' | 'lawyer' = 'use
     return apiClient.get(endpoint);
 };
 
-export const uploadFile = async (file: File): Promise<CommonResponse<{ fileUrl: string; fileName: string; fileSize: number }>> => {
+export const uploadFile = async (file: File, role: 'user' | 'lawyer' = 'user'): Promise<CommonResponse<{ fileUrl: string; fileName: string; fileSize: number }>> => {
     const formData = new FormData();
     formData.append('file', file);
-    return apiClient.post<CommonResponse<{ fileUrl: string; fileName: string; fileSize: number }>>(API_ROUTES.CHAT.UPLOAD_FILE || '/chat/upload', formData, {
+    const endpoint = role === 'user' ? API_ROUTES.CHAT.UPLOAD_FILE : API_ROUTES.CHAT.LAWYER_UPLOAD_FILE;
+    return apiClient.post<CommonResponse<{ fileUrl: string; fileName: string; fileSize: number }>>(endpoint || '/chat/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
 };

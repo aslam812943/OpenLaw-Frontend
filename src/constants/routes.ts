@@ -88,6 +88,7 @@ export const API_ROUTES = {
     LAWYER_GET_ROOM_BY_ID: (roomId: string) => `/api/lawyer/chat/room/${roomId}`,
     GET_ROOM_BY_ID: (roomId: string) => `/api/user/chat/room/${roomId}`,
     UPLOAD_FILE: "/api/user/chat/upload",
+    LAWYER_UPLOAD_FILE: "/api/lawyer/chat/upload",
     CAN_JOIN_CALL: (bookingId: string) => `/api/video-call/${bookingId}/can-join`,
     JOIN_CALL: (bookingId: string) => `/api/video-call/${bookingId}/join`
   },

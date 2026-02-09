@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 import { getUserAppointments, cancelAppointment, Appointment } from '../../../service/userService';
 import CancelAppointmentModal from '../../../components/CancelAppointmentModal';
 import BookingDetailsModal from '../../../components/user/BookingDetailsModal';
@@ -13,6 +15,7 @@ import { getChatRoom } from '@/service/chatService';
 
 const UserAppointmentsPage = () => {
     const router = useRouter();
+    const user = useSelector((state: RootState) => state.user);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -92,9 +95,9 @@ const UserAppointmentsPage = () => {
         }
     };
 
-    const handleChat = async (lawyerId: string) => {
+    const handleChat = async (lawyerId: string, bookingId: string) => {
         try {
-            const response = await getChatRoom({ lawyerId });
+            const response = await getChatRoom({ lawyerId, bookingId });
             if (response.success) {
                 router.push(`/user/chat/${response.data.id}`);
             }
@@ -263,7 +266,7 @@ const UserAppointmentsPage = () => {
                                                             </button>
                                                             {['confirmed', 'completed', 'pending'].includes(appointment.status) && (
                                                                 <button
-                                                                    onClick={() => handleChat(appointment.lawyerId)}
+                                                                    onClick={() => handleChat(appointment.lawyerId, appointment.id)}
                                                                     className="p-1.5 text-teal-600 bg-teal-50 border border-teal-100 rounded-lg hover:bg-teal-100 transition-all"
                                                                     title="Message Lawyer"
                                                                 >
@@ -312,6 +315,7 @@ const UserAppointmentsPage = () => {
                     isOpen={isDetailsModalOpen}
                     onClose={() => setIsDetailsModalOpen(false)}
                     appointment={selectedAppointment}
+                    currentUserId={user.id || undefined}
                 />
             </div>
         </div>

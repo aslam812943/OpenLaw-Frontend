@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useSocket } from '@/context/SocketContext';
-import { getMessages, getRoomById } from '@/service/chatService';
-import { Send, ArrowLeft, MoreVertical, User, FileIcon } from 'lucide-react';
+import { Send, ArrowLeft, MoreVertical, User, FileIcon, Paperclip } from 'lucide-react';
+import { getMessages, getRoomById, uploadFile } from '@/service/chatService';
 import { motion } from 'framer-motion';
 import ImageModal from '@/components/ui/ImageModal';
 import { showToast } from '@/utils/alerts';
@@ -30,6 +30,8 @@ export default function LawyerChatRoomPage() {
 
     const [roomInfo, setRoomInfo] = useState<any>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const fetchRoomData = async () => {
@@ -219,6 +221,26 @@ export default function LawyerChatRoomPage() {
         }
     };
 
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !socket || !isConnected) return;
+
+        setIsUploading(true);
+        try {
+            const response = await uploadFile(file, 'lawyer');
+            if (response.success) {
+                const { fileUrl, fileName, fileSize } = response.data;
+                const type = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'document';
+                socket.emit('send-message', { roomId, content: fileUrl, type, fileName, fileSize });
+            }
+        } catch (error) {
+            showToast('error', 'Failed to upload file');
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -305,6 +327,25 @@ export default function LawyerChatRoomPage() {
             {/* Input */}
             <footer className="p-4 border-t border-slate-100">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={handleFileSelect}
+                        accept="image/*,.pdf,.doc,.docx"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading || !isConnected}
+                        className="p-3 text-slate-400 hover:text-teal-600 hover:bg-slate-50 rounded-full transition-all disabled:opacity-50"
+                    >
+                        {isUploading ? (
+                            <div className="animate-spin h-5 w-5 border-2 border-teal-500 rounded-full border-t-transparent"></div>
+                        ) : (
+                            <Paperclip size={20} />
+                        )}
+                    </button>
                     <input
                         type="text"
                         value={newMessage}
