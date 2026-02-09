@@ -125,9 +125,9 @@ const Appointments = () => {
     }
   };
 
-  const handleChat = async (userId: string) => {
+  const handleChat = async (userId: string, bookingId: string) => {
     try {
-      const response = await getChatRoom({ userId });
+      const response = await getChatRoom({ userId, bookingId });
       if (response.success) {
         router.push(`/lawyer/chat/${response.data.id}`);
       }
@@ -244,7 +244,7 @@ const Appointments = () => {
           )}
           {['confirmed', 'completed', 'pending'].includes(row.status) && (
             <button
-              onClick={() => handleChat(row.userId)}
+              onClick={() => handleChat(row.userId, row.id)}
               className="p-2 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
               title="Message Client"
             >

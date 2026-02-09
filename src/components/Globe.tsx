@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from "framer-motion";
-
+import { useRouter } from 'next/navigation';
 // Dynamic import to prevent SSR issues in Next.js
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -42,6 +42,7 @@ const arcsData = [
 ];
 
 export default function MyGlobe() {
+  const router = useRouter()
   const globeRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -145,7 +146,7 @@ export default function MyGlobe() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4">
-            <button className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-3 rounded-lg shadow-lg shadow-teal-500/40 transition-all">
+            <button onClick={()=>router.push('/user/lawyers')} className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-3 rounded-lg shadow-lg shadow-teal-500/40 transition-all">
               Find a lawyer
             </button>
             <span className="text-xs md:text-sm text-slate-400">

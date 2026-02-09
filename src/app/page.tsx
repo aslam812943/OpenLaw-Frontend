@@ -206,8 +206,8 @@ const router = useRouter();
                 Connect with top-rated attorneys who are dedicated to your success. Our platform ensures you have a full support system, keeping you informed and confident throughout your legal journey.
               </p>
 
-              <a href="#" className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
-                See how it works
+              <a  onClick={()=>router.push('/user/lawyers')} className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
+                Find Your Lawyer
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
             </div>
@@ -305,8 +305,8 @@ const router = useRouter();
                 We believe in complete financial transparency. See exactly what you'll pay upfront with our fixed-fee structure. No surprise bills, just clear, honest pricing for high-quality legal representation.
               </p>
 
-              <a href="#" className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
-                See how we price
+              <a onClick={()=>router.push('/user/lawyers')} className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
+                Find Your Lawyer
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
             </div>

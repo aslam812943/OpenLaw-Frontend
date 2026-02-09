@@ -1,8 +1,9 @@
 'use client'
 
-import React from 'react'
-import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, AlertCircle, Hash } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, AlertCircle, Hash, Image, Download, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getChatRoom, getMessages, Message } from '@/service/chatService'
 
 interface Appointment {
     id: string;
@@ -23,14 +24,45 @@ interface BookingDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     appointment: Appointment | null;
+    currentUserId?: string;
 }
 
 const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     isOpen,
     onClose,
-    appointment
+    appointment,
+    currentUserId
 }) => {
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && appointment?.id) {
+            fetchCaseHistory();
+        }
+    }, [isOpen, appointment?.id]);
+
+    const fetchCaseHistory = async () => {
+        if (!appointment?.id) return;
+        setLoadingHistory(true);
+        try {
+            const roomRes = await getChatRoom({ bookingId: appointment.id });
+            if (roomRes.success && roomRes.data.id) {
+                const msgRes = await getMessages(roomRes.data.id);
+                if (msgRes.success) {
+                    setMessages(msgRes.data);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch case history", error);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
     if (!appointment) return null;
+
+    const documents = messages.filter(m => m.type === 'document' || m.type === 'image' || m.type === 'file');
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -146,9 +178,59 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                 </div>
                             )}
 
+                            {/* Case History / Documents */}
+                            <div className="mt-8 pt-8 border-t border-slate-100">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="w-5 h-5 text-teal-600" />
+                                        <h3 className="text-sm font-bold text-slate-900 tracking-tight">Consultation Documents & Media</h3>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{documents.length} Items</span>
+                                </div>
+
+                                {loadingHistory ? (
+                                    <div className="flex justify-center py-8">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-teal-600"></div>
+                                    </div>
+                                ) : documents.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {documents.map((doc) => (
+                                            <div key={doc.id} className="group relative flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl hover:border-teal-300 hover:shadow-md transition-all">
+                                                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 border border-slate-100">
+                                                    {doc.type === 'image' ? (
+                                                        <img src={doc.fileUrl} alt={doc.fileName} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <FileText className="w-5 h-5 text-slate-400" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-xs font-bold text-slate-900 truncate pr-6">{doc.fileName || 'Shared File'}</p>
+                                                    <p className="text-[10px] text-slate-500 font-medium">{new Date(doc.createdAt).toLocaleDateString()}</p>
+                                                </div>
+                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <a
+                                                        href={doc.fileUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                                                        title="View"
+                                                    >
+                                                        <ExternalLink size={14} />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                        <p className="text-sm text-slate-400 font-medium">No documents shared during this consultation.</p>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Lawyer Feedback */}
                             {appointment.status === 'completed' && (
-                                <div className="space-y-3 mt-8">
+                                <div className="space-y-3 mt-8 pt-8 border-t border-slate-100">
                                     <div className="flex items-center gap-2">
                                         <CheckCircle className="w-5 h-5 text-teal-600" />
                                         <h3 className="text-sm font-bold text-slate-900 tracking-tight">Lawyer's Feedback & Notes</h3>
