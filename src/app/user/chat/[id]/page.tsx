@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useSocket } from '@/context/SocketContext';
-import { getMessages, getRoomById, uploadFile, getUserRooms, Message, ChatRoomDetails } from '@/service/chatService';
+import { getMessages, getRoomById, uploadFile, getUserRooms, getLawyerSpecificRooms, Message, ChatRoomDetails } from '@/service/chatService';
 import { Send, Menu, MoreVertical, User, Paperclip, FileIcon, ChevronLeft, Search, Dot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/components/ui/ImageModal';
@@ -42,19 +42,29 @@ export default function UserChatPage() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const [roomsRes, roomRes, messagesRes] = await Promise.all([
-                    getUserRooms(),
-                    getRoomById(roomId as string),
-                    getMessages(roomId as string)
-                ]);
+                // First get the room info to know which lawyer we are talking to
+                const roomRes = await getRoomById(roomId as string);
 
-                if (roomsRes.success) {
-                    setRooms(roomsRes.data);
-                }
                 if (roomRes.success) {
                     setRoomInfo(roomRes.data);
+
+                    // Now get only rooms for this specific lawyer
+                    const lawyerId = typeof roomRes.data.lawyerId === 'object'
+                        ? (roomRes.data.lawyerId as any)._id || (roomRes.data.lawyerId as any).id
+                        : roomRes.data.lawyerId;
+
+                    const [roomsRes, messagesRes] = await Promise.all([
+                        getLawyerSpecificRooms(lawyerId),
+                        getMessages(roomId as string)
+                    ]);
+
+                    if (roomsRes.success) {
+                        setRooms(roomsRes.data);
+                    }
+                    if (messagesRes.success) {
+                        setMessages(messagesRes.data);
+                    }
                 }
-                if (messagesRes.success) setMessages(messagesRes.data);
             } catch (error) {
                 showToast('error', 'Failed to load chat data');
             } finally {
@@ -263,11 +273,40 @@ export default function UserChatPage() {
                         <button
                             key={room.id}
                             onClick={() => router.push(`/user/chat/${room.id}`)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${room.id === roomId
+                            className={`w-full group relative flex items-center gap-3 p-3 rounded-2xl transition-all ${room.id === roomId
                                 ? 'bg-teal-50 text-teal-900 shadow-sm ring-1 ring-teal-500/20'
                                 : 'hover:bg-slate-50 text-slate-600 hover:text-slate-900'
                                 }`}
                         >
+                            {/* Hover Tooltip - Bottom Position */}
+                            <div className="absolute top-full left-0 right-0 px-2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[999] pointer-events-none scale-95 group-hover:scale-100 origin-top">
+                                <div className="bg-white/95 backdrop-blur-xl p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100">
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[10px] font-bold text-teal-600 uppercase tracking-[0.2em]">Booking Reference</span>
+                                            <span className="text-sm font-black text-slate-900 font-mono tracking-tighter">{room.bookingDetails?.bookingId || 'REF-PENDING'}</span>
+                                        </div>
+                                        <div className="h-px bg-slate-100 w-full" />
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consultation Schedule</span>
+                                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                                <span>{room.bookingDetails?.startTime || 'TBD'}</span>
+                                                <span className="text-slate-300">•</span>
+                                                <span>{room.bookingDetails?.date ? new Date(room.bookingDetails.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date Pending'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reason for Inquiry</span>
+                                            <p className="text-xs text-slate-600 leading-relaxed italic border-l-2 border-teal-500/30 pl-3 py-0.5">
+                                                "{room.bookingDetails?.description || 'No specific details provided for this session.'}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {/* Arrow pointing up */}
+                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-slate-100 rotate-45" />
+                                </div>
+                            </div>
+
                             <div className="relative flex-shrink-0">
                                 <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden ring-2 ring-white">
                                     {room.lawyerId?.profileImage ? (
