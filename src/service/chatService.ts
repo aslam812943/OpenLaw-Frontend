@@ -44,6 +44,12 @@ export interface ChatRoomDetails {
         content: string;
         createdAt: string;
     };
+    bookingDetails?: {
+        bookingId: string;
+        startTime: string;
+        description: string;
+        date: string;
+    };
     updatedAt: string;
 }
 
@@ -77,6 +83,13 @@ export const getUserRooms = async (): Promise<CommonResponse<ChatRoomDetails[]>>
 
 export const getLawyerRooms = async (): Promise<CommonResponse<ChatRoomDetails[]>> => {
     return apiClient.get(API_ROUTES.CHAT.LAWYER_ROOMS);
+};
+
+export const getLawyerSpecificRooms = async (lawyerIdOrUserId: string, role: 'user' | 'lawyer' = 'user'): Promise<CommonResponse<ChatRoomDetails[]>> => {
+    const endpoint = role === 'user'
+        ? API_ROUTES.CHAT.USER_LAWYER_ROOMS(lawyerIdOrUserId)
+        : API_ROUTES.CHAT.LAWYER_USER_ROOMS(lawyerIdOrUserId);
+    return apiClient.get(endpoint);
 };
 
 export const getRoomById = async (roomId: string, role: 'user' | 'lawyer' = 'user'): Promise<CommonResponse<ChatRoomDetails>> => {
