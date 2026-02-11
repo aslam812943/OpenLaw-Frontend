@@ -34,6 +34,7 @@ export default function UserChatPage() {
     const [roomInfo, setRoomInfo] = useState<ChatRoomDetails | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,13 +43,11 @@ export default function UserChatPage() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                // First get the room info to know which lawyer we are talking to
                 const roomRes = await getRoomById(roomId as string);
 
                 if (roomRes.success) {
                     setRoomInfo(roomRes.data);
 
-                    // Now get only rooms for this specific lawyer
                     const lawyerId = typeof roomRes.data.lawyerId === 'object'
                         ? (roomRes.data.lawyerId as any)._id || (roomRes.data.lawyerId as any).id
                         : roomRes.data.lawyerId;
@@ -247,98 +246,157 @@ export default function UserChatPage() {
     }
 
     const filteredRooms = rooms.filter(room =>
-        room.lawyerId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        room.lawyerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        room.bookingDetails?.bookingId?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const renderSidebarContent = () => (
+        <>
+            <div className="p-6">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Search consultations..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-teal-500 transition-all"
+                    />
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-3 space-y-1">
+                {filteredRooms.map((room) => (
+                    <button
+                        key={room.id}
+                        onClick={() => {
+                            router.push(`/user/chat/${room.id}`);
+                            setIsMobileSidebarOpen(false);
+                        }}
+                        className={`w-full group relative flex items-center gap-3 p-3 rounded-2xl transition-all ${room.id === roomId
+                            ? 'bg-teal-50 text-teal-900 shadow-sm ring-1 ring-teal-500/20'
+                            : 'hover:bg-slate-50 text-slate-600 hover:text-slate-900'
+                            }`}
+                    >
+                        {/* Hover Tooltip - Bottom Position */}
+                        <div className="absolute top-full left-0 right-0 px-2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[999] pointer-events-none scale-95 group-hover:scale-100 origin-top">
+                            <div className="bg-white/95 backdrop-blur-xl p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100">
+                                <div className="space-y-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="text-[10px] font-bold text-teal-600 uppercase tracking-[0.2em]">Booking Reference</span>
+                                        <span className="text-sm font-black text-slate-900 font-mono tracking-tighter">{room.bookingDetails?.bookingId || 'REF-PENDING'}</span>
+                                    </div>
+                                    <div className="h-px bg-slate-100 w-full" />
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consultation Schedule</span>
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                            <span>{room.bookingDetails?.startTime || 'TBD'}</span>
+                                            <span className="text-slate-300">•</span>
+                                            <span>{room.bookingDetails?.date ? new Date(room.bookingDetails.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date Pending'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reason for Inquiry</span>
+                                        <p className="text-xs text-slate-600 leading-relaxed italic border-l-2 border-teal-500/30 pl-3 py-0.5">
+                                            "{room.bookingDetails?.description || 'No specific details provided for this session.'}"
+                                        </p>
+                                    </div>
+                                </div>
+                                {/* Arrow pointing up */}
+                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-slate-100 rotate-45" />
+                            </div>
+                        </div>
+
+                        <div className="relative flex-shrink-0">
+                            <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden ring-2 ring-white">
+                                {room.lawyerId?.profileImage ? (
+                                    <img src={room.lawyerId.profileImage} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center relative">
+                                        <User size={20} className="text-slate-400" />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="text-left min-w-0 flex-1">
+                            <div className="flex justify-between items-start gap-1">
+                                <p className="font-bold text-sm truncate">{room.lawyerId?.name}</p>
+                                {room.lastMessage && (
+                                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                        {new Date(room.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-0.5">
+                                {room.lastMessage ? (
+                                    <p className="text-xs text-slate-500 truncate">
+                                        {room.lastMessage.content}
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-slate-400 truncate">Online Consultation</p>
+                                )}
+
+                                {/* Mobile-only Case Details */}
+                                <div className="lg:hidden mt-2 pt-2 border-t border-slate-100/50 flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-bold text-teal-600 uppercase tracking-wider">ID:</span>
+                                        <span className="text-[10px] font-mono font-bold text-slate-700">{room.bookingDetails?.bookingId || 'PENDING'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Time:</span>
+                                        <span className="text-[10px] font-semibold text-slate-600">
+                                            {room.bookingDetails?.startTime || 'TBD'} • {room.bookingDetails?.date ? new Date(room.bookingDetails.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Pending'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </>
     );
 
     return (
         <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-slate-50/50">
-            {/* Sidebar - Desktop Only */}
+            {/* Sidebar - Desktop */}
             <aside className="hidden lg:flex w-80 flex-col bg-white border-r border-slate-100 shadow-sm">
-                <div className="p-6">
-                    <h2 className="text-xl font-bold text-slate-900 mb-4">Messages</h2>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search consultations..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-teal-500 transition-all"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto px-3 space-y-1">
-                    {filteredRooms.map((room) => (
-                        <button
-                            key={room.id}
-                            onClick={() => router.push(`/user/chat/${room.id}`)}
-                            className={`w-full group relative flex items-center gap-3 p-3 rounded-2xl transition-all ${room.id === roomId
-                                ? 'bg-teal-50 text-teal-900 shadow-sm ring-1 ring-teal-500/20'
-                                : 'hover:bg-slate-50 text-slate-600 hover:text-slate-900'
-                                }`}
-                        >
-                            {/* Hover Tooltip - Bottom Position */}
-                            <div className="absolute top-full left-0 right-0 px-2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[999] pointer-events-none scale-95 group-hover:scale-100 origin-top">
-                                <div className="bg-white/95 backdrop-blur-xl p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100">
-                                    <div className="space-y-4">
-                                        <div className="flex flex-col gap-1.5">
-                                            <span className="text-[10px] font-bold text-teal-600 uppercase tracking-[0.2em]">Booking Reference</span>
-                                            <span className="text-sm font-black text-slate-900 font-mono tracking-tighter">{room.bookingDetails?.bookingId || 'REF-PENDING'}</span>
-                                        </div>
-                                        <div className="h-px bg-slate-100 w-full" />
-                                        <div className="flex flex-col gap-1.5">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consultation Schedule</span>
-                                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                                                <span>{room.bookingDetails?.startTime || 'TBD'}</span>
-                                                <span className="text-slate-300">•</span>
-                                                <span>{room.bookingDetails?.date ? new Date(room.bookingDetails.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date Pending'}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reason for Inquiry</span>
-                                            <p className="text-xs text-slate-600 leading-relaxed italic border-l-2 border-teal-500/30 pl-3 py-0.5">
-                                                "{room.bookingDetails?.description || 'No specific details provided for this session.'}"
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {/* Arrow pointing up */}
-                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-slate-100 rotate-45" />
-                                </div>
-                            </div>
-
-                            <div className="relative flex-shrink-0">
-                                <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden ring-2 ring-white">
-                                    {room.lawyerId?.profileImage ? (
-                                        <img src={room.lawyerId.profileImage} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center relative">
-                                            <User size={20} className="text-slate-400" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="text-left min-w-0">
-                                <p className="font-bold text-sm truncate">{room.lawyerId?.name}</p>
-                                <div className="flex flex-col">
-                                    {room.lastMessage ? (
-                                        <>
-                                            <p className="text-xs text-slate-500 truncate">
-                                                {room.lastMessage.content}
-                                            </p>
-                                            <span className="text-[10px] text-slate-400">
-                                                {new Date(room.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                        </>
-                                    ) : (
-                                        <p className="text-xs text-slate-400 truncate">Online Consultation</p>
-                                    )}
-                                </div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
+                {renderSidebarContent()}
             </aside>
+
+            {/* Sidebar - Mobile */}
+            <AnimatePresence>
+                {isMobileSidebarOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsMobileSidebarOpen(false)}
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] lg:hidden"
+                        />
+                        <motion.aside
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed inset-y-0 left-0 w-80 bg-white z-[101] lg:hidden flex flex-col shadow-2xl"
+                        >
+                            <div className="flex items-center justify-between p-6 border-b border-slate-50">
+                                <h2 className="text-xl font-bold text-slate-900">Cases</h2>
+                                <button
+                                    onClick={() => setIsMobileSidebarOpen(false)}
+                                    className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400"
+                                >
+                                    <ChevronLeft size={24} />
+                                </button>
+                            </div>
+                            {renderSidebarContent()}
+                        </motion.aside>
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* Main Chat Area */}
             <main className="flex-1 flex flex-col min-w-0 bg-white lg:bg-transparent">
@@ -373,7 +431,10 @@ export default function UserChatPage() {
                         {roomInfo?.bookingId && (
                             <VideoCallButton bookingId={roomInfo.bookingId} role="user" />
                         )}
-                        <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+                        <button
+                            onClick={() => setIsMobileSidebarOpen(true)}
+                            className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+                        >
                             <MoreVertical size={20} />
                         </button>
                     </div>
