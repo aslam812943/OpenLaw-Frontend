@@ -125,6 +125,7 @@ const UserAppointmentsPage = () => {
                         initialDate={dateFilter}
                         filterOptions={[
                             { label: "Confirmed", value: "confirmed" },
+                            { label: "Follow-up", value: "follow-up" },
                             { label: "Pending", value: "pending" },
                             { label: "Completed", value: "completed" },
                             { label: "Cancelled", value: "cancelled" },
@@ -191,9 +192,10 @@ const UserAppointmentsPage = () => {
                                             const isCancellable = appointment.status === 'pending' || appointment.status === 'confirmed';
                                             const statusStyles =
                                                 appointment.status === 'confirmed' ? 'bg-teal-50 text-teal-700 border-teal-200' :
-                                                    appointment.status === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                                        appointment.status === 'rejected' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                                            'bg-amber-50 text-amber-700 border-amber-200';
+                                                    appointment.status === 'follow-up' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                        appointment.status === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                                            appointment.status === 'rejected' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                                                'bg-amber-50 text-amber-700 border-amber-200';
 
                                             return (
                                                 <tr key={appointment.id} className="hover:bg-slate-50 transition-colors">
@@ -253,8 +255,22 @@ const UserAppointmentsPage = () => {
                                                                     </span>
                                                                 </div>
                                                             )}
+                                                            {appointment.status === 'completed' && appointment.followUpStatus === 'pending' && appointment.followUpType && appointment.followUpType !== 'none' && (
+                                                                <div className="flex items-start gap-2 text-xs text-teal-600 mt-2 font-bold bg-teal-50/50 p-2 rounded-lg border border-teal-100">
+                                                                    <Calendar size={12} className="mt-0.5 shrink-0" />
+                                                                    <div className="flex flex-col">
+                                                                        <span>Follow-up suggested:</span>
+                                                                        <span className="text-[10px] font-medium">
+                                                                            {appointment.followUpType === 'specific'
+                                                                                ? `${appointment.followUpDate} @ ${appointment.followUpTime}`
+                                                                                : `By ${appointment.followUpDate}`}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </td>
+
                                                     <td className="px-6 py-4 whitespace-nowrap text-right">
                                                         <div className="flex justify-end gap-2">
                                                             <button
@@ -264,7 +280,7 @@ const UserAppointmentsPage = () => {
                                                             >
                                                                 <FileText size={16} />
                                                             </button>
-                                                            {['confirmed', 'completed', 'pending'].includes(appointment.status) && (
+                                                            {['confirmed', 'completed', 'pending', 'follow-up'].includes(appointment.status) && (
                                                                 <button
                                                                     onClick={() => handleChat(appointment.lawyerId, appointment.id)}
                                                                     className="p-1.5 text-teal-600 bg-teal-50 border border-teal-100 rounded-lg hover:bg-teal-100 transition-all"
@@ -281,12 +297,30 @@ const UserAppointmentsPage = () => {
                                                                     Cancel
                                                                 </button>
                                                             )}
+                                                            {appointment.followUpStatus === 'pending' && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        if (appointment.followUpType === 'specific') {
+                                                                            // Take to confirmation with specific date/time
+                                                                            router.push(`/user/lawyers/${appointment.lawyerId}?date=${appointment.followUpDate}&time=${appointment.followUpTime}&parentBookingId=${appointment.id}`);
+                                                                        } else if (appointment.followUpType === 'deadline') {
+                                                                            // Take to slot selection with deadline
+                                                                            router.push(`/user/lawyers/${appointment.lawyerId}?deadline=${appointment.followUpDate}&parentBookingId=${appointment.id}`);
+                                                                        }
+
+                                                                    }}
+                                                                    className="px-3 py-1.5 text-xs font-semibold text-teal-600 bg-white border border-teal-200 rounded-lg hover:bg-teal-50 hover:border-teal-300 transition-all"
+                                                                >
+                                                                    Book Follow-up
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
                                             );
                                         })}
                                     </tbody>
+
                                 </table>
                             </div>
                         </div>

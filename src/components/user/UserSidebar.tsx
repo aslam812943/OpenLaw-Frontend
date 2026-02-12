@@ -41,10 +41,10 @@ const UserSidebar = () => {
         <>
             {/* Mobile Toggle Button */}
             <button
-                className="lg:hidden fixed bottom-6 right-6 z-50 p-4 bg-teal-600 text-white rounded-2xl shadow-2xl hover:bg-teal-700 active:scale-95 transition-all"
+                className="lg:hidden fixed top-[90px] left-4 z-50 p-3 bg-teal-600 text-white rounded-xl shadow-xl hover:bg-teal-700 active:scale-95 transition-all border border-teal-500/20"
                 onClick={toggleSidebar}
             >
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
+                {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
             {/* Sidebar */}
