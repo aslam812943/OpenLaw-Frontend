@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -19,6 +19,7 @@ import { handlepayAndBook, addReview, allReview, Review } from "@/service/userSe
 
 export default function LawyersSinglePage() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
   const user = useSelector((state: RootState) => state.user);
   const [calendarDays, setCalendarDays] = useState<{ date: string, available: boolean }[]>([]);
   const [selectedTime, setSelectedTime] = useState<{ start: string; end: string } | null>(null);
@@ -79,6 +80,37 @@ export default function LawyersSinglePage() {
       fetchChatAccess();
     }
   }, [id]);
+
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    const timeParam = searchParams.get('time');
+    const deadlineParam = searchParams.get('deadline');
+    const parentIdParam = searchParams.get('parentBookingId');
+
+    if (dateParam) setSelectedDate(dateParam);
+    if (timeParam) setSelectedTime({ start: timeParam, end: '' }); 
+    if ((dateParam && timeParam) || deadlineParam) {
+      setBookingMode(true);
+      fetchslots();
+      if (dateParam && timeParam) {
+        setBookingSlot(true);
+      }
+    }
+  }, [searchParams, lawyer]);
+
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    const timeParam = searchParams.get('time');
+
+    if (dateParam && timeParam && slots.length > 0) {
+      const matchingSlot = slots.find(s => s.date === dateParam && s.startTime === timeParam);
+      if (matchingSlot) {
+        setSelectedSlotId(matchingSlot.id);
+        setSelectedTime({ start: matchingSlot.startTime, end: matchingSlot.endTime });
+        setConsultationFee(Number(matchingSlot.consultationFee));
+      }
+    }
+  }, [slots, searchParams]);
 
   const isPastDate = (date: string) => {
     const today = new Date();
@@ -159,7 +191,8 @@ export default function LawyersSinglePage() {
       endTime: selectedTime.end,
       consultationFee: consultationFee,
       description,
-      slotId: selectedSlotId
+      slotId: selectedSlotId,
+      parentBookingId: searchParams.get('parentBookingId')
     };
 
     try {
@@ -663,14 +696,16 @@ export default function LawyersSinglePage() {
                   {Array(new Date(currentYear, currentMonth, 1).getDay()).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
                   {calendarDays.map((day) => {
                     const past = isPastDate(day.date);
+                    const deadline = searchParams.get('deadline');
+                    const beyondDeadline = deadline ? new Date(day.date) > new Date(deadline) : false;
                     const isSelected = selectedDate === day.date;
                     return (
                       <button
                         key={day.date}
-                        disabled={!day.available || past}
-                        onClick={() => !past && setSelectedDate(day.date)}
+                        disabled={!day.available || past || beyondDeadline}
+                        onClick={() => !past && !beyondDeadline && setSelectedDate(day.date)}
                         className={`h-10 rounded-lg text-sm font-medium transition-all ${isSelected ? 'bg-teal-600 text-white shadow-md' :
-                          day.available && !past ? 'hover:bg-teal-50 text-slate-700 hover:text-teal-700' :
+                          day.available && !past && !beyondDeadline ? 'hover:bg-teal-50 text-slate-700 hover:text-teal-700' :
                             'text-slate-300 cursor-not-allowed'
                           }`}
                       >

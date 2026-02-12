@@ -99,6 +99,11 @@ export interface Appointment {
   cancellationReason?: string;
   refundAmount?: number;
   refundStatus?: string;
+  followUpType?: 'none' | 'specific' | 'deadline';
+  followUpDate?: string;
+  followUpTime?: string;
+  followUpStatus?: 'none' | 'pending' | 'booked';
+  parentBookingId?: string;
 }
 
 export interface Case {
@@ -338,6 +343,10 @@ export const getAppoiments = async (page: number = 1, limit: number = 10, status
 
 export const updateAppointmentStatus = async (id: string, status: string, feedback?: string): Promise<CommonResponse<void>> => {
   return apiClient.patch<CommonResponse<void>>(API_ROUTES.LAWYER.APPOIMENTS_UPDATE_STATUS(id), { status, feedback });
+};
+
+export const setFollowUp = async (id: string, followUpType: 'none' | 'specific' | 'deadline', followUpDate?: string, followUpTime?: string, feedback?: string): Promise<CommonResponse<void>> => {
+  return apiClient.post<CommonResponse<void>>(API_ROUTES.LAWYER.APPOIMENTS_FOLLOW_UP(id), { followUpType, followUpDate, followUpTime, feedback });
 };
 
 

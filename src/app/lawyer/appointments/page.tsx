@@ -26,7 +26,10 @@ interface Appointment {
   userName: string;
   commissionPercent?: number;
   lawyerFeedback?: string;
+  bookingId?: string;
+  lawyerId?: string;
 }
+
 
 const Appointments = () => {
   const [data, setData] = useState<Appointment[]>([]);
@@ -174,8 +177,9 @@ const Appointments = () => {
       render: (row) => (
         <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${row.status === 'pending' ? 'bg-amber-100 text-amber-700' :
           row.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-            row.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-              'bg-red-100 text-red-700'
+            row.status === 'follow-up' ? 'bg-indigo-100 text-indigo-700' :
+              row.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                'bg-red-100 text-red-700'
           }`}>
           {row.status}
         </span>
@@ -233,7 +237,7 @@ const Appointments = () => {
               MARK COMPLETED
             </button>
           )}
-          {row.status === 'completed' && (
+          {['completed', 'follow-up'].includes(row.status) && (
             <button
               onClick={() => handleStatusUpdate(row.id, 'completed', row)}
               className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all"
@@ -242,7 +246,7 @@ const Appointments = () => {
               VIEW SUMMARY
             </button>
           )}
-          {['confirmed', 'completed', 'pending'].includes(row.status) && (
+          {['confirmed', 'completed', 'pending', 'follow-up'].includes(row.status) && (
             <button
               onClick={() => handleChat(row.userId, row.id)}
               className="p-2 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
@@ -280,6 +284,7 @@ const Appointments = () => {
             initialDate={dateFilter}
             filterOptions={[
               { label: "Confirmed", value: "confirmed" },
+              { label: "Follow-up", value: "follow-up" },
               { label: "Pending", value: "pending" },
               { label: "Completed", value: "completed" },
               { label: "Cancelled", value: "cancelled" },
@@ -313,6 +318,7 @@ const Appointments = () => {
         onConfirm={confirmCompletion}
         appointment={selectedAppointment}
         isSubmitting={isSubmitting}
+        onSuccess={fetchAppointments}
       />
     </div>
   );

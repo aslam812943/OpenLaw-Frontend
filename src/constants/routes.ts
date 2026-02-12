@@ -64,6 +64,8 @@ export const API_ROUTES = {
     CHANGE_PASSWORD: "/api/lawyer/profile/password",
     APPOIMENTS: `/api/lawyer/appoiments`,
     APPOIMENTS_UPDATE_STATUS: (id: string) => `/api/lawyer/appoiments/${id}/status`,
+    APPOIMENTS_FOLLOW_UP: (id: string) => `/api/lawyer/appoiments/${id}/follow-up`,
+
     CHECKSUBSCRIPTION: `/api/lawyer/checksubscription`,
     CURRENT_SUBSCRIPTION: `/api/lawyer/subscription/current`,
     SUBSCRIPTIONS: `/api/lawyer/subscriptions`,

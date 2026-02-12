@@ -66,7 +66,13 @@ export interface Appointment {
   refundAmount?: number;
   refundStatus?: string;
   lawyerFeedback?: string;
+  followUpType?: 'none' | 'specific' | 'deadline';
+  followUpDate?: string;
+  followUpTime?: string;
+  followUpStatus?: 'none' | 'pending' | 'booked';
+  parentBookingId?: string;
 }
+
 
 export interface BookingDetails {
   id: string;
@@ -218,6 +224,10 @@ export const getUserAppointments = async (page: number = 1, limit: number = 5, s
   return apiClient.get<CommonResponse<{ appointments: Appointment[], total: number }>>(API_ROUTES.USER.GETAPPOINMENT, {
     params: { page, limit, status, search, date }
   });
+};
+
+export const getBookingById = async (id: string): Promise<CommonResponse<Appointment>> => {
+  return apiClient.get<CommonResponse<Appointment>>(`${API_ROUTES.USER.GETAPPOINMENT}/${id}`);
 };
 
 export const cancelAppointment = async (id: string, reason: string): Promise<void> => {

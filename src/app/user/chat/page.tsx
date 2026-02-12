@@ -19,7 +19,20 @@ export default function UserChatListPage() {
             try {
                 const res = await getUserRooms();
                 if (res.success) {
-                    setRooms(res.data);
+                    const roomMap = new Map<string, any>();
+
+                    res.data.forEach((room: any) => {
+                        const lawyerId = typeof room.lawyerId === 'object' ? room.lawyerId.id || room.lawyerId._id : room.lawyerId;
+                        if (!roomMap.has(lawyerId) || new Date(room.updatedAt) > new Date(roomMap.get(lawyerId).updatedAt)) {
+                            roomMap.set(lawyerId, room);
+                        }
+                    });
+
+                    const consolidatedRooms = Array.from(roomMap.values()).sort((a, b) =>
+                        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                    );
+
+                    setRooms(consolidatedRooms);
                 }
             } catch (error) {
                 showToast('error', 'Failed to fetch chat rooms');

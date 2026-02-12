@@ -19,7 +19,20 @@ export default function LawyerChatListPage() {
             try {
                 const res = await getLawyerRooms();
                 if (res.success) {
-                    setRooms(res.data);
+                    const roomMap = new Map<string, any>();
+
+                    res.data.forEach((room: any) => {
+                        const userId = typeof room.userId === 'object' ? room.userId.id || room.userId._id : room.userId;
+                        if (!roomMap.has(userId) || new Date(room.updatedAt) > new Date(roomMap.get(userId).updatedAt)) {
+                            roomMap.set(userId, room);
+                        }
+                    });
+
+                    const consolidatedRooms = Array.from(roomMap.values()).sort((a, b) =>
+                        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                    );
+
+                    setRooms(consolidatedRooms);
                 }
             } catch (error) {
                 showToast('error', 'Failed to fetch chat rooms');
