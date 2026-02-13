@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import LawyerHeader from '@/components/lawyer/LawyersHeader';
 import LawyerSidebar from '@/components/lawyer/LawyerSidebar';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { getprofile } from "@/service/lawyerService";
 import SubscriptionPlans from "@/components/lawyer/SubscriptionPlans";
@@ -13,16 +13,25 @@ export default function LawyerLayout({ children }: { children: React.ReactNode }
     const pathname = usePathname();
     const user = useSelector((state: RootState) => state.lawyer);
     const [isVerified, setIsVerified] = useState<boolean>(true);
+    const [hasSubmitted, setHasSubmitted] = useState<boolean>(true);
     const [loading, setLoading] = useState<boolean>(true);
+    const router = useRouter();
 
     useEffect(() => {
         const checkStatus = async () => {
             try {
                 const profile = await getprofile();
+
+                setHasSubmitted(!!profile?.hasSubmittedVerification);
+
                 if (profile?.paymentVerify) {
                     setIsVerified(true);
                 } else {
                     setIsVerified(false);
+                }
+
+                if (!profile?.hasSubmittedVerification && !isWhiteListedPage) {
+                    router.replace('/lawyer/verification');
                 }
             } catch (error) {
                 console.error("Layout status check failed:", error);
@@ -32,7 +41,7 @@ export default function LawyerLayout({ children }: { children: React.ReactNode }
         };
 
         checkStatus();
-    }, [pathname]);
+    }, [pathname, router]);
 
     const isWhiteListedPage =
         pathname === '/lawyer/verification' ||

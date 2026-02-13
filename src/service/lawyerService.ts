@@ -37,6 +37,7 @@ export interface Lawyer {
   isVerified: boolean;
   isBlock: boolean;
   paymentVerify?: boolean;
+  hasSubmittedVerification?: boolean;
 }
 
 export interface PaginatedLawyerResponse {
