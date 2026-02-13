@@ -289,16 +289,16 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                                 <div className="space-y-3">
                                     <label className="text-xs uppercase font-extrabold tracking-widest text-slate-500 flex justify-between">
                                         Post-Consultation Notes & Feedback
-                                        {!isReadOnly && <span className="text-slate-300 font-medium">Required for completion</span>}
+                                        {!isReadOnly && <span className="text-rose-500 font-bold">Required for completion</span>}
                                     </label>
                                     <textarea
                                         value={feedback}
                                         onChange={(e) => setFeedback(e.target.value)}
                                         readOnly={isReadOnly}
                                         placeholder={isReadOnly ? "No feedback provided." : "Enter a summary of the consultation, advice given, or next steps for the client..."}
-                                        className={`w-full min-h-[120px] p-5 rounded-2xl border-2 transition-all text-sm placeholder:text-slate-300 ${isReadOnly
+                                        className={`w-full min-h-[120px] p-5 rounded-2xl border-2 transition-all text-sm placeholder:text-slate-400 ${isReadOnly
                                             ? 'bg-slate-50 border-slate-100 text-slate-600 focus:outline-none'
-                                            : 'border-slate-100 focus:border-teal-500 focus:outline-none'
+                                            : 'border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none bg-white'
                                             }`}
                                     />
                                 </div>
@@ -410,7 +410,7 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                     lawyerId={appointment.lawyerId}
                     onSuccess={() => {
                         setIsFollowUpDone(true);
-                        onClose(); 
+                        onClose();
                         if (onSuccess) onSuccess();
                     }}
                     feedback={feedback}
