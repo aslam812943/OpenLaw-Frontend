@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, AlertCircle, Hash, Image, Download, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getChatRoom, getMessages, Message } from '@/service/chatService'
+import { cancelFollowUp } from '@/service/userService'
+import { showToast } from '@/utils/alerts'
 import ImageModal from '@/components/ui/ImageModal'
 
 interface Appointment {
@@ -33,6 +35,7 @@ interface BookingDetailsModalProps {
     onClose: () => void;
     appointment: Appointment | null;
     currentUserId?: string;
+    onSuccess?: () => void;
 }
 
 const isImageUrl = (url: string): boolean => {
@@ -45,13 +48,15 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     isOpen,
     onClose,
     appointment,
-    currentUserId
+    currentUserId,
+    onSuccess
 }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [parentBooking, setParentBooking] = useState<Appointment | null>(null);
     const [loadingParent, setLoadingParent] = useState(false);
+    const [isCancellingFollowUp, setIsCancellingFollowUp] = useState(false);
 
     useEffect(() => {
         if (isOpen && appointment?.id) {
@@ -97,6 +102,22 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             console.error("Failed to fetch case history", error);
         } finally {
             setLoadingHistory(false);
+        }
+    };
+
+    const handleCancelFollowUp = async () => {
+        if (!appointment?.id) return;
+
+        try {
+            setIsCancellingFollowUp(true);
+            await cancelFollowUp(appointment.id);
+            showToast('success', 'Follow-up request cancelled successfully');
+            onClose();
+            if (onSuccess) onSuccess();
+        } catch (error:any) {
+            showToast('error', error.response?.data?.message  || 'Failed to cancel follow-up request');
+        } finally {
+            setIsCancellingFollowUp(false);
         }
     };
 
@@ -326,7 +347,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                 )}
 
                                 {/* Follow-up Details */}
-                                {appointment.followUpStatus === 'pending' && appointment.followUpType && appointment.followUpType !== 'none' && (
+                                {appointment.followUpType && appointment.followUpType !== 'none' && (appointment.followUpStatus === 'pending' || appointment.followUpStatus === 'booked') && (
                                     <div className="space-y-3 mt-8 pt-8 border-t border-slate-100">
                                         <div className="flex items-center gap-2">
                                             <Calendar className="w-5 h-5 text-teal-600" />
@@ -336,7 +357,9 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                             <div className="flex flex-col gap-4">
                                                 <div className="flex flex-col gap-2">
                                                     <p className="text-sm text-slate-700">
-                                                        Your lawyer has suggested a follow-up consultation:
+                                                        {appointment.followUpStatus === 'booked'
+                                                            ? 'You have successfully booked this follow-up consultation:'
+                                                            : 'Your lawyer has suggested a follow-up consultation:'}
                                                     </p>
                                                     <div className="flex flex-wrap gap-4 mt-2">
                                                         {appointment.followUpType === 'specific' && (
@@ -357,23 +380,38 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                                                 Deadline: {appointment.followUpDate}
                                                             </div>
                                                         )}
+                                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase ${appointment.followUpStatus === 'booked' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                                                            Status: {appointment.followUpStatus}
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <button
-                                                    onClick={() => {
-                                                        const { useRouter } = require('next/navigation');
-                                                        if (appointment.followUpType === 'specific') {
-                                                            window.location.href = `/user/lawyers/${appointment.lawyerId}?date=${appointment.followUpDate}&time=${appointment.followUpTime}&parentBookingId=${appointment.id}`;
-                                                        } else if (appointment.followUpType === 'deadline') {
-                                                            window.location.href = `/user/lawyers/${appointment.lawyerId}?deadline=${appointment.followUpDate}&parentBookingId=${appointment.id}`;
-                                                        }
-                                                    }}
-                                                    className="w-full py-3 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 transition-all shadow-md shadow-teal-100 flex items-center justify-center gap-2"
-                                                >
-                                                    <Calendar size={16} />
-                                                    Book This Follow-up Now
-                                                </button>
+                                                {appointment.followUpStatus === 'pending' && (
+                                                    <div className="flex flex-col sm:flex-row gap-3">
+                                                        <button
+                                                            disabled={isCancellingFollowUp}
+                                                            onClick={handleCancelFollowUp}
+                                                            className="flex-1 py-3 bg-white text-rose-600 border border-rose-200 text-sm font-bold rounded-xl hover:bg-rose-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                                        >
+                                                            {isCancellingFollowUp ? 'Cancelling...' : 'Cancel Follow-up Request'}
+                                                        </button>
+                                                        <button
+                                                            disabled={isCancellingFollowUp}
+                                                            onClick={() => {
+                                                                const { useRouter } = require('next/navigation');
+                                                                if (appointment.followUpType === 'specific') {
+                                                                    window.location.href = `/user/lawyers/${appointment.lawyerId}?date=${appointment.followUpDate}&time=${appointment.followUpTime}&parentBookingId=${appointment.id}`;
+                                                                } else if (appointment.followUpType === 'deadline') {
+                                                                    window.location.href = `/user/lawyers/${appointment.lawyerId}?deadline=${appointment.followUpDate}&parentBookingId=${appointment.id}`;
+                                                                }
+                                                            }}
+                                                            className="flex-[1.5] py-3 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 transition-all shadow-md shadow-teal-100 flex items-center justify-center gap-2 disabled:opacity-50"
+                                                        >
+                                                            <Calendar size={16} />
+                                                            Book This Follow-up Now
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
