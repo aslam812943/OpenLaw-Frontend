@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { getLawyerEarnings, requestPayout, getPayoutHistory } from '@/service/lawyerService';
 import { showToast } from '@/utils/alerts';
 import { DollarSign, TrendingUp, Calendar, User, CheckCircle, XCircle, ArrowLeft, Wallet } from 'lucide-react';
+import Pagination from '@/components/common/Pagination';
 
 interface Transaction {
     bookingId: string;
@@ -21,6 +22,7 @@ interface EarningsData {
     transactions: Transaction[];
     walletBalance: number;
     pendingBalance: number;
+    totalTransactions: number;
 }
 
 interface PayoutRequest {
@@ -33,21 +35,52 @@ interface PayoutRequest {
 const EarningsPage = () => {
     const [earnings, setEarnings] = useState<EarningsData | null>(null);
     const [payoutHistory, setPayoutHistory] = useState<PayoutRequest[]>([]);
+    const [totalPayouts, setTotalPayouts] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [fetchingTransactions, setFetchingTransactions] = useState(false);
+    const [fetchingPayouts, setFetchingPayouts] = useState(false);
     const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
     const [withdrawAmount, setWithdrawAmount] = useState('');
     const [withdrawing, setWithdrawing] = useState(false);
 
-    const fetchData = async () => {
+    const [transactionPage, setTransactionPage] = useState(1);
+    const [payoutPage, setPayoutPage] = useState(1);
+    const limit = 5;
+
+    const fetchEarningsData = async (page: number) => {
+        setFetchingTransactions(true);
         try {
-            const [earningsRes, historyRes] = await Promise.all([
-                getLawyerEarnings(),
-                getPayoutHistory()
-            ]);
-            if (earningsRes?.success) setEarnings(earningsRes.data);
-            if (historyRes?.success) setPayoutHistory(historyRes.data);
+            const res = await getLawyerEarnings(page, limit);
+            if (res?.success) setEarnings(res.data);
         } catch (error) {
-            showToast('error', 'Failed to fetch data');
+            showToast('error', 'Failed to fetch transactions');
+        } finally {
+            setFetchingTransactions(false);
+        }
+    };
+
+    const fetchPayoutData = async (page: number) => {
+        setFetchingPayouts(true);
+        try {
+            const res = await getPayoutHistory(page, limit);
+            if (res?.success) {
+                setPayoutHistory(res.data.withdrawals);
+                setTotalPayouts(res.data.total);
+            }
+        } catch (error) {
+            showToast('error', 'Failed to fetch payout history');
+        } finally {
+            setFetchingPayouts(false);
+        }
+    };
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            await Promise.all([
+                fetchEarningsData(transactionPage),
+                fetchPayoutData(payoutPage)
+            ]);
         } finally {
             setLoading(false);
         }
@@ -56,6 +89,14 @@ const EarningsPage = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (!loading) fetchEarningsData(transactionPage);
+    }, [transactionPage]);
+
+    useEffect(() => {
+        if (!loading) fetchPayoutData(payoutPage);
+    }, [payoutPage]);
 
     const handleWithdraw = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,6 +116,7 @@ const EarningsPage = () => {
             showToast('success', 'Withdrawal request submitted');
             setWithdrawModalOpen(false);
             setWithdrawAmount('');
+            setPayoutPage(1);
             fetchData();
         } catch (error: any) {
             showToast('error', error.message || 'Withdrawal failed');
@@ -169,11 +211,14 @@ const EarningsPage = () => {
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                         {/* Transactions List */}
-                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
-                            <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-0 z-20">
+                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[650px]">
+                            <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-0 z-20 flex justify-between items-center">
                                 <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     Recent Transactions
                                 </h3>
+                                {fetchingTransactions && (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-600 border-t-transparent"></div>
+                                )}
                             </div>
 
                             <div className="flex-1 overflow-auto custom-scrollbar p-2">
@@ -185,36 +230,51 @@ const EarningsPage = () => {
                                         <p className="text-slate-400 font-medium">No transactions yet</p>
                                     </div>
                                 ) : (
-                                    <table className="w-full">
-                                        <thead className="bg-slate-50/50 sticky top-0 z-10">
-                                            <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
-                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Client</th>
-                                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Fee</th>
-                                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Net</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-50">
-                                            {earnings.transactions.map((t) => (
-                                                <tr key={t.bookingId} className="hover:bg-slate-50/80 transition-colors group">
-                                                    <td className="px-6 py-5 text-sm text-slate-500 font-medium">{t.date}</td>
-                                                    <td className="px-6 py-5 text-sm text-slate-900 font-bold">{t.userName}</td>
-                                                    <td className="px-6 py-5 text-right text-sm font-semibold text-slate-500">₹{t.amount}</td>
-                                                    <td className="px-6 py-5 text-right">
-                                                        <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">₹{t.netAmount}</span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                    <div className="flex flex-col h-full">
+                                        <div className="flex-1 overflow-auto">
+                                            <table className="w-full">
+                                                <thead className="bg-slate-50/50 sticky top-0 z-10">
+                                                    <tr>
+                                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Client</th>
+                                                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Fee</th>
+                                                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Net</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {earnings.transactions.map((t) => (
+                                                        <tr key={t.bookingId} className="hover:bg-slate-50/80 transition-colors group">
+                                                            <td className="px-6 py-5 text-sm text-slate-500 font-medium">{t.date}</td>
+                                                            <td className="px-6 py-5 text-sm text-slate-900 font-bold">{t.userName}</td>
+                                                            <td className="px-6 py-5 text-right text-sm font-semibold text-slate-500">₹{t.amount}</td>
+                                                            <td className="px-6 py-5 text-right">
+                                                                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">₹{t.netAmount}</span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="mt-auto border-t border-slate-50 p-4">
+                                            <Pagination
+                                                currentPage={transactionPage}
+                                                totalItems={earnings.totalTransactions}
+                                                limit={limit}
+                                                onPageChange={setTransactionPage}
+                                            />
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Payout History */}
-                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
-                            <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-0 z-20">
+                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[650px]">
+                            <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-0 z-20 flex justify-between items-center">
                                 <h3 className="text-xl font-bold text-slate-900">Payout History</h3>
+                                {fetchingPayouts && (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-600 border-t-transparent"></div>
+                                )}
                             </div>
 
                             <div className="flex-1 overflow-auto custom-scrollbar p-2">
@@ -226,31 +286,43 @@ const EarningsPage = () => {
                                         <p className="text-slate-400 font-medium">No payout requests yet</p>
                                     </div>
                                 ) : (
-                                    <table className="w-full">
-                                        <thead className="bg-slate-50/50 sticky top-0 z-10">
-                                            <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
-                                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-50">
-                                            {payoutHistory.map((p) => (
-                                                <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                                                    <td className="px-6 py-5 text-sm text-slate-500 font-medium">{new Date(p.requestDate).toLocaleDateString()}</td>
-                                                    <td className="px-6 py-5">
-                                                        <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                                                            p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                                                'bg-red-100 text-red-700'
-                                                            }`}>
-                                                            {p.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-5 text-right text-sm font-bold text-slate-900">₹{p.amount}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                    <div className="flex flex-col h-full">
+                                        <div className="flex-1 overflow-auto">
+                                            <table className="w-full">
+                                                <thead className="bg-slate-50/50 sticky top-0 z-10">
+                                                    <tr>
+                                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                                                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {payoutHistory.map((p) => (
+                                                        <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                                                            <td className="px-6 py-5 text-sm text-slate-500 font-medium">{new Date(p.requestDate).toLocaleDateString()}</td>
+                                                            <td className="px-6 py-5">
+                                                                <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                                                                    p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                                        'bg-red-100 text-red-700'
+                                                                    }`}>
+                                                                    {p.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-5 text-right text-sm font-bold text-slate-900">₹{p.amount}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="mt-auto border-t border-slate-50 p-4">
+                                            <Pagination
+                                                currentPage={payoutPage}
+                                                totalItems={totalPayouts}
+                                                limit={limit}
+                                                onPageChange={setPayoutPage}
+                                            />
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>

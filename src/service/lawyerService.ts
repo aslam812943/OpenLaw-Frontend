@@ -136,6 +136,7 @@ export interface Earnings {
   walletBalance: number;
   pendingBalance: number;
   transactions: Transaction[];
+  totalTransactions: number;
 }
 
 export interface PayoutRequest {
@@ -433,8 +434,10 @@ export const getLawyerCases = async (): Promise<CommonResponse<Case[]>> => {
 
 
 
-export const getLawyerEarnings = async (): Promise<CommonResponse<Earnings>> => {
-  return apiClient.get<CommonResponse<Earnings>>(API_ROUTES.LAWYER.GET_EARNINGS);
+export const getLawyerEarnings = async (page: number = 1, limit: number = 5): Promise<CommonResponse<Earnings>> => {
+  return apiClient.get<CommonResponse<Earnings>>(API_ROUTES.LAWYER.GET_EARNINGS, {
+    params: { page, limit }
+  });
 };
 
 
@@ -445,8 +448,10 @@ export const requestPayout = async (amount: number): Promise<CommonResponse<void
 
 
 
-export const getPayoutHistory = async (): Promise<CommonResponse<PayoutRequest[]>> => {
-  return apiClient.get<CommonResponse<PayoutRequest[]>>(API_ROUTES.LAWYER.PAYOUT_HISTORY);
+export const getPayoutHistory = async (page: number = 1, limit: number = 5): Promise<CommonResponse<{ withdrawals: PayoutRequest[], total: number }>> => {
+  return apiClient.get<CommonResponse<{ withdrawals: PayoutRequest[], total: number }>>(API_ROUTES.LAWYER.PAYOUT_HISTORY, {
+    params: { page, limit }
+  });
 };
 
 

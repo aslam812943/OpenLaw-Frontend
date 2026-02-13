@@ -365,7 +365,7 @@ const AllLawyers = () => {
                               <span className="font-medium">{lawyer.yearsOfPractice || 5}+ Years Exp.</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">Min ₹{lawyer.consultationFee || 200} / hr</span>
+                              <span className="font-medium"> ₹{lawyer.consultationFee || 200} / hr</span>
                             </div>
                           </div>
                         </div>

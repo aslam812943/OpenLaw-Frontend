@@ -220,6 +220,21 @@ export const confirmBooking = async (sessionId: string): Promise<CommonResponse<
   return apiClient.post<CommonResponse<BookingDetails>>(API_ROUTES.PAYMENT.CONFIRM, { sessionId });
 }
 
+export const bookWithWallet = async (data: {
+  userId: string | null;
+  lawyerId: string;
+  lawyerName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  consultationFee: number | undefined;
+  description?: string;
+  slotId: string | null;
+  parentBookingId?: string | null;
+}): Promise<CommonResponse<BookingDetails>> => {
+  return apiClient.post<CommonResponse<BookingDetails>>(API_ROUTES.PAYMENT.WALLET_BOOKING, data);
+}
+
 export const getUserAppointments = async (page: number = 1, limit: number = 5, status?: string, search?: string, date?: string): Promise<CommonResponse<{ appointments: Appointment[], total: number }>> => {
   return apiClient.get<CommonResponse<{ appointments: Appointment[], total: number }>>(API_ROUTES.USER.GETAPPOINMENT, {
     params: { page, limit, status, search, date }
