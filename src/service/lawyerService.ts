@@ -339,6 +339,14 @@ export const getAppoiments = async (page: number = 1, limit: number = 10, status
   }
 };
 
+export const getAppointmentById = async (id: string): Promise<CommonResponse<Appointment>> => {
+  try {
+    return await apiClient.get<CommonResponse<Appointment>>(`${API_ROUTES.LAWYER.APPOIMENTS}/${id}`);
+  } catch (err) {
+    return { success: false, message: "Failed to fetch appointment details", data: {} as Appointment };
+  }
+};
+
 
 
 export const updateAppointmentStatus = async (id: string, status: string, feedback?: string): Promise<CommonResponse<void>> => {

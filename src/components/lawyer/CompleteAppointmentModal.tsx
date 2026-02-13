@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, ExternalLink, Image } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getAppoiments, getAppointmentById, updateAppointmentStatus } from "@/service/lawyerService"
 import { getChatRoom, getMessages, Message } from '@/service/chatService'
 import ImageModal from '@/components/ui/ImageModal'
 import FollowUpSelectionModal from './FollowUpSelectionModal'
@@ -30,6 +31,7 @@ interface Appointment {
     followUpDate?: string;
     followUpTime?: string;
     followUpStatus?: 'none' | 'pending' | 'booked';
+    parentBookingId?: string;
 }
 
 
@@ -58,13 +60,34 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
     const [currentImageModal, setCurrentImageModal] = useState<string | null>(null);
     const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
     const [isFollowUpDone, setIsFollowUpDone] = useState(false);
+    const [parentBooking, setParentBooking] = useState<Appointment | null>(null);
+    const [loadingParent, setLoadingParent] = useState(false);
 
     useEffect(() => {
         if (isOpen && appointment?.id) {
             setFeedback(appointment.lawyerFeedback || '');
             fetchCaseHistory();
+            if (appointment.parentBookingId) {
+                fetchParentDetails(appointment.parentBookingId);
+            } else {
+                setParentBooking(null);
+            }
         }
     }, [isOpen, appointment]);
+
+    const fetchParentDetails = async (parentId: string) => {
+        setLoadingParent(true);
+        try {
+            const res = await getAppointmentById(parentId);
+            if (res.success) {
+                setParentBooking(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch parent booking", error);
+        } finally {
+            setLoadingParent(false);
+        }
+    };
 
     const fetchCaseHistory = async () => {
         if (!appointment?.id) return;
@@ -167,6 +190,37 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Previous Session Details */}
+                                {parentBooking && (
+                                    <div className="mb-6 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Calendar className="w-4 h-4 text-indigo-600" />
+                                            <h3 className="text-xs uppercase font-extrabold tracking-widest text-indigo-600">Previous Session Details</h3>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4 text-xs">
+                                            <div>
+                                                <p className="text-slate-500 uppercase font-bold text-[10px]">Booking Id</p>
+                                                <p className="font-bold text-slate-900">{parentBooking.bookingId || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-slate-500 uppercase font-bold text-[10px]">Date & Time</p>
+                                                <p className="font-bold text-slate-900">{parentBooking.date} @ {parentBooking.startTime}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-slate-500 uppercase font-bold text-[10px]">Feedback</p>
+                                                <p className="font-medium text-slate-700 italic truncate" title={parentBooking.lawyerFeedback}>
+                                                    {parentBooking.lawyerFeedback || 'No feedback provided'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {loadingParent && (
+                                    <div className="mb-6 p-4 flex justify-center">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-600"></div>
+                                    </div>
+                                )}
 
                                 {/* Description from Client */}
                                 <div className="mb-8">
@@ -356,8 +410,8 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                     lawyerId={appointment.lawyerId}
                     onSuccess={() => {
                         setIsFollowUpDone(true);
-                        onClose(); // Close the main modal as it's now completed
-                        if (onSuccess) onSuccess(); // Trigger refresh in parent
+                        onClose(); 
+                        if (onSuccess) onSuccess();
                     }}
                     feedback={feedback}
                 />

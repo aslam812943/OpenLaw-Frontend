@@ -173,15 +173,11 @@ const UserAppointmentsPage = () => {
                                             <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                                                 Date & Time
                                             </th>
+
                                             <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                                                Fee
+                                                Booking Status
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                                                Details
-                                            </th>
+
                                             <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">
                                                 Actions
                                             </th>
@@ -222,18 +218,18 @@ const UserAppointmentsPage = () => {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                    {/* <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center gap-1 text-sm font-bold text-emerald-600">
 
                                                             <span>₹{appointment.consultationFee}</span>
                                                         </div>
-                                                    </td>
+                                                    </td> */}
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${statusStyles}`}>
                                                             {appointment.status}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4">
+                                                    {/* <td className="px-6 py-4">
                                                         <div className="max-w-xs">
                                                             {appointment.description && (
                                                                 <div className="flex items-start gap-2 text-xs text-slate-600">
@@ -269,7 +265,7 @@ const UserAppointmentsPage = () => {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    </td>
+                                                    </td> */}
 
                                                     <td className="px-6 py-4 whitespace-nowrap text-right">
                                                         <div className="flex justify-end gap-2">
@@ -350,6 +346,7 @@ const UserAppointmentsPage = () => {
                     onClose={() => setIsDetailsModalOpen(false)}
                     appointment={selectedAppointment}
                     currentUserId={user.id || undefined}
+                    onSuccess={() => fetchAppointments(currentPage)}
                 />
             </div>
         </div>

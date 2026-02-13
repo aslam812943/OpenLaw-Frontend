@@ -235,6 +235,11 @@ export const cancelAppointment = async (id: string, reason: string): Promise<voi
   return response.data;
 };
 
+export const cancelFollowUp = async (id: string): Promise<void> => {
+  const response = await apiClient.patch<CommonResponse<void>>(API_ROUTES.USER.CANCEL_FOLLOW_UP(id));
+  return response.data;
+};
+
 export const addReview = async (reviewData: { userId: string; lawyerId: string; rating: number; comment: string }): Promise<CommonResponse<Review>> => {
   return apiClient.post<CommonResponse<Review>>(API_ROUTES.USER.ADDREVIEW, reviewData);
 };
