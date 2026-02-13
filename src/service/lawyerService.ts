@@ -38,6 +38,7 @@ export interface Lawyer {
   isBlock: boolean;
   paymentVerify?: boolean;
   hasSubmittedVerification?: boolean;
+  isAdminVerified?: boolean;
 }
 
 export interface PaginatedLawyerResponse {
@@ -46,7 +47,7 @@ export interface PaginatedLawyerResponse {
   totalCount?: number;
 }
 
-// Using CommonResponse from userService
+
 
 export interface Specialization {
   id: string;

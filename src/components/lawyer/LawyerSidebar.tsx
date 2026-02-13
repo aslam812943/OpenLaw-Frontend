@@ -14,7 +14,8 @@ import {
   LogOut,
   ChevronRight,
   Star,
-  Zap
+  Zap,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from "next/navigation";
@@ -90,7 +91,7 @@ const Sidebar: React.FC = () => {
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/lawyer/chat' },
     { icon: <Star size={20} />, label: 'Reviews', path: '/lawyer/reviews' },
     { icon: <Zap size={20} />, label: 'Subscriptions', path: '/lawyer/subscriptions' },
-
+    { icon: <ShieldCheck size={20} />, label: 'Visibility', path: '/lawyer/visibility' },
     { icon: <DollarSign size={20} />, label: 'Earnings', path: '/lawyer/earnings' },
 
   ];
