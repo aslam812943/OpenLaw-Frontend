@@ -19,7 +19,7 @@ apiInstance.interceptors.response.use(
         return response.data;
     },
     (error) => {
-        const message = error.response?.data?.message || "An unexpected error occurred.";
+        const message = error.response?.data?.message || error.response?.statusText || "An unexpected error occurred.";
 
         if (error.response?.status === 401 || message === "No token provided.") {
             store.dispatch(clearUserData());
