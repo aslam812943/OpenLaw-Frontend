@@ -249,11 +249,11 @@ export default function LawyerDashboard() {
               <p className="text-slate-300 mb-6">
                 Explore indepth reports of your earnings and download tax-ready statements.
               </p>
-
+{/* 
               <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition-colors duration-200 group/btn">
                 Go to Earnings
                 <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-200" />
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -273,10 +273,10 @@ export default function LawyerDashboard() {
                   : " Focus on completing sessions to boost your profile visibility."}
               </p>
 
-              <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-colors duration-200 group/btn">
+              {/* <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-colors duration-200 group/btn">
                 View Appointment Analytics
                 <ArrowUpRight className="w-5 h-5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform duration-200" />
-              </button>
+              </button> */}
             </div>
           </div>
         </motion.div>

@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { checkChatAccess, getChatRoom } from "@/service/chatService";
 import { showToast } from "@/utils/alerts";
 import { getSingleLawyer, getallslots, Lawyer, Slot } from "@/service/lawyerService";
-import { handlepayAndBook, addReview, allReview, Review } from "@/service/userService";
+import { handlepayAndBook, addReview, allReview, Review, getWallet, bookWithWallet } from "@/service/userService";
 
 export default function LawyersSinglePage() {
   const { id } = useParams();
@@ -33,6 +33,9 @@ export default function LawyersSinglePage() {
   const [consultationFee, setConsultationFee] = useState<number | undefined>(0);
   const [description, setDescription] = useState("");
   const [hasChatAccess, setHasChatAccess] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'wallet'>('online');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Review State
   const [rating, setRating] = useState(0);
@@ -75,9 +78,21 @@ export default function LawyersSinglePage() {
       }
     }
 
+    async function fetchWalletBalance() {
+      try {
+        const response = await getWallet(1, 1);
+        if (response.success) {
+          setWalletBalance(response.data.balance);
+        }
+      } catch (error) {
+        console.error("Failed to fetch wallet balance", error);
+      }
+    }
+
     if (id) {
       fetchLawyer();
       fetchChatAccess();
+      fetchWalletBalance();
     }
   }, [id]);
 
@@ -88,7 +103,7 @@ export default function LawyersSinglePage() {
     const parentIdParam = searchParams.get('parentBookingId');
 
     if (dateParam) setSelectedDate(dateParam);
-    if (timeParam) setSelectedTime({ start: timeParam, end: '' }); 
+    if (timeParam) setSelectedTime({ start: timeParam, end: '' });
     if ((dateParam && timeParam) || deadlineParam) {
       setBookingMode(true);
       fetchslots();
@@ -202,8 +217,53 @@ export default function LawyersSinglePage() {
       } else {
         showToast("error", "Failed to initiate payment. Please try again.");
       }
-    } catch (error) {
-      showToast("error", "Payment failed. Please try again.");
+    } catch (error: any) {
+      showToast("error", error.response?.data?.message || error.message || "Payment failed. Please try again.");
+    }
+  };
+
+  const handleWalletPayment = async () => {
+    if (!selectedDate || !selectedTime || !lawyer) return;
+
+    if (!description.trim()) {
+      showToast("error", "Please enter your consultation concern in the notes.");
+      return;
+    }
+
+    if (walletBalance < (consultationFee || 0)) {
+      showToast("error", "Insufficient wallet balance.");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const obj = {
+      userId: user.id || null,
+      lawyerId: lawyer.id,
+      lawyerName: lawyer.name,
+      date: selectedDate,
+      startTime: selectedTime.start,
+      endTime: selectedTime.end,
+      consultationFee: consultationFee,
+      description,
+      slotId: selectedSlotId || null, 
+      parentBookingId: searchParams.get('parentBookingId')
+    };
+
+    try {
+      const response = await bookWithWallet(obj);
+      if (response.success) {
+        showToast("success", "Appointment booked successfully using wallet!");
+        setBookingSlot(false);
+        setBookingMode(false);
+        router.push("/user/appointments");
+      } else {
+        showToast("error", response.message || "Failed to book with wallet.");
+      }
+    } catch (error: any) {
+      showToast("error", error.response?.data?.message || error.message || "Wallet booking failed.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -366,7 +426,7 @@ export default function LawyersSinglePage() {
                     <MapPin size={14} className="text-teal-400" />
                     <span>{lawyer.city}, {lawyer.state}</span>
                   </div>
-                  <a href={`mailto:${lawyer.email}`} className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm hover:bg-slate-800 transition-colors">
+                  <a  className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm hover:bg-slate-800 transition-colors">
                     <Mail size={14} className="text-teal-400" />
                     <span>{lawyer.email}</span>
                   </a>
@@ -561,12 +621,11 @@ export default function LawyersSinglePage() {
                   <div>
                     <p className="text-sm text-slate-500 font-medium uppercase tracking-wide">Consultation Fee</p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-slate-900">Min ₹{lawyer.consultationFee || 2000}</span>
+                      <span className="text-3xl font-bold text-slate-900"> ₹{lawyer.consultationFee || 2000}</span>
                       <span className="text-sm text-slate-400">/ hr</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center">
-                    <DollarSign className="text-teal-600" />
                   </div>
                 </div>
 
@@ -811,6 +870,38 @@ export default function LawyersSinglePage() {
                 </div>
               </div>
 
+              {/* Payment Method Selection */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-700">Select Payment Method</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setPaymentMethod('online')}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'online'
+                      ? 'border-teal-500 bg-teal-50 text-teal-700'
+                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
+                      }`}
+                  >
+                    <ExternalLink size={20} className="mb-1" />
+                    <span className="text-xs font-bold uppercase">Online Payment</span>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('wallet')}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'wallet'
+                      ? 'border-teal-500 bg-teal-50 text-teal-700'
+                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
+                      }`}
+                  >
+                   
+                    <span className="text-xs font-bold uppercase">Wallet (₹{walletBalance})</span>
+                  </button>
+                </div>
+                {paymentMethod === 'wallet' && walletBalance < (consultationFee || 0) && (
+                  <p className="text-red-500 text-[10px] font-medium animate-pulse">
+                    Insufficient balance. Please choose online payment.
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes</label>
                 <textarea
@@ -822,16 +913,26 @@ export default function LawyersSinglePage() {
               </div>
 
               <button
-                onClick={HandlePayment}
-                className="w-full py-3.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200"
+                onClick={paymentMethod === 'online' ? HandlePayment : handleWalletPayment}
+                disabled={isProcessing || (paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))}
+                className={`w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-lg ${isProcessing || (paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))
+                  ? 'bg-slate-400 cursor-not-allowed'
+                  : 'bg-teal-600 hover:bg-teal-700 shadow-teal-200'
+                  }`}
               >
-                Pay Securely & Book
+                {isProcessing ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  paymentMethod === 'online' ? "Pay Securely & Book" : "Confirm Wallet Payment"
+                )}
               </button>
             </div>
           </motion.div>
         </div>
       )}
-
     </div>
   );
 }

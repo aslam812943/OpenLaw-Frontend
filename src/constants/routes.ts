@@ -49,7 +49,8 @@ export const API_ROUTES = {
 
   PAYMENT: {
     PAYMENT: `/api/booking/create-checkout-session`,
-    CONFIRM: `/api/booking/confirm`
+    CONFIRM: `/api/booking/confirm`,
+    WALLET_BOOKING: `/api/booking/wallet-booking`
   },
 
   LAWYER: {
