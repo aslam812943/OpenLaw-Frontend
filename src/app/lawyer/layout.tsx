@@ -46,6 +46,7 @@ export default function LawyerLayout({ children }: { children: React.ReactNode }
     const isWhiteListedPage =
         pathname === '/lawyer/verification' ||
         pathname === '/lawyer/profile' ||
+        pathname === '/lawyer/visibility' ||
         pathname.startsWith('/lawyer/subscription/success');
 
     if (pathname === '/lawyer/verification') {
