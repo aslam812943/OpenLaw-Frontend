@@ -63,7 +63,7 @@ const UserHeader: React.FC = () => {
             {[
               { label: "Find Lawyers", href: "/user/lawyers" },
               { label: "About", href: "/about" },
-              { label: "Contact", href: "/contact" }
+              // { label: "Contact", href: "/contact" }
             ].map((link) => (
               <Link
                 key={link.label}

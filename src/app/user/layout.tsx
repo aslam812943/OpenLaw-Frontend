@@ -4,7 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import UserSidebar from '@/components/user/UserSidebar';
 import UserHeader from '@/components/user/userHeader'
-
+ 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
 
