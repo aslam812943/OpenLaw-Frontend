@@ -193,12 +193,12 @@ const AboutPage = () => {
                                 Join thousands of satisfied clients who have found expert legal advice through our platform. No commitment required.
                             </p>
                             <div className="flex flex-wrap justify-center gap-6">
-                                <Link
+                                {/* <Link
                                     href="/login"
                                     className="bg-white text-teal-600 px-10 py-4 rounded-2xl font-black hover:bg-slate-50 transition-all shadow-xl shadow-black/10 active:scale-95"
                                 >
                                     Create Account
-                                </Link>
+                                </Link> */}
                                 <Link
                                     href="/user/lawyers"
                                     className="bg-teal-700 text-white px-10 py-4 rounded-2xl font-black hover:bg-teal-800 transition-all border border-white/20 active:scale-95"
