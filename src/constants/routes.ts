@@ -44,7 +44,8 @@ export const API_ROUTES = {
     CANCEL_FOLLOW_UP: (id: string) => `/api/booking/appointments/${id}/cancel-follow-up`,
     GETAPPOINMENT: '/api/booking/appointments',
     SPECIALIZATIONS: '/api/user/specializations',
-    GETWALLET: `/api/user/wallet`
+    GETWALLET: `/api/user/wallet`,
+    REFRESH_TOKEN_URL : "/user/refresh"
   },
 
   PAYMENT: {
