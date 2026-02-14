@@ -85,10 +85,10 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     if (!isEditing || isSaving) return;
 
-    if (formData.name.trim().length < 3) return showToast("error", "Name must be at least 3 characters");
+    if (formData.name.trim().length < 2) return showToast("error", "Name must be at least 2 characters");
     if (!/^\d{10}$/.test(formData.phone)) return showToast("error", "Phone number must be exactly 10 digits");
     if (formData.address.trim().length < 6) return showToast("error", "Address must be at least 6 characters");
-    if (formData.city.trim().length < 3) return showToast("error", "City must be at least 3 characters");
+    if (formData.city.trim().length < 2) return showToast("error", "City must be at least 2 characters");
     if (!/^\d{6}$/.test(formData.pincode)) return showToast("error", "Pincode must be exactly 6 digits");
 
     setIsSaving(true);

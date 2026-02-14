@@ -143,24 +143,24 @@ export default function GetProfile() {
     }
 
     const validateForm = () => {
-        if (formData.name.trim().length <= 3) {
-            showToast("error", "Name must be greater than 3 characters")
+        if (formData.name.trim().length <= 2) {
+            showToast("error", "Name must be greater than 2 characters")
             return false
         }
         if (formData.phone.toString().length !== 10) {
             showToast("error", "Phone number must be exactly 10 digits")
             return false
         }
-        if (formData.street.trim().length < 4) {
-            showToast("error", "Street address must be at least 4 characters")
+        if (formData.street.trim().length < 2) {
+            showToast("error", "Street address must be at least 2 characters")
             return false
         }
-        if (formData.city.trim().length < 4) {
-            showToast("error", "City must be at least 4 characters")
+        if (formData.city.trim().length < 2) {
+            showToast("error", "City must be at least 2 characters")
             return false
         }
-        if (formData.state.trim().length < 4) {
-            showToast("error", "State must be at least 4 characters")
+        if (formData.state.trim().length < 2) {
+            showToast("error", "State must be at least 2 characters")
             return false
         }
         if (formData.pincode.length < 4) {

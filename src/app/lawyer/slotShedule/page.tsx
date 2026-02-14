@@ -118,13 +118,35 @@ export default function App() {
     return '';
   };
 
-  const validateStartTime = (value: string) => {
-    if (!value) return 'Start time is required';
+  const validateStartTime = (startTime: string, endTime: string, slotDuration: string) => {
+    if (!startTime) return 'Start time is required';
+    if (endTime) {
+      const startMins = getMinutes(startTime);
+      const endMins = getMinutes(endTime);
+      if (endMins <= startMins) return 'Start time must be before end time';
+
+      const rangeMins = endMins - startMins;
+      const slotMins = Number(slotDuration);
+      if (slotMins && rangeMins < slotMins) {
+        return `Time range (${rangeMins} mins) is shorter than slot duration (${slotMins} mins)`;
+      }
+    }
     return '';
   };
 
-  const validateEndTime = (value: string) => {
-    if (!value) return 'End time is required';
+  const validateEndTime = (endTime: string, startTime: string, slotDuration: string) => {
+    if (!endTime) return 'End time is required';
+    if (startTime) {
+      const startMins = getMinutes(startTime);
+      const endMins = getMinutes(endTime);
+      if (endMins <= startMins) return 'End time must be after start time';
+
+      const rangeMins = endMins - startMins;
+      const slotMins = Number(slotDuration);
+      if (slotMins && rangeMins < slotMins) {
+        return `Time range (${rangeMins} mins) is shorter than slot duration (${slotMins} mins)`;
+      }
+    }
     return '';
   };
 
@@ -169,11 +191,19 @@ export default function App() {
     return '';
   };
 
-  const validateSlotDuration = (value: string) => {
-    if (!value) return 'Slot duration is required';
-    const slotNum = Number(value);
+  const validateSlotDuration = (slotDuration: string, startTime: string, endTime: string) => {
+    if (!slotDuration) return 'Slot duration is required';
+    const slotNum = Number(slotDuration);
     if (isNaN(slotNum) || slotNum < 30 || slotNum > 120) {
       return 'Slot duration must be between 30 and 120 minutes';
+    }
+    if (startTime && endTime) {
+      const startMins = getMinutes(startTime);
+      const endMins = getMinutes(endTime);
+      const rangeMins = endMins - startMins;
+      if (rangeMins > 0 && slotNum > rangeMins) {
+        return `Slot duration (${slotNum} mins) exceeds time range (${rangeMins} mins)`;
+      }
     }
     return '';
   };
@@ -220,6 +250,11 @@ export default function App() {
     setFormData(prev => ({ ...prev, exceptionDays: prev.exceptionDays.filter(d => d !== date) }));
   };
 
+  const getMinutes = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
   function validateAll() {
     const e: Record<string, string> = {};
 
@@ -228,6 +263,22 @@ export default function App() {
     }
     if (!formData.startTime) e.startTime = 'Start time is required';
     if (!formData.endTime) e.endTime = 'End time is required';
+
+    if (formData.startTime && formData.endTime) {
+      const startMins = getMinutes(formData.startTime);
+      const endMins = getMinutes(formData.endTime);
+
+      if (endMins <= startMins) {
+        e.endTime = 'End time must be after start time';
+      } else {
+        const rangeDuration = endMins - startMins;
+        const selectedSlotDuration = Number(formData.slotDuration);
+        if (selectedSlotDuration && rangeDuration < selectedSlotDuration) {
+          e.endTime = `Time range (${rangeDuration} mins) is shorter than slot duration (${selectedSlotDuration} mins)`;
+        }
+      }
+    }
+
     if (!formData.startDate) e.startDate = 'Start date is required';
     if (!formData.endDate) e.endDate = 'End date is required';
     if (!formData.availableDays || formData.availableDays.length === 0) {
@@ -250,16 +301,6 @@ export default function App() {
     if (start && end && +end < +start) {
       e.endDate = 'End date must be same or after start date';
     }
-
-    // if (start && end) {
-    //   const daysDiff = daysBetween(start, end) + 1;
-    //   if (daysDiff > 31) {
-    //     e.endDate = 'Rule duration may not exceed 31 days';
-    //   }
-    //   if (!isSameOrNextMonthAllowed(start, end)) {
-    //     e.endDate = 'End date must be in same month or same day of next month ';
-    //   }
-    // }
 
     const bufferNum = Number(formData.bufferTime);
     if (isNaN(bufferNum) || bufferNum < 5 || bufferNum > 60) {
@@ -482,8 +523,13 @@ export default function App() {
                         onChange={(e) => {
                           const value = e.target.value;
                           setFormData({ ...formData, startTime: value });
-                          const error = validateStartTime(value);
+                          const error = validateStartTime(value, formData.endTime, formData.slotDuration);
                           setErrors((prev) => ({ ...prev, startTime: error }));
+
+                          if (formData.endTime) {
+                            const endError = validateEndTime(formData.endTime, value, formData.slotDuration);
+                            setErrors((prev) => ({ ...prev, endTime: endError }));
+                          }
                         }}
                         className={`w-full px-3 py-2 border ${errors.startTime ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
@@ -501,8 +547,14 @@ export default function App() {
                         onChange={(e) => {
                           const value = e.target.value;
                           setFormData({ ...formData, endTime: value });
-                          const error = validateEndTime(value);
+                          const error = validateEndTime(value, formData.startTime, formData.slotDuration);
                           setErrors((prev) => ({ ...prev, endTime: error }));
+
+                       
+                          if (formData.startTime) {
+                            const startError = validateStartTime(formData.startTime, value, formData.slotDuration);
+                            setErrors((prev) => ({ ...prev, startTime: startError }));
+                          }
                         }}
                         className={`w-full px-3 py-2 border ${errors.endTime ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
@@ -605,8 +657,13 @@ export default function App() {
                         onChange={(e) => {
                           const value = e.target.value;
                           setFormData({ ...formData, slotDuration: value });
-                          const error = validateSlotDuration(value);
+                          const error = validateSlotDuration(value, formData.startTime, formData.endTime);
                           setErrors(prev => ({ ...prev, slotDuration: error }));
+
+                          if (formData.endTime) {
+                            const endError = validateEndTime(formData.endTime, formData.startTime, value);
+                            setErrors(prev => ({ ...prev, endTime: endError }));
+                          }
                         }}
                         placeholder="e.g., 60"
                         className={`w-full px-3 py-2 border ${errors.slotDuration ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -619,10 +676,11 @@ export default function App() {
 
                   <div className="grid grid-cols-2 gap-4 items-end">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label hidden className="block text-sm font-medium text-gray-700 mb-1">
                         Max Bookings
                       </label>
                       <input
+                      hidden
                         type="number"
                         value={formData.maxBookings}
                         readOnly
@@ -635,10 +693,11 @@ export default function App() {
 
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label hidden className="block text-sm font-medium text-gray-700 mb-1">
                         Session Type
                       </label>
                       <input
+                      hidden
                         type="text"
                         value={formData.sessionType}
                         readOnly
@@ -753,14 +812,14 @@ export default function App() {
                       <span className="text-gray-600">Slot Duration:</span>
                       <span className="ml-2 text-gray-900 font-medium">{rule.slotDuration} min</span>
                     </div>
-                    <div>
+                    {/* <div>
                       <span className="text-gray-600">Max Bookings:</span>
                       <span className="ml-2 text-gray-900 font-medium">{rule.maxBookings}</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Session Type:</span>
                       <span className="ml-2 text-gray-900 font-medium">{rule.sessionType}</span>
-                    </div>
+                    </div> */}
                     {rule.exceptionDays && rule.exceptionDays.length > 0 && (
                       <div className="col-span-2">
                         <span className="text-gray-600">Exception Days:</span>

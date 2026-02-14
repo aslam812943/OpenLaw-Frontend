@@ -94,7 +94,6 @@ const LawyerSignup = () => {
           setPracticeOptions(options);
         }
       } catch (error: unknown) {
-        console.error("Failed to fetch specializations", error);
         showToast("error", "Failed to load practice areas");
       }
     };

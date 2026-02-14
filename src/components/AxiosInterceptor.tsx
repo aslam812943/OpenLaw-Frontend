@@ -55,5 +55,5 @@ export default function AxiosInterceptor() {
         };
     }, [dispatch, router, user.id, lawyer.id]);
 
-    return null;
+    return null;    
 }
