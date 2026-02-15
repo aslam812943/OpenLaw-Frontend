@@ -20,34 +20,36 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const accessToken = request.cookies.get('accessToken')?.value;
+  const refreshToken = request.cookies.get('refreshToken')?.value;
   const role = accessToken ? getRoleFromToken(accessToken) : null;
 
 
+  const isRecoverable = !accessToken && !!refreshToken;
+
   const authRoutes = ['/login', '/sign-up', '/forgotPassword'];
 
-  
+
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-    if (!accessToken) return NextResponse.redirect(new URL('/admin/login', request.url));
+    if (!accessToken && !isRecoverable) return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 
 
   if (pathname.startsWith('/lawyer') && !pathname.startsWith('/lawyers')) {
-    if (!accessToken || role !== 'lawyer') return NextResponse.redirect(new URL('/login', request.url));
+    if ((!accessToken || role !== 'lawyer') && !isRecoverable) return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  
+
   if (pathname.startsWith('/user')) {
-    if (!accessToken || role !== 'user') return NextResponse.redirect(new URL('/login', request.url));
+    if ((!accessToken || role !== 'user') && !isRecoverable) return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  
+
   if (pathname.startsWith('/video-call')) {
-    if (!accessToken) return NextResponse.redirect(new URL('/login', request.url));
+    if (!accessToken && !isRecoverable) return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  
+
   if (authRoutes.includes(pathname)) {
-    // if (accessToken) return NextResponse.redirect(new URL('/admin/dashboard', request.url));
 
     if (accessToken && role === 'lawyer') {
       return NextResponse.redirect(new URL('/lawyer/dashboard', request.url));

@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { BASE_URL,  API_ROUTES } from "../constants/routes";
+import { BASE_URL, API_ROUTES } from "../constants/routes";
 import { store } from "@/redux/store";
 import { clearUserData } from "@/redux/userSlice";
 import { clearLawyerData } from "@/redux/lawyerSlice";
@@ -72,13 +72,6 @@ apiInstance.interceptors.response.use(
             } finally {
                 isRefreshing = false;
             }
-        }
-
-        // Handle other auth-related errors
-        if (error.response?.status === 401 || message === "No token provided.") {
-            store.dispatch(clearUserData());
-            store.dispatch(clearLawyerData());
-            localStorage.removeItem("userData");
         }
 
         const finalMessage = typeof message === 'string' ? message : "An unexpected error occurred.";

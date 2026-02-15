@@ -41,7 +41,7 @@ const AboutPage = () => {
 
     return (
         <div className="min-h-screen bg-white">
-             <UserHeader />
+            <UserHeader />
             {/* Hero Section */}
             <section className="relative pt-20 pb-32 overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden">
@@ -132,13 +132,20 @@ const AboutPage = () => {
                             className="relative"
                         >
                             <div className="aspect-[4/5] bg-slate-100 rounded-[3rem] overflow-hidden shadow-2xl relative">
+                                <img
+                                    src="/lawboy10.jpg"
+                                    alt="Sarah Jenkins - Founder & CEO"
+                                    className="w-full h-full object-cover"
+                                />
                                 <div className="absolute inset-0 bg-gradient-to-tr from-teal-600/20 to-transparent"></div>
                                 <div className="absolute inset-x-8 bottom-8 p-8 bg-white/90 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl">
                                     <p className="text-slate-900 font-bold italic text-lg mb-4">
                                         "OpenLaw isn't just a platform; it's a movement towards a more equitable legal future."
                                     </p>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-teal-600"></div>
+                                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-teal-600">
+                                            <img src="/founder.png" alt="Sarah Jenkins" className="w-full h-full object-cover" />
+                                        </div>
                                         <div>
                                             <p className="text-sm font-black text-slate-900">Sarah Jenkins</p>
                                             <p className="text-[10px] text-teal-600 font-black uppercase tracking-widest">Founder & CEO</p>

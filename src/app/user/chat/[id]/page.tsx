@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useSocket } from '@/context/SocketContext';
 import { getMessages, getRoomById, uploadFile, getUserRooms, getLawyerSpecificRooms, Message, ChatRoomDetails } from '@/service/chatService';
-import { Send, Menu, MoreVertical, User, Paperclip, FileIcon, ChevronLeft, Search, Dot } from 'lucide-react';
+import { Send, Menu, MoreVertical, User, Paperclip, FileIcon, ChevronLeft, Search, Dot, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/components/ui/ImageModal';
 import { showToast } from '@/utils/alerts';
@@ -331,7 +331,11 @@ export default function UserChatPage() {
                             <div className="flex flex-col gap-0.5">
                                 {room.lastMessage ? (
                                     <p className="text-xs text-slate-500 truncate">
-                                        {room.lastMessage.content}
+                                        {room.lastMessage.type === 'image' || (typeof room.lastMessage.content === 'string' && room.lastMessage.content.startsWith('https://res.cloudinary.com') && (room.lastMessage.content.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(room.lastMessage.content))) ? (
+                                            <span className="flex items-center gap-1.5 text-teal-600 font-semibold italic">
+                                                <ImageIcon size={12} /> Image
+                                            </span>
+                                        ) : room.lastMessage.content}
                                     </p>
                                 ) : (
                                     <p className="text-xs text-slate-400 truncate">Online Consultation</p>
@@ -467,15 +471,12 @@ export default function UserChatPage() {
                                             : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none'
                                             }`}>
                                             {msg.type === 'image' || isImageUrl(msg.content) ? (
-                                                <div className="space-y-2">
-                                                    <img
-                                                        src={msg.content}
-                                                        alt="Shared content"
-                                                        className="max-w-full rounded-xl max-h-[400px] object-cover cursor-zoom-in hover:brightness-105 transition-all"
-                                                        onClick={() => setSelectedImage(msg.content)}
-                                                    />
-                                                    {msg.fileName && <p className="text-xs opacity-80 font-medium truncate">{msg.fileName}</p>}
-                                                </div>
+                                                <img
+                                                    src={msg.content}
+                                                    alt="Shared content"
+                                                    className="max-w-full rounded-xl max-h-[400px] object-cover cursor-zoom-in hover:brightness-105 transition-all"
+                                                    onClick={() => setSelectedImage(msg.content)}
+                                                />
                                             ) : msg.type === 'document' ? (
                                                 <a
                                                     href={msg.content}

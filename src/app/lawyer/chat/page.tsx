@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getLawyerRooms } from '@/service/chatService';
-import { MessageSquare, Clock, ArrowRight, User } from 'lucide-react';
+import { MessageSquare, Clock, ArrowRight, User, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showToast } from '@/utils/alerts';
 import { useSocket } from '@/context/SocketContext';
@@ -128,11 +128,17 @@ export default function LawyerChatListPage() {
                                     </h3>
                                     <div className="flex flex-col">
                                         <span>
-                                            {room.lastMessage ? room.lastMessage.content :
+                                            {room.lastMessage ? (
+                                                room.lastMessage.type === 'image' || (typeof room.lastMessage.content === 'string' && room.lastMessage.content.startsWith('https://res.cloudinary.com') && (room.lastMessage.content.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(room.lastMessage.content))) ? (
+                                                    <span className="flex items-center gap-1.5 text-teal-600 font-semibold italic">
+                                                        <ImageIcon size={14} /> Image
+                                                    </span>
+                                                ) : room.lastMessage.content
+                                            ) : (
                                                 <span className="flex items-center gap-1">
                                                     <Clock size={14} /> Created {new Date(room.createdAt).toLocaleDateString()}
                                                 </span>
-                                            }
+                                            )}
                                         </span>
                                         {room.lastMessage && (
                                             <span className="text-[10px] text-slate-400 mt-0.5">
