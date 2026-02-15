@@ -147,6 +147,10 @@ export default function GetProfile() {
             showToast("error", "Name must be greater than 2 characters")
             return false
         }
+        if (!/^[a-zA-Z]/.test(formData.name.trim())) {
+            showToast("error", "Name must start with a letter")
+            return false
+        }
         if (formData.phone.toString().length !== 10) {
             showToast("error", "Phone number must be exactly 10 digits")
             return false

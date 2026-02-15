@@ -61,14 +61,14 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Global Search (Added for style) */}
         <div className="hidden md:flex items-center flex-1 max-w-md mx-10">
-          <div className="relative w-full group">
+          {/* <div className="relative w-full group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
             <input
               type="text"
               placeholder="Quick search Cases, Clients..."
               className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/10 focus:bg-white focus:border-teal-500/20 transition-all font-medium text-slate-700"
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Right Side */}

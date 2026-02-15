@@ -43,6 +43,7 @@ export interface ChatRoomDetails {
     lastMessage?: {
         content: string;
         createdAt: string;
+        type?: string;
     };
     bookingDetails?: {
         bookingId: string;

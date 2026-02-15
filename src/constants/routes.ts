@@ -45,7 +45,7 @@ export const API_ROUTES = {
     GETAPPOINMENT: '/api/booking/appointments',
     SPECIALIZATIONS: '/api/user/specializations',
     GETWALLET: `/api/user/wallet`,
-    REFRESH_TOKEN_URL : "/user/refresh"
+    REFRESH_TOKEN_URL: "/api/user/refresh"
   },
 
   PAYMENT: {

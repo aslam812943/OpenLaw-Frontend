@@ -10,7 +10,7 @@ import { Mail, Lock, User, Phone, ArrowRight, Users, Gavel } from 'lucide-react'
 // Validation Helpers
 const validateEmail = (email: string): boolean => /\S+@\S+\.\S+/.test(email);
 const validatePassword = (password: string): boolean => password.length >= 6;
-const validateName = (name: string): boolean => name.trim().length > 0;
+const validateName = (name: string): boolean => /^[a-zA-Z]/.test(name.trim());
 const validatePhone = (phone: string): boolean => /^\d{10}$/.test(phone);
 
 const RegisterForm = () => {
@@ -31,7 +31,7 @@ const RegisterForm = () => {
         setRegisterForm(prev => ({ ...prev, [name]: value }));
 
         let error = '';
-        if (name === 'name' && !validateName(value)) error = 'Name is required';
+        if (name === 'name' && !validateName(value)) error = 'Name must start with a letter';
         if (name === 'email' && !validateEmail(value)) error = 'Enter a valid email address';
         if (name === 'phone' && !validatePhone(value)) error = 'Enter a valid 10-digit phone number';
         if (name === 'password') {
@@ -54,7 +54,7 @@ const RegisterForm = () => {
     const onRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const nameError = !validateName(registerForm.name) ? 'Name is required' : '';
+        const nameError = !validateName(registerForm.name) ? 'Name must start with a letter' : '';
         const emailError = !validateEmail(registerForm.email) ? 'Enter a valid email address' : '';
         const phoneError = !validatePhone(registerForm.phone) ? 'Enter a valid 10-digit phone number' : '';
         const passwordError = !validatePassword(registerForm.password) ? 'Password must be at least 6 characters' : '';
