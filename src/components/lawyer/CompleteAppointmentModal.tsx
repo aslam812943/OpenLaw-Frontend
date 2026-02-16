@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, ExternalLink, Image } from 'lucide-react'
+import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, ExternalLink, Image, Video, Play } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getAppoiments, getAppointmentById, updateAppointmentStatus } from "@/service/lawyerService"
 import { getChatRoom, getMessages, Message } from '@/service/chatService'
@@ -10,6 +10,7 @@ import FollowUpSelectionModal from './FollowUpSelectionModal'
 
 const isImageUrl = (url: string): boolean => {
     if (!url) return false;
+    if (/\.pdf$/i.test(url)) return false;
     return url.includes('cloudinary.com') &&
         (url.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url));
 };
@@ -112,6 +113,7 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
     const documents = messages.filter(m =>
         m.type === 'document' ||
         m.type === 'image' ||
+        m.type === 'video' ||
         m.type === 'file' ||
         isImageUrl(m.content)
     );
@@ -257,6 +259,15 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                                                     >
                                                         {doc.type === 'image' || isImageUrl(doc.content) ? (
                                                             <img src={doc.content || doc.fileUrl} alt={doc.fileName} className="w-full h-full object-cover" />
+                                                        ) : doc.type === 'video' ? (
+                                                            <div className="relative w-full h-full flex items-center justify-center bg-slate-900 scale-110">
+                                                                <Video className="w-3 h-3 text-white/30" />
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                                        <Play size={6} className="text-white fill-white ml-0.5" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         ) : (
                                                             <FileText className="w-4 h-4 text-slate-400" />
                                                         )}

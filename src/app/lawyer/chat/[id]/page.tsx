@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useSocket } from '@/context/SocketContext';
-import { Send, ArrowLeft, MoreVertical, User, FileIcon, Paperclip, Search, Dot, ChevronLeft, Image as ImageIcon } from 'lucide-react';
+import { Send, ArrowLeft, MoreVertical, User, FileIcon, Paperclip, Search, Dot, ChevronLeft, Image as ImageIcon, Video, FileText } from 'lucide-react';
 import { getMessages, getRoomById, uploadFile, getLawyerSpecificRooms, ChatRoomDetails } from '@/service/chatService';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/components/ui/ImageModal';
@@ -14,6 +14,7 @@ import VideoCallButton from '@/components/chat/VideoCallButton';
 
 const isImageUrl = (url: string): boolean => {
     if (!url) return false;
+    if (/\.pdf$/i.test(url)) return false;
     return url.includes('cloudinary.com') &&
         (url.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url));
 };
@@ -469,6 +470,20 @@ export default function LawyerChatRoomPage() {
                                                         {msg.fileSize && <p className="text-[10px] opacity-70 font-bold uppercase">{(Number(msg.fileSize) / 1024).toFixed(1)} KB</p>}
                                                     </div>
                                                 </a>
+                                            ) : msg.type === 'video' ? (
+                                                <div className="flex flex-col gap-2">
+                                                    <video
+                                                        src={msg.content}
+                                                        controls
+                                                        className="max-w-[300px] w-full rounded-xl max-h-[400px] bg-black shadow-inner"
+                                                    />
+                                                    {msg.fileName && (
+                                                        <div className="flex items-center gap-2 px-1">
+                                                            <Video size={12} className={isOwn ? 'text-white/70' : 'text-slate-400'} />
+                                                            <p className="text-[10px] font-medium truncate opacity-80">{msg.fileName}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             ) : (
                                                 <p className="text-[15px] leading-relaxed break-words font-medium">{msg.content}</p>
                                             )}
@@ -499,7 +514,7 @@ export default function LawyerChatRoomPage() {
                             ref={fileInputRef}
                             className="hidden"
                             onChange={handleFileSelect}
-                            accept="image/*,.pdf,.doc,.docx"
+                            accept="image/*,video/*,.pdf,.doc,.docx,.txt"
                         />
                         <button
                             type="button"
