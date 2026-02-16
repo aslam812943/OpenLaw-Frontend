@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, AlertCircle, Hash, Image, Download, ExternalLink } from 'lucide-react'
+import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, AlertCircle, Hash, Image, Download, ExternalLink, Video, Play } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getChatRoom, getMessages, Message } from '@/service/chatService'
 import { cancelFollowUp } from '@/service/userService'
@@ -40,6 +40,7 @@ interface BookingDetailsModalProps {
 
 const isImageUrl = (url: string): boolean => {
     if (!url) return false;
+    if (/\.pdf$/i.test(url)) return false;
     return url.includes('cloudinary.com') &&
         (url.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url));
 };
@@ -114,8 +115,8 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             showToast('success', 'Follow-up request cancelled successfully');
             onClose();
             if (onSuccess) onSuccess();
-        } catch (error:any) {
-            showToast('error', error.response?.data?.message  || 'Failed to cancel follow-up request');
+        } catch (error: any) {
+            showToast('error', error.response?.data?.message || 'Failed to cancel follow-up request');
         } finally {
             setIsCancellingFollowUp(false);
         }
@@ -126,6 +127,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     const documents = messages.filter(m =>
         m.type === 'document' ||
         m.type === 'image' ||
+        m.type === 'video' ||
         m.type === 'file' ||
         isImageUrl(m.content)
     );
@@ -300,6 +302,15 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                                     >
                                                         {doc.type === 'image' || isImageUrl(doc.content) ? (
                                                             <img src={doc.content || doc.fileUrl} alt={doc.fileName} className="w-full h-full object-cover" />
+                                                        ) : doc.type === 'video' ? (
+                                                            <div className="relative w-full h-full flex items-center justify-center bg-slate-900">
+                                                                <Video className="w-4 h-4 text-white/40" />
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                                        <Play size={8} className="text-white fill-white ml-0.5" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         ) : (
                                                             <FileText className="w-5 h-5 text-slate-400" />
                                                         )}

@@ -10,7 +10,7 @@ import "toastify-js/src/toastify.css";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import { useEffect } from "react";
-import AxiosInterceptor from "@/components/AxiosInterceptor";
+import AxiosInterceptor from "@/utils/AxiosInterceptor";
 import { ConfirmProvider } from "@/context/ConfirmContext";
 import { SocketProvider } from "@/context/SocketContext";
 

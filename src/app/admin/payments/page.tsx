@@ -63,6 +63,7 @@ export default function AdminPaymentsPage() {
             header: "Date",
             render: (payment) => <span className="text-gray-600">{new Date(payment.date).toLocaleDateString()}</span>
         },
+     
         {
             header: "Transaction ID",
             render: (payment) => <span className="text-teal-600 font-mono text-sm">{payment.transactionId}</span>
@@ -76,13 +77,13 @@ export default function AdminPaymentsPage() {
                 </span>
             )
         },
-        { header: "User", accessor: "userName", render: (p) => p.userName || 'N/A' },
-        { header: "Lawyer", accessor: "lawyerName" },
+        { header: "User", accessor: "userName", render: (p) => <span className="text-gray-900">{p.userName || 'N/A'}</span> },
+        { header: "Lawyer", accessor: "lawyerName", render: (p) => <span className="text-gray-900">{p.lawyerName || 'N/A'}</span> },
         {
             header: "Amount",
             render: (payment) => (
                 <span className="font-medium text-gray-900">
-                    {payment.amount} {payment.currency.toUpperCase()}
+                    {payment.amount}
                 </span>
             )
         },
