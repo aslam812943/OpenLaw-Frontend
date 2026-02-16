@@ -43,7 +43,16 @@ apiInstance.interceptors.response.use(
         const originalRequest = error.config;
         const message = error.response?.data?.message || error.response?.data?.errors || error.response?.statusText || "An unexpected error occurred.";
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        const authRoutes = [
+            API_ROUTES.USER.LOGIN,
+            API_ROUTES.USER.REGISTER,
+            API_ROUTES.USER.REFRESH_TOKEN_URL,
+            API_ROUTES.ADMIN.LOGIN
+        ];
+
+        const isAuthRoute = authRoutes.some(route => originalRequest.url?.includes(route));
+
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
             if (isRefreshing) {
                 return new Promise<string | null>((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
