@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { showToast } from "@/utils/alerts";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDispatch } from "react-redux";
+import { setUserData } from "@/redux/userSlice";
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,7 @@ export default function ProfilePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"personal" | "security">("personal");
+  const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -62,6 +65,15 @@ export default function ProfilePage() {
         confirmPassword: '',
       });
       setImagePreview(data.profileImage || "");
+
+      dispatch(setUserData({
+        id: data._id || null,
+        email: data.email || null,
+        name: data.name || null,
+        phone: data.phone || null,
+        role: data.role || 'user'
+      }));
+
       setIsEditing(false);
       setImageFile(null);
       setShowChangePassword(data.isPassword || false);
