@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from "react"
 import { getprofile, updateProfile, changePassword } from "@/service/lawyerService"
 import { showToast } from "@/utils/alerts"
+import { useDispatch } from "react-redux"
+import { setLawyerData } from "@/redux/lawyerSlice"
 import {
     Mail,
     Phone,
@@ -58,6 +60,7 @@ export default function GetProfile() {
         bio: '',
         consultationFee: 0
     })
+    const dispatch = useDispatch()
 
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
@@ -103,6 +106,17 @@ export default function GetProfile() {
                 bio: profileData?.bio || '',
                 consultationFee: profileData?.consultationFee || 0
             })
+
+            dispatch(setLawyerData({
+                id: profileData.id || null,
+                email: profileData.email || null,
+                name: profileData.name || null,
+                phone: profileData.phone || null,
+                role: 'lawyer',
+                hasSubmittedVerification: !!profileData.hasSubmittedVerification,
+                profileImage: profileData.profileImage || null
+            }))
+
             setShowChengePassword(profileData.isPassword || false)
 
 
@@ -151,7 +165,7 @@ export default function GetProfile() {
             showToast("error", "Name must start with a letter")
             return false
         }
-        if (formData.phone.toString().length !== 10) {
+        if (formData.phone.toString().length !== 10 || !/^\d+$/.test(formData.phone.toString())) {
             showToast("error", "Phone number must be exactly 10 digits")
             return false
         }
@@ -167,10 +181,17 @@ export default function GetProfile() {
             showToast("error", "State must be at least 2 characters")
             return false
         }
-        if (formData.pincode.length < 4) {
-            showToast("error", "Pincode must be at least 4 characters")
+        if (formData.pincode.length < 4 || !/^\d+$/.test(formData.pincode)) {
+            showToast("error", "Pincode must be a valid number with at least 4 digits")
             return false
         }
+
+        const fee = Number(formData.consultationFee);
+        if (isNaN(fee) || fee < 0 || formData.consultationFee.toString().trim() === "") {
+            showToast("error", "Please enter a valid consultation fee (0 or more)")
+            return false
+        }
+
         if (formData.bio.trim().length < 5) {
             showToast("error", "Bio must be at least 5 characters")
             return false

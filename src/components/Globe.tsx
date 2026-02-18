@@ -1,9 +1,11 @@
 "use client";
+if (typeof window !== 'undefined' && !window.hasOwnProperty('GPUShaderStage')) {
+  (window as any).GPUShaderStage = { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 };
+}
 import React, { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
-// Dynamic import to prevent SSR issues in Next.js
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
   loading: () => (
@@ -146,7 +148,7 @@ export default function MyGlobe() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4">
-            <button onClick={()=>router.push('/user/lawyers')} className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-3 rounded-lg shadow-lg shadow-teal-500/40 transition-all">
+            <button onClick={() => router.push('/user/lawyers')} className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-3 rounded-lg shadow-lg shadow-teal-500/40 transition-all">
               Find a lawyer
             </button>
             <span className="text-xs md:text-sm text-slate-400">
