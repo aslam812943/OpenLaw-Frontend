@@ -106,6 +106,7 @@ export interface Appointment {
   followUpTime?: string;
   followUpStatus?: 'none' | 'pending' | 'booked';
   parentBookingId?: string;
+  rescheduleCount?: number;
 }
 
 export interface Case {
@@ -358,6 +359,10 @@ export const updateAppointmentStatus = async (id: string, status: string, feedba
 
 export const setFollowUp = async (id: string, followUpType: 'none' | 'specific' | 'deadline', followUpDate?: string, followUpTime?: string, feedback?: string): Promise<CommonResponse<void>> => {
   return apiClient.post<CommonResponse<void>>(API_ROUTES.LAWYER.APPOIMENTS_FOLLOW_UP(id), { followUpType, followUpDate, followUpTime, feedback });
+};
+
+export const rescheduleAppointment = async (id: string, newSlotId: string): Promise<CommonResponse<void>> => {
+  return apiClient.patch<CommonResponse<void>>(API_ROUTES.LAWYER.APPOIMENTS_RESCHEDULE(id), { newSlotId });
 };
 
 

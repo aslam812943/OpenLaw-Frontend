@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { checkChatAccess, getChatRoom } from "@/service/chatService";
 import { showToast } from "@/utils/alerts";
 import { getSingleLawyer, getallslots, Lawyer, Slot } from "@/service/lawyerService";
-import { handlepayAndBook, addReview, allReview, Review, getWallet, bookWithWallet } from "@/service/userService";
+import { handlepayAndBook, addReview, allReview, Review, getWallet, bookWithWallet, rescheduleAppointment } from "@/service/userService";
 
 export default function LawyersSinglePage() {
   const { id } = useParams();
@@ -47,6 +47,7 @@ export default function LawyersSinglePage() {
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const isRescheduling = !!searchParams.get('rescheduleBookingId');
 
   useEffect(() => {
     async function fetchLawyer() {
@@ -100,16 +101,12 @@ export default function LawyersSinglePage() {
     const dateParam = searchParams.get('date');
     const timeParam = searchParams.get('time');
     const deadlineParam = searchParams.get('deadline');
-    const parentIdParam = searchParams.get('parentBookingId');
 
     if (dateParam) setSelectedDate(dateParam);
     if (timeParam) setSelectedTime({ start: timeParam, end: '' });
     if ((dateParam && timeParam) || deadlineParam) {
       setBookingMode(true);
       fetchslots();
-      if (dateParam && timeParam) {
-        setBookingSlot(true);
-      }
     }
   }, [searchParams, lawyer]);
 
@@ -123,6 +120,7 @@ export default function LawyersSinglePage() {
         setSelectedSlotId(matchingSlot.id);
         setSelectedTime({ start: matchingSlot.startTime, end: matchingSlot.endTime });
         setConsultationFee(Number(matchingSlot.consultationFee));
+        setBookingSlot(true);
       }
     }
   }, [slots, searchParams]);
@@ -136,13 +134,31 @@ export default function LawyersSinglePage() {
 
 
 
+  const formatTime12h = (time24: string) => {
+    if (!time24) return "";
+    try {
+      const [hoursStr, minutesStr] = time24.split(":");
+      let hours = parseInt(hoursStr, 10);
+      const minutes = minutesStr;
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      return `${hours}:${minutes} ${ampm}`;
+    } catch (e) {
+      return time24;
+    }
+  };
+
   const isPastSlot = (date: string, startTime: string) => {
-    const now = new Date();
-
-
-    const slotDateTime = new Date(`${date}T${startTime}`);
-
-    return slotDateTime <= now;
+    try {
+      const now = new Date();
+      const [year, month, day] = date.split('-').map(Number);
+      const [hours, minutes] = startTime.split(':').map(Number);
+      const slotDateTime = new Date(year, month - 1, day, hours, minutes);
+      return slotDateTime <= now;
+    } catch (e) {
+      return false;
+    }
   };
 
   function generateMonthDays(year: number, month: number, availableDates: string[]) {
@@ -190,6 +206,12 @@ export default function LawyersSinglePage() {
   }, [currentMonth, currentYear, slots]);
 
   const HandlePayment = async () => {
+    if (!user.id) {
+      showToast("error", "Please login to book an appointment.");
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+
     if (!selectedDate || !selectedTime || !lawyer) return;
 
     if (!description.trim()) {
@@ -198,7 +220,7 @@ export default function LawyersSinglePage() {
     }
 
     const obj = {
-      userId: user.id,
+      userId: user.id as string,
       lawyerId: lawyer.id,
       lawyerName: lawyer.name,
       date: selectedDate,
@@ -223,6 +245,12 @@ export default function LawyersSinglePage() {
   };
 
   const handleWalletPayment = async () => {
+    if (!user.id) {
+      showToast("error", "Please login to book an appointment.");
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+
     if (!selectedDate || !selectedTime || !lawyer) return;
 
     if (!description.trim()) {
@@ -238,7 +266,7 @@ export default function LawyersSinglePage() {
     setIsProcessing(true);
 
     const obj = {
-      userId: user.id || null,
+      userId: user.id as string,
       lawyerId: lawyer.id,
       lawyerName: lawyer.name,
       date: selectedDate,
@@ -246,7 +274,7 @@ export default function LawyersSinglePage() {
       endTime: selectedTime.end,
       consultationFee: consultationFee,
       description,
-      slotId: selectedSlotId || null, 
+      slotId: selectedSlotId || null,
       parentBookingId: searchParams.get('parentBookingId')
     };
 
@@ -262,6 +290,30 @@ export default function LawyersSinglePage() {
       }
     } catch (error: any) {
       showToast("error", error.response?.data?.message || error.message || "Wallet booking failed.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!user.id) {
+      showToast("error", "Please login to proceed.");
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+
+    const rescheduleBookingId = searchParams.get('rescheduleBookingId');
+    if (!rescheduleBookingId || !selectedSlotId) return;
+
+    setIsProcessing(true);
+    try {
+      await rescheduleAppointment(rescheduleBookingId, selectedSlotId);
+      showToast("success", "Appointment rescheduled successfully!");
+      setBookingSlot(false);
+      setBookingMode(false);
+      router.push("/user/bookings");
+    } catch (error: any) {
+      showToast("error", error.response?.data?.message || error.message || "Failed to reschedule appointment.");
     } finally {
       setIsProcessing(false);
     }
@@ -426,7 +478,7 @@ export default function LawyersSinglePage() {
                     <MapPin size={14} className="text-teal-400" />
                     <span>{lawyer.city}, {lawyer.state}</span>
                   </div>
-                  <a  className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm hover:bg-slate-800 transition-colors">
+                  <a className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm hover:bg-slate-800 transition-colors">
                     <Mail size={14} className="text-teal-400" />
                     <span>{lawyer.email}</span>
                   </a>
@@ -440,7 +492,7 @@ export default function LawyersSinglePage() {
                 onClick={() => { setBookingMode(true); fetchslots(); }}
                 className="w-full group relative bg-teal-600 hover:bg-teal-500 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-teal-900/20 hover:shadow-teal-500/20 transition-all flex items-center justify-center gap-2 overflow-hidden"
               >
-                <span className="relative z-10">Book Consultation</span>
+                <span className="relative z-10">{isRescheduling ? "Reschedule Consultation" : "Book Consultation"}</span>
                 <ChevronRight size={18} className="relative z-10 group-hover:translate-x-1 transition-transform" />
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
@@ -634,7 +686,7 @@ export default function LawyersSinglePage() {
                   className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-200 transition-all flex items-center justify-center gap-2 mb-4"
                 >
                   <Calendar size={18} />
-                  Book Appointment
+                  {isRescheduling ? "Reschedule Appointment" : "Book Appointment"}
                 </button>
 
                 <div className="text-center text-xs text-slate-400">
@@ -666,7 +718,7 @@ export default function LawyersSinglePage() {
               </div>
 
 
-              {/* Review Section - Only if hasChatAccess (implies booking) */}
+              {/* Review Section  */}
               {hasChatAccess && (
                 <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mt-8">
                   <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -723,7 +775,7 @@ export default function LawyersSinglePage() {
             {/* Header */}
             <div className="bg-slate-900 p-8 flex justify-between items-center text-white">
               <div>
-                <h2 className="text-2xl font-bold">Book Appointment</h2>
+                <h2 className="text-2xl font-bold">{isRescheduling ? "Reschedule Appointment" : "Book Appointment"}</h2>
                 <p className="text-slate-400 text-sm mt-1">Select a date and time for your consultation with {lawyer.name}</p>
               </div>
               <button
@@ -802,11 +854,11 @@ export default function LawyersSinglePage() {
                             'bg-white text-slate-600 border-slate-200 hover:border-teal-400 hover:text-teal-600'
                           }`}
                       >
-                        {slot.startTime}
+                        {formatTime12h(slot.startTime)}
                       </button>
                     ))}
-                    {slots.filter(s => s.date === selectedDate).length === 0 && (
-                      <p className="col-span-full text-slate-500 italic text-sm">No slots available.</p>
+                    {slots.filter(s => s.date === selectedDate && !isPastSlot(s.date, s.startTime)).length === 0 && (
+                      <p className="col-span-full text-slate-500 italic text-sm">No slots available for this time.</p>
                     )}
                   </div>
                 ) : (
@@ -819,7 +871,9 @@ export default function LawyersSinglePage() {
                 {selectedTime && (
                   <div className="mt-6 mb-4 p-4 bg-teal-50 border border-teal-100 rounded-xl flex justify-between items-center animate-fadeIn">
                     <span className="text-slate-600 font-medium">Consultation Fee</span>
-                    <span className="text-xl font-bold text-teal-700">₹{consultationFee}</span>
+                    <span className="text-xl font-bold text-teal-700">
+                      {searchParams.get('rescheduleBookingId') ? '₹0' : `₹${consultationFee}`}
+                    </span>
                   </div>
                 )}
 
@@ -832,7 +886,7 @@ export default function LawyersSinglePage() {
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                       }`}
                   >
-                    Continue to Payment
+                    {searchParams.get('rescheduleBookingId') ? 'Confirm New Slot' : 'Continue to Payment'}
                   </button>
                 </div>
               </div>
@@ -862,60 +916,66 @@ export default function LawyersSinglePage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Time</span>
-                  <span className="font-medium text-slate-900">{selectedTime?.start} - {selectedTime?.end}</span>
+                  <span className="font-medium text-slate-900">{formatTime12h(selectedTime?.start || '')} - {formatTime12h(selectedTime?.end || '')}</span>
                 </div>
                 <div className="pt-2 border-t border-slate-200 flex justify-between text-base">
                   <span className="font-bold text-slate-700">Total Fee</span>
-                  <span className="font-bold text-teal-600">₹{consultationFee}</span>
+                  <span className="font-bold text-teal-600">
+                    {searchParams.get('rescheduleBookingId') ? '₹0 (Already Paid)' : `₹${consultationFee}`}
+                  </span>
                 </div>
               </div>
 
-              {/* Payment Method Selection */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-slate-700">Select Payment Method</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setPaymentMethod('online')}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'online'
-                      ? 'border-teal-500 bg-teal-50 text-teal-700'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                      }`}
-                  >
-                    <ExternalLink size={20} className="mb-1" />
-                    <span className="text-xs font-bold uppercase">Online Payment</span>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('wallet')}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'wallet'
-                      ? 'border-teal-500 bg-teal-50 text-teal-700'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                      }`}
-                  >
-                   
-                    <span className="text-xs font-bold uppercase">Wallet (₹{walletBalance})</span>
-                  </button>
+              {/* Payment Method Selection - */}
+              {!searchParams.get('rescheduleBookingId') && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-slate-700">Select Payment Method</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setPaymentMethod('online')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'online'
+                        ? 'border-teal-500 bg-teal-50 text-teal-700'
+                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
+                        }`}
+                    >
+                      <ExternalLink size={20} className="mb-1" />
+                      <span className="text-xs font-bold uppercase">Online Payment</span>
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('wallet')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'wallet'
+                        ? 'border-teal-500 bg-teal-50 text-teal-700'
+                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
+                        }`}
+                    >
+                      <span className="text-xs font-bold uppercase">Wallet (₹{walletBalance})</span>
+                    </button>
+                  </div>
+                  {paymentMethod === 'wallet' && walletBalance < (consultationFee || 0) && (
+                    <p className="text-red-500 text-[10px] font-medium animate-pulse">
+                      Insufficient balance. Please choose online payment.
+                    </p>
+                  )}
                 </div>
-                {paymentMethod === 'wallet' && walletBalance < (consultationFee || 0) && (
-                  <p className="text-red-500 text-[10px] font-medium animate-pulse">
-                    Insufficient balance. Please choose online payment.
-                  </p>
-                )}
-              </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Briefly describe your legal concern..."
-                  className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 h-24 resize-none"
-                />
-              </div>
+              {/* Consultation Notes - Only if not rescheduling */}
+              {!searchParams.get('rescheduleBookingId') && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Briefly describe your legal concern..."
+                    className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 h-24 resize-none"
+                  />
+                </div>
+              )}
 
               <button
-                onClick={paymentMethod === 'online' ? HandlePayment : handleWalletPayment}
-                disabled={isProcessing || (paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))}
-                className={`w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-lg ${isProcessing || (paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))
+                onClick={searchParams.get('rescheduleBookingId') ? handleReschedule : (paymentMethod === 'online' ? HandlePayment : handleWalletPayment)}
+                disabled={isProcessing || (!searchParams.get('rescheduleBookingId') && paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))}
+                className={`w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-lg ${isProcessing || (!searchParams.get('rescheduleBookingId') && paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))
                   ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-teal-600 hover:bg-teal-700 shadow-teal-200'
                   }`}
@@ -926,7 +986,7 @@ export default function LawyersSinglePage() {
                     <span>Processing...</span>
                   </div>
                 ) : (
-                  paymentMethod === 'online' ? "Pay Securely & Book" : "Confirm Wallet Payment"
+                  searchParams.get('rescheduleBookingId') ? "Confirm Reschedule" : (paymentMethod === 'online' ? "Pay Securely & Book" : "Confirm Wallet Payment")
                 )}
               </button>
             </div>

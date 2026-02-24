@@ -71,6 +71,7 @@ export interface Appointment {
   followUpTime?: string;
   followUpStatus?: 'none' | 'pending' | 'booked';
   parentBookingId?: string;
+  rescheduleCount?: number;
 }
 
 
@@ -252,6 +253,11 @@ export const cancelAppointment = async (id: string, reason: string): Promise<voi
 
 export const cancelFollowUp = async (id: string): Promise<void> => {
   const response = await apiClient.patch<CommonResponse<void>>(API_ROUTES.USER.CANCEL_FOLLOW_UP(id));
+  return response.data;
+};
+
+export const rescheduleAppointment = async (id: string, newSlotId: string): Promise<void> => {
+  const response = await apiClient.patch<CommonResponse<void>>(API_ROUTES.USER.RESCHEDULE_APPOINTMENT(id), { newSlotId });
   return response.data;
 };
 

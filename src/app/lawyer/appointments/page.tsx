@@ -2,14 +2,14 @@
 
 import { getAppoiments, updateAppointmentStatus } from "@/service/lawyerService"
 import { useCallback, useEffect, useState } from "react"
-import { toast } from "sonner"
 import { showToast } from "@/utils/alerts"
 import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable"
 import { FilterBar } from "@/components/admin/shared/ReusableFilterBar"
 import Pagination from "@/components/common/Pagination"
-import { Info, CheckCircle, XCircle, CheckCheck, Clock, FileText, MessageSquare } from "lucide-react"
+import { Info, CheckCircle, XCircle, CheckCheck, Clock, FileText, MessageSquare, Calendar } from "lucide-react"
 import Swal from "sweetalert2"
 import CompleteAppointmentModal from "@/components/lawyer/CompleteAppointmentModal"
+import LawyerRescheduleModal from "@/components/lawyer/LawyerRescheduleModal"
 import { getChatRoom } from "@/service/chatService"
 import { useRouter } from "next/navigation"
 
@@ -28,10 +28,26 @@ interface Appointment {
   lawyerFeedback?: string;
   bookingId?: string;
   lawyerId?: string;
+  rescheduleCount?: number;
 }
 
 
 const Appointments = () => {
+  const formatTime12h = (time24: string) => {
+    if (!time24) return "";
+    try {
+      const [hoursStr, minutesStr] = time24.split(":");
+      let hours = parseInt(hoursStr, 10);
+      const minutes = minutesStr;
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      return `${hours}:${minutes} ${ampm}`;
+    } catch (e) {
+      return time24;
+    }
+  };
+
   const [data, setData] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,6 +58,8 @@ const Appointments = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
   const limit = 10;
   const router = useRouter();
 
@@ -105,10 +123,10 @@ const Appointments = () => {
 
     try {
       await updateAppointmentStatus(id, status);
-      toast.success(`Appointment ${status} successfully`);
+      showToast("success", `Appointment ${status} successfully`);
       fetchAppointments();
     } catch (error) {
-      toast.error("Failed to update appointment status");
+      showToast("error", "Failed to update appointment status");
     }
   };
 
@@ -118,11 +136,11 @@ const Appointments = () => {
     setIsSubmitting(true);
     try {
       await updateAppointmentStatus(selectedAppointment.id, 'completed', feedback);
-      toast.success("Appointment completed successfully!");
+      showToast("success", "Appointment completed successfully!");
       setIsModalOpen(false);
       fetchAppointments();
     } catch (error) {
-      toast.error("Failed to complete appointment");
+      showToast("error", "Failed to complete appointment");
     } finally {
       setIsSubmitting(false);
     }
@@ -135,7 +153,7 @@ const Appointments = () => {
         router.push(`/lawyer/chat/${response.data.id}`);
       }
     } catch (error) {
-      toast.error("Failed to initiate chat");
+      showToast("error", "Failed to initiate chat");
     }
   };
 
@@ -164,7 +182,7 @@ const Appointments = () => {
       render: (row) => (
         <div className="flex items-center gap-2 text-slate-600">
           <Clock className="w-4 h-4 text-teal-500" />
-          <span>{row.startTime} - {row.endTime}</span>
+          <span>{formatTime12h(row.startTime)} - {formatTime12h(row.endTime)}</span>
         </div>
       )
     },
@@ -246,6 +264,18 @@ const Appointments = () => {
               VIEW SUMMARY
             </button>
           )}
+          {row.status === 'confirmed' && (row.rescheduleCount || 0) < 1 && (
+            <button
+              onClick={() => {
+                setAppointmentToReschedule(row);
+                setIsRescheduleModalOpen(true);
+              }}
+              className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all"
+              title="Reschedule"
+            >
+              <Calendar className="w-5 h-5" />
+            </button>
+          )}
           {['confirmed', 'completed', 'pending', 'follow-up'].includes(row.status) && (
             <button
               onClick={() => handleChat(row.userId, row.id)}
@@ -320,6 +350,19 @@ const Appointments = () => {
         isSubmitting={isSubmitting}
         onSuccess={fetchAppointments}
       />
+
+      {appointmentToReschedule && (
+        <LawyerRescheduleModal
+          isOpen={isRescheduleModalOpen}
+          onClose={() => {
+            setIsRescheduleModalOpen(false);
+            setAppointmentToReschedule(null);
+          }}
+          appointmentId={appointmentToReschedule.id}
+          lawyerId={appointmentToReschedule.lawyerId || ""}
+          onSuccess={fetchAppointments}
+        />
+      )}
     </div>
   );
 };
