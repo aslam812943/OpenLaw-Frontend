@@ -14,6 +14,21 @@ import { FilterBar } from '@/components/admin/shared/ReusableFilterBar';
 import { getChatRoom } from '@/service/chatService';
 
 const UserAppointmentsPage = () => {
+    const formatTime12h = (time24: string) => {
+        if (!time24) return "";
+        try {
+            const [hoursStr, minutesStr] = time24.split(":");
+            let hours = parseInt(hoursStr, 10);
+            const minutes = minutesStr;
+            const ampm = hours >= 12 ? "PM" : "AM";
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${hours}:${minutes} ${ampm}`;
+        } catch (e) {
+            return time24;
+        }
+    };
+
     const router = useRouter();
     const user = useSelector((state: RootState) => state.user);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -215,7 +230,7 @@ const UserAppointmentsPage = () => {
                                                             </div>
                                                             <div className="flex items-center gap-1.5 text-xs text-slate-500">
                                                                 <Clock size={12} className="text-teal-500" />
-                                                                <span>{appointment.startTime} - {appointment.endTime}</span>
+                                                                <span>{formatTime12h(appointment.startTime)} - {formatTime12h(appointment.endTime)}</span>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -254,10 +269,14 @@ const UserAppointmentsPage = () => {
                                                                 </button>
                                                             )}
                                                             {(() => {
-                                                                const appointmentDateTime = new Date(`${appointment.date}T${appointment.startTime}`);
-                                                                const now = new Date();
-                                                                const diffInHours = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-                                                                const isReschedulable = appointment.status === 'confirmed' && diffInHours >= 24 && (appointment.rescheduleCount || 0) < 1;
+                                                                const isConfirmed = appointment.status === 'confirmed';
+                                                                const hasNotRescheduled = (appointment.rescheduleCount || 0) < 1;
+
+                                                                const dateStr = appointment.date.split('T')[0];
+                                                                const apptDate = new Date(`${dateStr}T${appointment.startTime}`);
+                                                                const isFuture = apptDate.getTime() > new Date().getTime();
+
+                                                                const isReschedulable = isConfirmed && hasNotRescheduled && isFuture;
 
                                                                 return isReschedulable && (
                                                                     <button

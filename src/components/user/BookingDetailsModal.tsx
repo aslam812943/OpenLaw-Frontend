@@ -52,6 +52,21 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     currentUserId,
     onSuccess
 }) => {
+    const formatTime12h = (time24: string) => {
+        if (!time24) return "";
+        try {
+            const [hoursStr, minutesStr] = time24.split(":");
+            let hours = parseInt(hoursStr, 10);
+            const minutes = minutesStr;
+            const ampm = hours >= 12 ? "PM" : "AM";
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${hours}:${minutes} ${ampm}`;
+        } catch (e) {
+            return time24;
+        }
+    };
+
     const [messages, setMessages] = useState<Message[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -196,7 +211,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                             <Clock className="w-4 h-4 text-teal-600" />
                                             <div>
                                                 <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Time Slot</p>
-                                                <p className="text-sm font-bold text-slate-900">{appointment.startTime} - {appointment.endTime}</p>
+                                                <p className="text-sm font-bold text-slate-900">{formatTime12h(appointment.startTime)} - {formatTime12h(appointment.endTime)}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 text-slate-600">
@@ -237,7 +252,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                             </div>
                                             <div>
                                                 <p className="text-slate-500 uppercase font-bold text-[10px]">Date & Time</p>
-                                                <p className="font-bold text-slate-900">{parentBooking.date} @ {parentBooking.startTime}</p>
+                                                <p className="font-bold text-slate-900">{parentBooking.date} @ {formatTime12h(parentBooking.startTime)}</p>
                                             </div>
                                             <div>
                                                 <p className="text-slate-500 uppercase font-bold text-[10px]">Feedback</p>
@@ -381,7 +396,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                                                 </div>
                                                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-teal-100 text-xs font-bold text-teal-700">
                                                                     <Clock size={14} />
-                                                                    {appointment.followUpTime}
+                                                                    {formatTime12h(appointment.followUpTime || '')}
                                                                 </div>
                                                             </>
                                                         )}
