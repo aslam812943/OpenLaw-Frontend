@@ -42,6 +42,7 @@ export const API_ROUTES = {
     GETALLREVIEWS: (id: string) => `/api/user/review/${id}`,
     CANCELAPPOINMENT: (id: string) => `/api/booking/appointments/${id}/cancel`,
     CANCEL_FOLLOW_UP: (id: string) => `/api/booking/appointments/${id}/cancel-follow-up`,
+    RESCHEDULE_APPOINTMENT: (id: string) => `/api/booking/appointments/${id}/reschedule`,
     GETAPPOINMENT: '/api/booking/appointments',
     SPECIALIZATIONS: '/api/user/specializations',
     GETWALLET: `/api/user/wallet`,

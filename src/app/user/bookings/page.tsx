@@ -22,7 +22,8 @@ const UserAppointmentsPage = () => {
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-
+    const [isRescheduleConfirmOpen, setIsRescheduleConfirmOpen] = useState(false);
+    const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -218,54 +219,13 @@ const UserAppointmentsPage = () => {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    {/* <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="flex items-center gap-1 text-sm font-bold text-emerald-600">
 
-                                                            <span>₹{appointment.consultationFee}</span>
-                                                        </div>
-                                                    </td> */}
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${statusStyles}`}>
                                                             {appointment.status}
                                                         </span>
                                                     </td>
-                                                    {/* <td className="px-6 py-4">
-                                                        <div className="max-w-xs">
-                                                            {appointment.description && (
-                                                                <div className="flex items-start gap-2 text-xs text-slate-600">
-                                                                    <FileText size={12} className="text-slate-400 mt-0.5 shrink-0" />
-                                                                    <span className="line-clamp-2">{appointment.description}</span>
-                                                                </div>
-                                                            )}
-                                                            {appointment.cancellationReason && (
-                                                                <div className="flex items-start gap-2 text-xs text-rose-600 mt-1">
-                                                                    <AlertCircle size={12} className="mt-0.5 shrink-0" />
-                                                                    <span className="line-clamp-2">{appointment.cancellationReason}</span>
-                                                                </div>
-                                                            )}
-                                                            {(appointment.status === 'cancelled' || appointment.status === 'rejected') && appointment.refundAmount !== undefined && appointment.refundAmount > 0 && (
-                                                                <div className="flex items-start gap-2 text-xs text-teal-600 mt-1 font-medium italic">
-                                                                    <DollarSign size={12} className="mt-0.5 shrink-0" />
-                                                                    <span>
-                                                                        ₹{appointment.refundAmount} {appointment.refundStatus && appointment.refundStatus !== 'none' ? `${appointment.refundStatus} refund` : 'refunded'} to your account
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                            {appointment.status === 'completed' && appointment.followUpStatus === 'pending' && appointment.followUpType && appointment.followUpType !== 'none' && (
-                                                                <div className="flex items-start gap-2 text-xs text-teal-600 mt-2 font-bold bg-teal-50/50 p-2 rounded-lg border border-teal-100">
-                                                                    <Calendar size={12} className="mt-0.5 shrink-0" />
-                                                                    <div className="flex flex-col">
-                                                                        <span>Follow-up suggested:</span>
-                                                                        <span className="text-[10px] font-medium">
-                                                                            {appointment.followUpType === 'specific'
-                                                                                ? `${appointment.followUpDate} @ ${appointment.followUpTime}`
-                                                                                : `By ${appointment.followUpDate}`}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </td> */}
+
 
                                                     <td className="px-6 py-4 whitespace-nowrap text-right">
                                                         <div className="flex justify-end gap-2">
@@ -293,14 +253,30 @@ const UserAppointmentsPage = () => {
                                                                     Cancel
                                                                 </button>
                                                             )}
+                                                            {(() => {
+                                                                const appointmentDateTime = new Date(`${appointment.date}T${appointment.startTime}`);
+                                                                const now = new Date();
+                                                                const diffInHours = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+                                                                const isReschedulable = appointment.status === 'confirmed' && diffInHours >= 24 && (appointment.rescheduleCount || 0) < 1;
+
+                                                                return isReschedulable && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setAppointmentToReschedule(appointment);
+                                                                            setIsRescheduleConfirmOpen(true);
+                                                                        }}
+                                                                        className="px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all"
+                                                                    >
+                                                                        Reschedule
+                                                                    </button>
+                                                                );
+                                                            })()}
                                                             {appointment.followUpStatus === 'pending' && (
                                                                 <button
                                                                     onClick={() => {
                                                                         if (appointment.followUpType === 'specific') {
-                                                                            // Take to confirmation with specific date/time
                                                                             router.push(`/user/lawyers/${appointment.lawyerId}?date=${appointment.followUpDate}&time=${appointment.followUpTime}&parentBookingId=${appointment.id}`);
                                                                         } else if (appointment.followUpType === 'deadline') {
-                                                                            // Take to slot selection with deadline
                                                                             router.push(`/user/lawyers/${appointment.lawyerId}?deadline=${appointment.followUpDate}&parentBookingId=${appointment.id}`);
                                                                         }
 
@@ -348,6 +324,45 @@ const UserAppointmentsPage = () => {
                     currentUserId={user.id || undefined}
                     onSuccess={() => fetchAppointments(currentPage)}
                 />
+
+                {/* Reschedule Confirmation Modal */}
+                {isRescheduleConfirmOpen && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                        <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                                <h3 className="font-bold text-xl text-slate-900">Reschedule Appointment</h3>
+                                <button onClick={() => setIsRescheduleConfirmOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex gap-3">
+                                    <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                                    <div className="text-sm text-amber-800">
+                                        <p className="font-bold">Important Notice</p>
+                                        <p className="mt-1">You can only reschedule this appointment **one time**. Are you sure you want to proceed with rescheduling?</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setIsRescheduleConfirmOpen(false)}
+                                        className="flex-1 py-3 px-4 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
+                                    >
+                                        Go Back
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (appointmentToReschedule) {
+                                                router.push(`/user/lawyers/${appointmentToReschedule.lawyerId}?rescheduleBookingId=${appointmentToReschedule.id}`);
+                                            }
+                                        }}
+                                        className="flex-1 py-3 px-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                                    >
+                                        Yes, Reschedule
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

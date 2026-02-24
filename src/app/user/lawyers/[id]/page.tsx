@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { checkChatAccess, getChatRoom } from "@/service/chatService";
 import { showToast } from "@/utils/alerts";
 import { getSingleLawyer, getallslots, Lawyer, Slot } from "@/service/lawyerService";
-import { handlepayAndBook, addReview, allReview, Review, getWallet, bookWithWallet } from "@/service/userService";
+import { handlepayAndBook, addReview, allReview, Review, getWallet, bookWithWallet, rescheduleAppointment } from "@/service/userService";
 
 export default function LawyersSinglePage() {
   const { id } = useParams();
@@ -246,7 +246,7 @@ export default function LawyersSinglePage() {
       endTime: selectedTime.end,
       consultationFee: consultationFee,
       description,
-      slotId: selectedSlotId || null, 
+      slotId: selectedSlotId || null,
       parentBookingId: searchParams.get('parentBookingId')
     };
 
@@ -262,6 +262,24 @@ export default function LawyersSinglePage() {
       }
     } catch (error: any) {
       showToast("error", error.response?.data?.message || error.message || "Wallet booking failed.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    const rescheduleBookingId = searchParams.get('rescheduleBookingId');
+    if (!rescheduleBookingId || !selectedSlotId) return;
+
+    setIsProcessing(true);
+    try {
+      await rescheduleAppointment(rescheduleBookingId, selectedSlotId);
+      showToast("success", "Appointment rescheduled successfully!");
+      setBookingSlot(false);
+      setBookingMode(false);
+      router.push("/user/bookings");
+    } catch (error: any) {
+      showToast("error", error.response?.data?.message || error.message || "Failed to reschedule appointment.");
     } finally {
       setIsProcessing(false);
     }
@@ -426,7 +444,7 @@ export default function LawyersSinglePage() {
                     <MapPin size={14} className="text-teal-400" />
                     <span>{lawyer.city}, {lawyer.state}</span>
                   </div>
-                  <a  className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm hover:bg-slate-800 transition-colors">
+                  <a className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm hover:bg-slate-800 transition-colors">
                     <Mail size={14} className="text-teal-400" />
                     <span>{lawyer.email}</span>
                   </a>
@@ -832,7 +850,7 @@ export default function LawyersSinglePage() {
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                       }`}
                   >
-                    Continue to Payment
+                    {searchParams.get('rescheduleBookingId') ? 'Confirm New Slot' : 'Continue to Payment'}
                   </button>
                 </div>
               </div>
@@ -870,52 +888,56 @@ export default function LawyersSinglePage() {
                 </div>
               </div>
 
-              {/* Payment Method Selection */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-slate-700">Select Payment Method</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setPaymentMethod('online')}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'online'
-                      ? 'border-teal-500 bg-teal-50 text-teal-700'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                      }`}
-                  >
-                    <ExternalLink size={20} className="mb-1" />
-                    <span className="text-xs font-bold uppercase">Online Payment</span>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('wallet')}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'wallet'
-                      ? 'border-teal-500 bg-teal-50 text-teal-700'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                      }`}
-                  >
-                   
-                    <span className="text-xs font-bold uppercase">Wallet (₹{walletBalance})</span>
-                  </button>
+              {/* Payment Method Selection - */}
+              {!searchParams.get('rescheduleBookingId') && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-slate-700">Select Payment Method</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setPaymentMethod('online')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'online'
+                        ? 'border-teal-500 bg-teal-50 text-teal-700'
+                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
+                        }`}
+                    >
+                      <ExternalLink size={20} className="mb-1" />
+                      <span className="text-xs font-bold uppercase">Online Payment</span>
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('wallet')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === 'wallet'
+                        ? 'border-teal-500 bg-teal-50 text-teal-700'
+                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
+                        }`}
+                    >
+                      <span className="text-xs font-bold uppercase">Wallet (₹{walletBalance})</span>
+                    </button>
+                  </div>
+                  {paymentMethod === 'wallet' && walletBalance < (consultationFee || 0) && (
+                    <p className="text-red-500 text-[10px] font-medium animate-pulse">
+                      Insufficient balance. Please choose online payment.
+                    </p>
+                  )}
                 </div>
-                {paymentMethod === 'wallet' && walletBalance < (consultationFee || 0) && (
-                  <p className="text-red-500 text-[10px] font-medium animate-pulse">
-                    Insufficient balance. Please choose online payment.
-                  </p>
-                )}
-              </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Briefly describe your legal concern..."
-                  className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 h-24 resize-none"
-                />
-              </div>
+              {/* Consultation Notes - Only if not rescheduling */}
+              {!searchParams.get('rescheduleBookingId') && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Consultation Notes</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Briefly describe your legal concern..."
+                    className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700 h-24 resize-none"
+                  />
+                </div>
+              )}
 
               <button
-                onClick={paymentMethod === 'online' ? HandlePayment : handleWalletPayment}
-                disabled={isProcessing || (paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))}
-                className={`w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-lg ${isProcessing || (paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))
+                onClick={searchParams.get('rescheduleBookingId') ? handleReschedule : (paymentMethod === 'online' ? HandlePayment : handleWalletPayment)}
+                disabled={isProcessing || (!searchParams.get('rescheduleBookingId') && paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))}
+                className={`w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-lg ${isProcessing || (!searchParams.get('rescheduleBookingId') && paymentMethod === 'wallet' && walletBalance < (consultationFee || 0))
                   ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-teal-600 hover:bg-teal-700 shadow-teal-200'
                   }`}
@@ -926,7 +948,7 @@ export default function LawyersSinglePage() {
                     <span>Processing...</span>
                   </div>
                 ) : (
-                  paymentMethod === 'online' ? "Pay Securely & Book" : "Confirm Wallet Payment"
+                  searchParams.get('rescheduleBookingId') ? "Confirm Reschedule" : (paymentMethod === 'online' ? "Pay Securely & Book" : "Confirm Wallet Payment")
                 )}
               </button>
             </div>
