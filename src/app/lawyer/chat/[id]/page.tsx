@@ -19,6 +19,25 @@ const isImageUrl = (url: string): boolean => {
         (url.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url));
 };
 
+const formatDateSeparator = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+    } else {
+        return date.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+};
+
 export default function LawyerChatRoomPage() {
     const { id: roomId } = useParams();
     const router = useRouter();
@@ -429,77 +448,91 @@ export default function LawyerChatRoomPage() {
                             const prevMsg = messages[idx - 1];
                             const isGrouped = prevMsg && prevMsg.senderId === msg.senderId;
 
-                            return (
-                                <motion.div
-                                    key={msg.id || idx}
-                                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${isGrouped ? '-mt-4' : ''}`}
-                                >
-                                    <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[70%]`}>
-                                        {!isGrouped && (
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-2">
-                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                        )}
+                            const currentDate = new Date(msg.createdAt).toDateString();
+                            const prevDate = prevMsg ? new Date(prevMsg.createdAt).toDateString() : null;
+                            const showDateSeparator = currentDate !== prevDate;
 
-                                        <div className={`group relative px-4 py-3 rounded-2xl shadow-sm transition-all hover:shadow-md ${isOwn
-                                            ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-tr-none'
-                                            : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none'
-                                            }`}>
-                                            {msg.type === 'image' || isImageUrl(msg.content) ? (
-                                                <img
-                                                    src={msg.content}
-                                                    alt="Shared content"
-                                                    className="max-w-full rounded-xl max-h-[400px] object-cover cursor-zoom-in hover:brightness-105 transition-all"
-                                                    onClick={() => setSelectedImage(msg.content)}
-                                                />
-                                            ) : msg.type === 'document' ? (
-                                                <a
-                                                    href={msg.content}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={`flex items-center gap-3 p-2 rounded-xl transition-all ${isOwn ? 'bg-white/20 hover:bg-white/30' : 'bg-slate-50 hover:bg-slate-100'
-                                                        }`}
-                                                >
-                                                    <div className={`p-2 rounded-lg ${isOwn ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
-                                                        <FileIcon size={20} className={isOwn ? 'text-white' : 'text-teal-600'} />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-bold truncate">{msg.fileName || 'Document'}</p>
-                                                        {msg.fileSize && <p className="text-[10px] opacity-70 font-bold uppercase">{(Number(msg.fileSize) / 1024).toFixed(1)} KB</p>}
-                                                    </div>
-                                                </a>
-                                            ) : msg.type === 'video' ? (
-                                                <div className="flex flex-col gap-2">
-                                                    <video
-                                                        src={msg.content}
-                                                        controls
-                                                        className="max-w-[300px] w-full rounded-xl max-h-[400px] bg-black shadow-inner"
-                                                    />
-                                                    {msg.fileName && (
-                                                        <div className="flex items-center gap-2 px-1">
-                                                            <Video size={12} className={isOwn ? 'text-white/70' : 'text-slate-400'} />
-                                                            <p className="text-[10px] font-medium truncate opacity-80">{msg.fileName}</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <p className="text-[15px] leading-relaxed break-words font-medium">{msg.content}</p>
+                            return (
+                                <React.Fragment key={msg.id || idx}>
+                                    {showDateSeparator && (
+                                        <div className="flex justify-center my-6">
+                                            <div className="bg-slate-200/50 backdrop-blur-sm px-4 py-1.5 rounded-full border border-slate-100 shadow-sm">
+                                                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                                                    {formatDateSeparator(msg.createdAt)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${isGrouped && !showDateSeparator ? '-mt-4' : ''}`}
+                                    >
+                                        <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[70%]`}>
+                                            {(!isGrouped || showDateSeparator) && (
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-2">
+                                                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
                                             )}
+
+                                            <div className={`group relative px-4 py-3 rounded-2xl shadow-sm transition-all hover:shadow-md ${isOwn
+                                                ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-tr-none'
+                                                : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none'
+                                                }`}>
+                                                {msg.type === 'image' || isImageUrl(msg.content) ? (
+                                                    <img
+                                                        src={msg.content}
+                                                        alt="Shared content"
+                                                        className="max-w-full rounded-xl max-h-[400px] object-cover cursor-zoom-in hover:brightness-105 transition-all"
+                                                        onClick={() => setSelectedImage(msg.content)}
+                                                    />
+                                                ) : msg.type === 'document' ? (
+                                                    <a
+                                                        href={msg.content}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={`flex items-center gap-3 p-2 rounded-xl transition-all ${isOwn ? 'bg-white/20 hover:bg-white/30' : 'bg-slate-50 hover:bg-slate-100'
+                                                            }`}
+                                                    >
+                                                        <div className={`p-2 rounded-lg ${isOwn ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
+                                                            <FileIcon size={20} className={isOwn ? 'text-white' : 'text-teal-600'} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-bold truncate">{msg.fileName || 'Document'}</p>
+                                                            {msg.fileSize && <p className="text-[10px] opacity-70 font-bold uppercase">{(Number(msg.fileSize) / 1024).toFixed(1)} KB</p>}
+                                                        </div>
+                                                    </a>
+                                                ) : msg.type === 'video' ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        <video
+                                                            src={msg.content}
+                                                            controls
+                                                            className="max-w-[300px] w-full rounded-xl max-h-[400px] bg-black shadow-inner"
+                                                        />
+                                                        {msg.fileName && (
+                                                            <div className="flex items-center gap-2 px-1">
+                                                                <Video size={12} className={isOwn ? 'text-white/70' : 'text-slate-400'} />
+                                                                <p className="text-[10px] font-medium truncate opacity-80">{msg.fileName}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-[15px] leading-relaxed break-words font-medium">{msg.content}</p>
+                                                )}
+
+                                                {isOwn && msg.readAt && (
+                                                    <div className="absolute -left-8 bottom-1 text-teal-500 drop-shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Dot size={32} />
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             {isOwn && msg.readAt && (
-                                                <div className="absolute -left-8 bottom-1 text-teal-500 drop-shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <Dot size={32} />
-                                                </div>
+                                                <span className="text-[9px] font-bold text-teal-600 uppercase mt-1 mr-1">Read</span>
                                             )}
                                         </div>
-
-                                        {isOwn && msg.readAt && (
-                                            <span className="text-[9px] font-bold text-teal-600 uppercase mt-1 mr-1">Read</span>
-                                        )}
-                                    </div>
-                                </motion.div>
+                                    </motion.div>
+                                </React.Fragment>
                             );
                         })}
                     </AnimatePresence>
