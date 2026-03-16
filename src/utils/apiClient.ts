@@ -52,7 +52,10 @@ apiInstance.interceptors.response.use(
 
         const isAuthRoute = authRoutes.some(route => originalRequest.url?.includes(route));
 
-        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
+        const state = store.getState();
+        const isLoggedIn = !!(state.user?.id || state.lawyer?.id);
+
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute && isLoggedIn) {
             if (isRefreshing) {
                 return new Promise<string | null>((resolve, reject) => {
                     failedQueue.push({ resolve, reject });

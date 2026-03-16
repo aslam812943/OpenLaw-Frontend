@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { showToast } from '@/utils/alerts';
 import { userRegister } from '@/service/userService';
 import { lawyerRegister } from '@/service/lawyerService';
@@ -15,6 +15,8 @@ const validatePhone = (phone: string): boolean => /^\d{10}$/.test(phone);
 
 const RegisterForm = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect');
     const [loading, setLoading] = useState(false);
     const [registerForm, setRegisterForm] = useState({
         name: '',
@@ -82,7 +84,7 @@ const RegisterForm = () => {
             }
 
             showToast('success', 'Registration successful! OTP sent to your email/phone.');
-            router.push('/verifyOtp');
+            router.push(redirect ? `/verifyOtp?redirect=${redirect}` : '/verifyOtp');
         } catch (err: any) {
             showToast('error', err.message || 'Failed to register');
         } finally {

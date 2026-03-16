@@ -78,12 +78,16 @@ const UserHeader: React.FC = () => {
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
             {/* Consultation Button */}
-            <Link
-              href="/user/bookings"
-              className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
-            >
-              Consultation
-            </Link>
+
+            {user?.id && (
+              <Link
+                href="/user/bookings"
+                className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
+              >
+                Consultation
+              </Link>
+            )}
+
 
             {/* Notification Section */}
             {user?.name && (
@@ -215,13 +219,23 @@ const UserHeader: React.FC = () => {
                 </AnimatePresence>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="border border-slate-200 text-slate-900 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Log in
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="border border-slate-200 text-slate-900 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95"
+                >
+                  Register
+                </Link>
+              </>
             )}
+
+
           </div>
 
           {/* Mobile Menu Button */}

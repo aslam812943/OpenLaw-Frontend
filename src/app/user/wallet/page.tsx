@@ -1,4 +1,7 @@
 "use client"
+import { useSelector } from "react-redux"
+import { useRouter } from "next/navigation"
+import { RootState } from "@/redux/store"
 import React, { useEffect, useState } from "react"
 import { getWallet, Wallet, WalletTransaction } from "@/service/userService"
 import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, XCircle, AlertCircle, Info, Calendar, User, UserCheck, X, Copy, ExternalLink } from "lucide-react"
@@ -154,6 +157,8 @@ const TransactionModal = ({ isOpen, onClose, transaction }: { isOpen: boolean, o
 }
 
 const WalletPage = () => {
+    const user = useSelector((state: RootState) => state.user);
+    const router = useRouter();
     const [wallet, setWallet] = useState<Wallet | null>(null);
     const [initialLoading, setInitialLoading] = useState(true);
     const [isTableLoading, setIsTableLoading] = useState(false);
@@ -164,6 +169,7 @@ const WalletPage = () => {
     const limit = 5;
 
     const fetchWallet = async (page: number) => {
+        if (!user.id) return;
         try {
             if (!wallet) {
                 setInitialLoading(true);
@@ -187,8 +193,12 @@ const WalletPage = () => {
     };
 
     useEffect(() => {
+        if (!user.id) {
+            router.push('/login');
+            return;
+        }
         fetchWallet(currentPage);
-    }, [currentPage]);
+    }, [currentPage, user.id]);
 
     const handleOpenModal = (tx: WalletTransaction) => {
         setSelectedTx(tx);

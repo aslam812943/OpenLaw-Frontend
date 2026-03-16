@@ -356,7 +356,11 @@ const AllLawyers = () => {
                           </div>
 
                           <p className="text-teal-600 font-bold text-sm mb-4 uppercase tracking-wide flex items-center gap-2">
-                            {lawyer.practiceAreas?.[0] || "Legal Consultant"}
+                            {lawyer.practiceAreas?.map((area, i) => (
+                    <span key={i} className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 transition-colors cursor-default">
+                      {area}
+                    </span>
+                  ))}
                           </p>
 
                           <div className="grid grid-cols-2 gap-4 text-sm text-slate-600 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-100">

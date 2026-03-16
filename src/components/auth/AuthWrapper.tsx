@@ -70,7 +70,11 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ initialView = 'login' }) => {
                         <p className="text-slate-600 font-medium">
                             {view === 'login' ? "Don't have an account yet?" : "Already have an account?"}
                             <button
-                                onClick={() => router.push(view === 'login' ? '/sign-up' : '/login')}
+                                onClick={() => {
+                                    const params = new URLSearchParams(window.location.search).toString();
+                                    const target = view === 'login' ? '/sign-up' : '/login';
+                                    router.push(params ? `${target}?${params}` : target);
+                                }}
                                 className="ml-2 text-teal-600 hover:text-teal-700 font-bold hover:underline transition-all"
                             >
                                 {view === 'login' ? 'Sign up' : 'Log in'}

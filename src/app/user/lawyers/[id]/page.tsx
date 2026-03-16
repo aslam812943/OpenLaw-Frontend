@@ -71,15 +71,20 @@ export default function LawyersSinglePage() {
     }
 
     async function fetchChatAccess() {
+      if (!user.id) {
+        setHasChatAccess(false);
+        return;
+      }
       try {
         const response = await checkChatAccess(id as string);
         setHasChatAccess(response.hasAccess);
       } catch (error) {
-        showToast("error", "Failed to check chat access");
+        console.error("Failed to check chat access", error);
       }
     }
 
     async function fetchWalletBalance() {
+      if (!user.id) return;
       try {
         const response = await getWallet(1, 1);
         if (response.success) {

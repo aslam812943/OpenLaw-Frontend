@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { verifyUserOtp, resendUserOtp } from '@/service/userService';
 import { UserCheck, Shield, Mail, ArrowRight, ChevronLeft, KeyRound } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
 
 const VerifyOtpContent = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect');
+
+
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -53,7 +57,7 @@ const VerifyOtpContent = () => {
             await verifyUserOtp({ email, otp });
 
             showToast('success', 'OTP Verified! You are now verified.');
-            router.push('/login');
+            router.push(redirect ? `/login?redirect=${redirect}` : '/login');
         } catch (err: any) {
             showToast('error', err.message || 'OTP verification failed.');
         }
@@ -113,7 +117,7 @@ const VerifyOtpContent = () => {
                 {/* RIGHT SIDE: Form Section */}
                 <div className="w-full lg:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center relative bg-white">
                     <button
-                        onClick={() => router.push('/login')}
+                        onClick={() => router.push(redirect ? `/login?redirect=${redirect}` : '/login')}
                         className="absolute top-8 left-8 flex items-center text-slate-500 hover:text-teal-600 transition-colors font-medium text-sm group"
                     >
                         <ChevronLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />

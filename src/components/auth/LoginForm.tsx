@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { setUserData, clearUserData } from '../../redux/userSlice';
 import { setLawyerData, clearLawyerData } from '../../redux/lawyerSlice';
 import { useDispatch } from 'react-redux';
@@ -17,7 +17,9 @@ const validatePassword = (password: string): boolean => password.length >= 6;
 
 const LoginForm = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const dispatch = useDispatch();
+    const redirect = searchParams.get("redirect") || "/";
 
     const [loginForm, setLoginForm] = useState({ email: '', password: '' });
     const [loginErrors, setLoginErrors] = useState({ email: '', password: '' });
@@ -41,7 +43,7 @@ const LoginForm = () => {
         const user = data.data?.user;
 
         if (user.role === "lawyer") {
-            dispatch(clearUserData()); 
+            dispatch(clearUserData());
             dispatch(setLawyerData({
                 id: user._id || (user as any).id,
                 email: user.email,
@@ -65,7 +67,7 @@ const LoginForm = () => {
             router.replace("/lawyer/dashboard");
             return
         } else if (user.role === "user") {
-            dispatch(clearLawyerData()); 
+            dispatch(clearLawyerData());
             dispatch(setUserData({
                 id: user._id || (user as any).id,
                 email: user.email,
@@ -73,7 +75,7 @@ const LoginForm = () => {
                 phone: user.phone as any,
                 role: user.role
             }));
-            window.location.href = "/";
+            window.location.href = redirect;
             return
         }
     };
