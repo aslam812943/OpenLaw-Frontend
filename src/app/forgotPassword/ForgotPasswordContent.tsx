@@ -37,7 +37,7 @@ const ForgotPasswordContent = () => {
         setLoading(true);
         try {
             await userForgotPassword(email);
-
+            sessionStorage.setItem('resetEmail', email); 
             showToast('success', 'Password reset OTP sent! Please check your email.');
             router.push('/resetPassword');
         } catch (err: any) {
