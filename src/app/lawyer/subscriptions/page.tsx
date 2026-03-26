@@ -3,33 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Shield, Zap, Star, AlertCircle } from 'lucide-react';
-import { getSubscriptionPlans, getCurrentSubscription, createSubscriptionCheckout } from '@/service/lawyerService';
+import { getSubscriptionPlans, getCurrentSubscription, createSubscriptionCheckout, SubscriptionPlan, SubscriptionResponse } from '@/service/lawyerService';
 import { showToast } from '@/utils/alerts';
 import Pagination from '@/components/common/Pagination';
-interface SubscriptionPlan {
-    id: string;
-    planName: string;
-    duration: number;
-    durationUnit: string;
-    price: number;
-    commissionPercent: number;
-    isActive: boolean;
-}
 
-interface CurrentSubscription {
-    id: string;
-    planName: string;
-    duration: number;
-    durationUnit: string;
-    price: number;
-    commissionPercent: number;
-    isActive: boolean;
-    expiryDate?: string;
-}
 
 const SubscriptionsPage = () => {
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-    const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null);
+    const [currentSubscription, setCurrentSubscription] = useState<SubscriptionResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -51,8 +32,8 @@ const SubscriptionsPage = () => {
                 if (currentResponse?.data) {
                     setCurrentSubscription(currentResponse.data);
                 }
-            } catch (error: any) {
-                showToast('error', error.message || 'Failed to load subscription data');
+            } catch (error: unknown) {
+                showToast('error', (error instanceof Error) ? error.message : 'Failed to load subscription data');
             } finally {
                 setLoading(false);
             }
@@ -87,8 +68,8 @@ const SubscriptionsPage = () => {
             }
 
 
-        } catch (error: any) {
-            showToast('error', error.message || 'Failed to initiate checkout');
+        } catch (error: unknown) {
+            showToast('error', (error instanceof Error) ? error.message : 'Failed to initiate checkout');
         } finally {
             setProcessingId(null);
         }

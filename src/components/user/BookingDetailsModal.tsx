@@ -130,8 +130,9 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             showToast('success', 'Follow-up request cancelled successfully');
             onClose();
             if (onSuccess) onSuccess();
-        } catch (error: any) {
-            showToast('error', error.response?.data?.message || 'Failed to cancel follow-up request');
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } }; message?: string };
+            showToast('error', err.response?.data?.message || err.message || 'Failed to cancel follow-up request');
         } finally {
             setIsCancellingFollowUp(false);
         }

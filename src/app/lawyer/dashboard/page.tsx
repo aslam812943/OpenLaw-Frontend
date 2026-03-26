@@ -35,7 +35,7 @@ export default function LawyerDashboard() {
         setStats(statsRes.data);
       }
       setLawyerName(profileData?.name || 'Counselor');
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast("error", "Failed to load dashboard data");
     } finally {
       setLoading(false);

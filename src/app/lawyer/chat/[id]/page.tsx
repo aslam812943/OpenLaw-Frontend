@@ -6,11 +6,19 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useSocket } from '@/context/SocketContext';
 import { Send, ArrowLeft, MoreVertical, User, FileIcon, Paperclip, Search, Dot, ChevronLeft, Image as ImageIcon, Video, FileText } from 'lucide-react';
-import { getMessages, getRoomById, uploadFile, getLawyerSpecificRooms, ChatRoomDetails } from '@/service/chatService';
+import { getMessages, getRoomById, uploadFile, getLawyerSpecificRooms, ChatRoomDetails, Message } from '@/service/chatService';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/components/ui/ImageModal';
 import { showToast } from '@/utils/alerts';
 import VideoCallButton from '@/components/chat/VideoCallButton';
+
+interface ChatUser {
+    id: string;
+    _id?: string;
+    name: string;
+    profileImage?: string;
+    isOnline?: boolean;
+}
 
 const isImageUrl = (url: string): boolean => {
     if (!url) return false;
@@ -43,7 +51,7 @@ export default function LawyerChatRoomPage() {
     const router = useRouter();
     const { socket, isConnected } = useSocket();
     const lawyer = useSelector((state: RootState) => state.lawyer);
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -65,7 +73,7 @@ export default function LawyerChatRoomPage() {
                     setRoomInfo(roomRes.data);
 
                     const clientId = typeof roomRes.data.userId === 'object'
-                        ? (roomRes.data.userId as any)._id || (roomRes.data.userId as any).id
+                        ? (roomRes.data.userId as ChatUser)._id || (roomRes.data.userId as ChatUser).id
                         : roomRes.data.userId;
 
                     const [roomsRes, messagesRes] = await Promise.all([
@@ -94,7 +102,7 @@ export default function LawyerChatRoomPage() {
         if (socket && roomId) {
             socket.emit('join-room', { roomId });
 
-            const handleNewMessage = (message: any) => {
+            const handleNewMessage = (message: Message) => {
                 setMessages((prev) => {
                     const exists = prev.some(msg => msg.id === message.id ||
                         (msg.id?.startsWith('temp-') && msg.content === message.content && msg.senderId === message.senderId));
@@ -121,7 +129,7 @@ export default function LawyerChatRoomPage() {
 
             socket.on('new-message', handleNewMessage);
             socket.on('messages-read', handleMessagesRead);
-            socket.on('chat-error', (error: any) => showToast('error', error.message || 'An error occurred'));
+            socket.on('chat-error', (error: { message?: string }) => showToast('error', error.message || 'An error occurred'));
 
             return () => {
                 socket.off('new-message', handleNewMessage);
@@ -137,7 +145,7 @@ export default function LawyerChatRoomPage() {
                 socket.emit('join-room', { roomId: room.id });
             });
 
-            const handleSidebarUpdate = (message: any) => {
+            const handleSidebarUpdate = (message: Message & { roomId: string }) => {
                 setRooms(prevRooms => {
                     const roomIndex = prevRooms.findIndex(r => r.id === message.roomId);
                     if (roomIndex === -1) return prevRooms;
@@ -184,7 +192,7 @@ export default function LawyerChatRoomPage() {
         const content = newMessage.trim();
         if (!content || !socket || !isConnected) return;
 
-        const tempMessage = {
+        const tempMessage: Message = {
             id: `temp-${Date.now()}`,
             senderId: lawyer.id || '',
             content,
@@ -237,7 +245,7 @@ export default function LawyerChatRoomPage() {
     }
 
     const filteredRooms = rooms.filter(room => {
-        const userName = typeof room.userId === 'object' ? (room.userId as any).name : '';
+        const userName = typeof room.userId === 'object' ? (room.userId as ChatUser).name : '';
         const bookingId = room.bookingDetails?.bookingId || '';
         return userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             bookingId.toLowerCase().includes(searchTerm.toLowerCase());
@@ -301,21 +309,21 @@ export default function LawyerChatRoomPage() {
 
                         <div className="relative flex-shrink-0">
                             <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden ring-2 ring-white">
-                                {(room.userId as any).profileImage ? (
-                                    <img src={(room.userId as any).profileImage} alt="" className="w-full h-full object-cover" />
+                                {typeof room.userId === 'object' && (room.userId as ChatUser).profileImage ? (
+                                    <img src={(room.userId as ChatUser).profileImage} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center relative">
                                         <User size={20} className="text-slate-400" />
                                     </div>
                                 )}
                             </div>
-                            {(room.userId as any).isOnline && (
+                            {typeof room.userId === 'object' && (room.userId as ChatUser).isOnline && (
                                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-teal-500 border-2 border-white rounded-full shadow-sm" />
                             )}
                         </div>
                         <div className="text-left min-w-0 flex-1">
                             <div className="flex justify-between items-start gap-1">
-                                <p className="font-bold text-sm truncate">{(room.userId as any).name}</p>
+                                <p className="font-bold text-sm truncate">{typeof room.userId === 'object' ? (room.userId as ChatUser).name : ''}</p>
                                 {room.lastMessage && (
                                     <span className="text-[10px] text-slate-400 whitespace-nowrap">
                                         {new Date(room.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -411,8 +419,8 @@ export default function LawyerChatRoomPage() {
                         <div className="flex items-center gap-3 min-w-0">
                             <div className="relative flex-shrink-0">
                                 <div className="w-12 h-12 rounded-2xl bg-teal-50 ring-4 ring-teal-50/50 flex items-center justify-center overflow-hidden">
-                                    {typeof roomInfo?.userId === 'object' && (roomInfo.userId as any).profileImage ? (
-                                        <img src={(roomInfo.userId as any).profileImage} alt="" className="w-full h-full object-cover" />
+                                    {typeof roomInfo?.userId === 'object' && (roomInfo.userId as ChatUser).profileImage ? (
+                                        <img src={(roomInfo.userId as ChatUser).profileImage} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <User size={24} className="text-teal-600" />
                                     )}
@@ -420,7 +428,7 @@ export default function LawyerChatRoomPage() {
                             </div>
                             <div>
                                 <h2 className="font-bold text-slate-900">
-                                    {typeof roomInfo?.userId === 'object' ? (roomInfo.userId as any).name : 'Loading...'}
+                                    {typeof roomInfo?.userId === 'object' ? (roomInfo.userId as ChatUser).name : 'Loading...'}
                                 </h2>
                                 <p className="text-xs text-slate-500">Active Consultation</p>
                             </div>

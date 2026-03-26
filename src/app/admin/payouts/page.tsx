@@ -55,8 +55,8 @@ const AdminPayoutsPage = () => {
             await approvePayout(id);
             showToast('success', 'Payout approved successfully');
             fetchData();
-        } catch (error: any) {
-            showToast('error', error.message || 'Approval failed');
+        } catch (error: unknown) {
+            showToast('error', (error as Error).message || 'Approval failed');
         } finally {
             setActionLoading(null);
         }
@@ -85,7 +85,7 @@ const AdminPayoutsPage = () => {
                 showToast("success", "Lawyer blocked successfully.");
             }
             fetchData();
-        } catch (error: any) {
+        } catch (error: unknown) {
             showToast("error", `Failed to ${type.toLowerCase()} lawyer.`);
         } finally {
             setActionLoading(null);

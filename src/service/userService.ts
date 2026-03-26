@@ -28,7 +28,7 @@ export interface Specialization {
   isActive: boolean;
 }
 
-export interface CommonResponse<T = any> {
+export interface CommonResponse<T = unknown> {
   success: boolean;
   message: string;
   data: T;
@@ -90,7 +90,11 @@ export interface BookingDetails {
 
 export interface Review {
   id: string;
+  _id?: string;
+  userId: string;
   userName: string;
+  userImage?: string;
+  lawyerId: string;
   rating: number;
   comment: string;
   createdAt: string;
@@ -103,7 +107,7 @@ export interface Notification {
   type: string;
   isRead: boolean;
   createdAt: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export async function fetchUsers(

@@ -39,7 +39,7 @@ export default function AdminBookingsPage() {
                 setBookings(response.data.bookings);
                 setTotal(response.data.total);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.log("Failed to fetch bookings", error);
         } finally {
             setLoading(false);

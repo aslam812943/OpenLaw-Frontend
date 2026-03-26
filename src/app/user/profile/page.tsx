@@ -5,9 +5,10 @@ import {
   getprofile,
   updateProfileInfo,
   changePassword,
+  User,
 } from "@/service/userService";
 import {
-  Camera, Edit2, Loader2, Save, X, User, Mail,
+  Camera, Edit2, Loader2, Save, X, User as UserIcon, Mail,
   Phone as PhoneIcon, MapPin, Lock, ShieldCheck,
   Settings, Globe, CheckCircle2, ChevronRight
 } from "lucide-react";
@@ -20,7 +21,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -77,8 +78,8 @@ export default function ProfilePage() {
       setIsEditing(false);
       setImageFile(null);
       setShowChangePassword(data.isPassword || false);
-    } catch (err: any) {
-      showToast("error", err?.message || "Failed to fetch profile");
+    } catch (err: unknown) {
+      showToast("error", (err as { message?: string })?.message || "Failed to fetch profile");
     } finally {
       setLoading(false);
     }
@@ -118,8 +119,8 @@ export default function ProfilePage() {
       await updateProfileInfo(fd);
       showToast("success", "Profile updated successfully");
       await loadProfile();
-    } catch (err: any) {
-      showToast("error", err?.message || "Failed to update profile");
+    } catch (err: unknown) {
+      showToast("error", (err as { message?: string })?.message || "Failed to update profile");
     } finally {
       setIsSaving(false);
     }
@@ -141,8 +142,8 @@ export default function ProfilePage() {
       showToast("success", res.message || "Password changed successfully");
       setFormData({ ...formData, oldPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordInputs(false);
-    } catch (err: any) {
-      showToast("error", err?.message || "Password change failed");
+    } catch (err: unknown) {
+      showToast("error", (err as { message?: string })?.message || "Password change failed");
     } finally {
       setIsChangingPassword(false);
     }
@@ -193,7 +194,7 @@ export default function ProfilePage() {
                         <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full rounded bg-slate-100 flex items-center justify-center">
-                          <User size={48} className="text-slate-300" />
+                          <UserIcon size={48} className="text-slate-300" />
                         </div>
                       )}
                     </div>
@@ -221,7 +222,7 @@ export default function ProfilePage() {
                       className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${activeTab === 'personal' ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 group'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <User size={20} className={activeTab === 'personal' ? 'text-white' : 'text-slate-400 group-hover:text-teal-500'} />
+                        <UserIcon size={20} className={activeTab === 'personal' ? 'text-white' : 'text-slate-400 group-hover:text-teal-500'} />
                         <span className="font-bold text-sm">Personal Information</span>
                       </div>
                       <ChevronRight size={18} className={activeTab === 'personal' ? 'opacity-100' : 'opacity-0'} />

@@ -87,8 +87,8 @@ const SpecializationsPage = () => {
                     showToast('error', res.message || 'Failed to create');
                 }
             }
-        } catch (error: any) {
-            showToast('error', error.message || 'An error occurred');
+        } catch (error: unknown) {
+            showToast('error', (error as Error).message || 'An error occurred');
         }
     };
 

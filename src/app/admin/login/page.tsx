@@ -57,11 +57,11 @@ export default function AdminLoginPage() {
         router.replace("/admin/dashboard");
 
       }
-    } catch (err: any) {
-
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
       showToast(
         "error",
-        `❌ Login failed: ${err.response?.data?.message || err.message || "Invalid credentials"}`
+        `❌ Login failed: ${error.response?.data?.message || error.message || "Invalid credentials"}`
       );
     } finally {
       setLoading(false);
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#0a0a0a", // Deep black background
+        backgroundColor: "#0a0a0a", 
         color: "#fff",
       }}
     >
@@ -91,7 +91,7 @@ export default function AdminLoginPage() {
           border: "1px solid #333",
           padding: "40px",
           borderRadius: "16px",
-          backgroundColor: "#111", // Dark form background
+          backgroundColor: "#111", 
           boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
           backdropFilter: "blur(10px)",
         }}

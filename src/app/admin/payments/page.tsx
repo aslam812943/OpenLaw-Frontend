@@ -38,7 +38,7 @@ export default function AdminPaymentsPage() {
             const data = await fetchPayments(filters);
             setPayments(data.data.payments);
             setTotal(data.data.total);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Failed to fetch payments", error);
         } finally {
             setLoading(false);
@@ -63,7 +63,7 @@ export default function AdminPaymentsPage() {
             header: "Date",
             render: (payment) => <span className="text-gray-600">{new Date(payment.date).toLocaleDateString()}</span>
         },
-     
+
         {
             header: "Transaction ID",
             render: (payment) => <span className="text-teal-600 font-mono text-sm">{payment.transactionId}</span>

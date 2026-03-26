@@ -7,7 +7,6 @@ import { fetchUsers, blockUser, unBlockUser } from "@/service/userService";
 import Pagination from "../../../components/common/Pagination";
 import type { IUser } from "@/types/user";
 import { Eye } from "lucide-react";
-import AdminSidebar from "../../../components/AdminSIdeBar";
 import { confirmAction } from "@/utils/confirmAction";
 import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable";
 import { FilterBar } from "@/components/admin/shared/ReusableFilterBar";
@@ -32,9 +31,9 @@ export default function AdminUsersPage() {
         setUsers(response.data.users);
         setTotal(response.data.total);
       }
-    } catch (e: any) {
-      setError(e.message);
-      showToast("error", e.message || "Failed to load users.");
+    } catch (e: unknown) {
+      setError((e as Error).message);
+      showToast("error", (e as Error).message || "Failed to load users.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +97,7 @@ export default function AdminUsersPage() {
             prev ? { ...prev, isBlock: false } : prev
           );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(
         "error",
         `Failed to ${type.toLowerCase()} user. Please try again.`

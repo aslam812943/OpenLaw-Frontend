@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { getprofile, fetchLawyerReviews } from '@/service/lawyerService';
+import { getprofile, fetchLawyerReviews, Review } from '@/service/lawyerService';
 import { Star, MessageSquare, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showToast } from '@/utils/alerts';
 
 
 const ReviewsPage = () => {
-    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [lawyerId, setLawyerId] = useState<string | null>(null);
 
@@ -26,8 +26,8 @@ const ReviewsPage = () => {
                         setReviews(reviewsRes.data || []);
                     }
                 }
-            } catch (error: any) {
-                showToast('error', error.message || 'Failed to load reviews');
+            } catch (error: unknown) {
+                showToast('error', (error instanceof Error) ? error.message : 'Failed to load reviews');
             } finally {
                 setLoading(false);
             }
@@ -74,7 +74,7 @@ const ReviewsPage = () => {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {reviews.map((review: any) => (
+                            {reviews.map((review: Review) => (
                                 <motion.div
                                     key={review.id || review._id}
                                     initial={{ opacity: 0, y: 20 }}

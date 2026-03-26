@@ -71,11 +71,12 @@ const ResetPasswordContent = () => {
             const { confirmPassword, ...submitData } = form;
             await userResetPassword(submitData);
 
-            sessionStorage.removeItem('resetEmail'); 
+            sessionStorage.removeItem('resetEmail');
             showToast('success', 'Password reset successful! Please login with your new password.');
             router.push('/login');
-        } catch (err: any) {
-            showToast('error', err.response?.data?.message || 'Password reset failed. Please check your OTP and try again.');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            showToast('error', error.response?.data?.message || error.message || 'Password reset failed. Please check your OTP and try again.');
         }
         setLoading(false);
     };

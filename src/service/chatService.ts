@@ -12,6 +12,7 @@ export interface ChatRoom {
 
 export interface Message {
     id: string;
+    _id?: string;
     senderId: string;
     content: string;
     senderRole?: 'user' | 'lawyer';
@@ -27,12 +28,14 @@ export interface ChatRoomDetails {
     id: string;
     lawyerId: {
         id: string;
+        _id?: string;
         name: string;
         profileImage?: string;
         isOnline?: boolean;
     };
     userId: {
         id: string;
+        _id?: string;
         name: string;
         profileImage?: string;
         isOnline?: boolean;
@@ -52,6 +55,7 @@ export interface ChatRoomDetails {
         date: string;
     };
     updatedAt: string;
+    createdAt: string;
 }
 
 export const checkChatAccess = async (lawyerId: string): Promise<ChatAccessResponse> => {

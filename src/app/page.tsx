@@ -66,7 +66,7 @@ const LawyerLandingPage = () => {
             {/* Social Proof */}
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3 sm:-space-x-4">
-                {[{ a: 1, img: '/lawboy7.jpg' }, { b: 2, img: '/lawboy8.jpg' }, { c: 3, img: '/laweyrGirl20.jpg' }, { d: 4, img: '/profile.jpg' }].map((item, index) => (
+                {[{ img: '/lawboy7.jpg' }, { img: '/lawboy8.jpg' }, { img: '/laweyrGirl20.jpg' }, { img: '/profile.jpg' }].map((item, index) => (
                   <img
                     key={index}
                     className="h-10 w-10 sm:h-12 sm:w-13 rounded-full border-2 border-white object-cover"

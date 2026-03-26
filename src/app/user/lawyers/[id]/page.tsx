@@ -198,8 +198,8 @@ export default function LawyersSinglePage() {
     }
   }
 
-  function updateCalendar(slotsData: any[]) {
-    const uniqueDates = [...new Set(slotsData.map((slot: any) => slot.date))];
+  function updateCalendar(slotsData: Slot[]) {
+    const uniqueDates = [...new Set(slotsData.map((slot) => slot.date))];
     const calendar = generateMonthDays(currentYear, currentMonth, uniqueDates as string[]);
     setCalendarDays(calendar.days);
   }
@@ -244,8 +244,8 @@ export default function LawyersSinglePage() {
       } else {
         showToast("error", "Failed to initiate payment. Please try again.");
       }
-    } catch (error: any) {
-      showToast("error", error.response?.data?.message || error.message || "Payment failed. Please try again.");
+    } catch (error: unknown) {
+      showToast("error", (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message || "Payment failed. Please try again.");
     }
   };
 
@@ -293,8 +293,8 @@ export default function LawyersSinglePage() {
       } else {
         showToast("error", response.message || "Failed to book with wallet.");
       }
-    } catch (error: any) {
-      showToast("error", error.response?.data?.message || error.message || "Wallet booking failed.");
+    } catch (error: unknown) {
+      showToast("error", (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message || "Wallet booking failed.");
     } finally {
       setIsProcessing(false);
     }
@@ -317,8 +317,8 @@ export default function LawyersSinglePage() {
       setBookingSlot(false);
       setBookingMode(false);
       router.push("/user/bookings");
-    } catch (error: any) {
-      showToast("error", error.response?.data?.message || error.message || "Failed to reschedule appointment.");
+    } catch (error: unknown) {
+      showToast("error", (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message || "Failed to reschedule appointment.");
     } finally {
       setIsProcessing(false);
     }
@@ -390,8 +390,8 @@ export default function LawyersSinglePage() {
 
       setRating(0);
       setReviewComment("");
-    } catch (error: any) {
-      showToast("error", error.message || "Failed to submit review");
+    } catch (error: unknown) {
+      showToast("error", (error as Error).message || "Failed to submit review");
     } finally {
       setIsSubmittingReview(false);
     }
@@ -623,7 +623,7 @@ export default function LawyersSinglePage() {
                           duration: Math.max(20, reviews.length * 2)
                         }}
                       >
-                        {[...reviews, ...reviews].map((review: any, i) => (
+                        {[...reviews, ...reviews].map((review, i) => (
                           <div key={`${review._id}-${i}`} className="w-[300px] flex-shrink-0 bg-slate-50 p-4 rounded-xl border border-slate-100">
                             <div className="flex items-center gap-3 mb-3">
                               <img src={review.userImage || "/default-user.jpg"} alt={review.userName} className="w-8 h-8 rounded-full object-cover bg-slate-200" />
@@ -643,7 +643,7 @@ export default function LawyersSinglePage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {reviews.map((review: any) => (
+                      {reviews.map((review) => (
                         <div key={review.id} className="bg-slate-50 p-5 rounded-xl border border-slate-200">
                           <div className="flex items-center gap-3 mb-3">
                             <img src={review.userImage || "/default-user.jpg"} alt={review.userName} className="w-10 h-10 rounded-full object-cover bg-slate-200" />
@@ -730,7 +730,7 @@ export default function LawyersSinglePage() {
                     <Star className="text-amber-400" size={18} fill="currentColor" />
                     Write a Review
                   </h3>
-                  {reviews.some((r: any) => r.userId === user.id) ? (
+                  {reviews.some((r) => r.userId === user.id) ? (
                     <div className="p-4 bg-teal-50 border border-teal-100 rounded-xl text-teal-800 text-sm font-medium">
                       You have already reviewed this lawyer. Thank you for your feedback!
                     </div>

@@ -54,7 +54,7 @@ const LawyerSignup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
 
-  const [practiceOptions, setPracticeOptions] = useState<{ value: string; label: string; icon: any }[]>([]);
+  const [practiceOptions, setPracticeOptions] = useState<{ value: string; label: string; icon: React.ElementType }[]>([]);
 
   const getIconForArea = (areaName: string) => {
     const lower = areaName.toLowerCase();
@@ -249,8 +249,8 @@ const LawyerSignup = () => {
 
       showToast("success", "Verification details submitted successfully!");
       setIsSubmitted(true);
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Failed to submit form. Please try again.";
+    } catch (error: unknown) {
+      const message = (error as any).response?.data?.message || "Failed to submit form. Please try again.";
       setErrors({ submit: message });
       showToast("error", message);
     } finally {

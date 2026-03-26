@@ -68,7 +68,7 @@ export default function UserChatPage() {
                     setRoomInfo(roomRes.data);
 
                     const lawyerId = typeof roomRes.data.lawyerId === 'object'
-                        ? (roomRes.data.lawyerId as any)._id || (roomRes.data.lawyerId as any).id
+                        ? (roomRes.data.lawyerId as { id: string; _id?: string })._id || (roomRes.data.lawyerId as { id: string; _id?: string }).id
                         : roomRes.data.lawyerId;
 
                     const [roomsRes, messagesRes] = await Promise.all([
@@ -83,7 +83,7 @@ export default function UserChatPage() {
                         setMessages(messagesRes.data);
                     }
                 }
-            } catch (error) {
+            } catch (error: unknown) {
                 showToast('error', 'Failed to load chat data');
             } finally {
                 setLoading(false);
@@ -112,7 +112,7 @@ export default function UserChatPage() {
         if (socket && roomId) {
             socket.emit('join-room', { roomId });
 
-            const handleNewMessage = (message: any) => {
+            const handleNewMessage = (message: Message) => {
                 setMessages((prev) => {
                     const exists = prev.some(msg => msg.id === message.id ||
                         (msg.id?.startsWith('temp-') && msg.content === message.content && msg.senderId === message.senderId));
@@ -128,7 +128,7 @@ export default function UserChatPage() {
             };
 
             socket.on('new-message', handleNewMessage);
-            socket.on('chat-error', (error: any) => showToast('error', error.message || 'An error occurred'));
+            socket.on('chat-error', (error: { message?: string }) => showToast('error', error.message || 'An error occurred'));
 
             return () => {
                 socket.off('new-message', handleNewMessage);
@@ -143,7 +143,7 @@ export default function UserChatPage() {
                 socket.emit('join-room', { roomId: room.id });
             });
 
-            const handleSidebarUpdate = (message: any) => {
+            const handleSidebarUpdate = (message: Message & { roomId: string }) => {
                 setRooms(prevRooms => {
                     const roomIndex = prevRooms.findIndex(r => r.id === message.roomId);
                     if (roomIndex === -1) return prevRooms;

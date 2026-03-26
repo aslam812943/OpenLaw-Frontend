@@ -98,7 +98,12 @@ export default function GetProfile() {
                 practiceAreas: profileData?.practiceAreas || [],
                 languages: profileData?.languages || [],
                 documentUrls: profileData?.documentUrls || [],
-                address: profileData?.address || [],
+                address: profileData?.Address ? [
+                    profileData.Address.address,
+                    profileData.Address.city,
+                    profileData.Address.state,
+                    String(profileData.Address.pincode)
+                ] : [],
                 name: profileData?.name,
                 email: profileData?.email,
                 phone: profileData?.phone,
@@ -120,14 +125,14 @@ export default function GetProfile() {
             setShowChengePassword(profileData.isPassword || false)
 
 
-            const addressArray = profileData?.address || [];
+            const addr = profileData?.Address;
             setFormData({
                 name: profileData?.name || '',
                 phone: profileData?.phone || '',
-                street: addressArray[0] ?? '',
-                city: addressArray[1] ?? '',
-                state: addressArray[2] ?? '',
-                pincode: addressArray[3] ?? '',
+                street: addr?.address || '',
+                city: addr?.city || '',
+                state: addr?.state || '',
+                pincode: addr?.pincode?.toString() || '',
                 profileImage: null,
                 bio: profileData?.bio || '',
                 consultationFee: profileData?.consultationFee?.toString() || '0'
