@@ -79,8 +79,9 @@ const Sidebar: React.FC = () => {
         showToast('success', 'Logout successful');
         router.push('/login');
       }
-    } catch (err: any) {
-      showToast('error', err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Logout failed';
+      showToast('error', errorMessage);
     }
   };
 

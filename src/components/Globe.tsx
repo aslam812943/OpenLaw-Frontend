@@ -1,11 +1,12 @@
 "use client";
 if (typeof window !== 'undefined' && !window.hasOwnProperty('GPUShaderStage')) {
-  (window as any).GPUShaderStage = { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 };
+  (window as unknown as { GPUShaderStage: { VERTEX: number; FRAGMENT: number; COMPUTE: number } }).GPUShaderStage = { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 };
 }
 import React, { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
+import { GlobeMethods } from 'react-globe.gl';
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
   loading: () => (
@@ -16,7 +17,15 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 });
 
 
-const arcsData = [
+interface ArcData {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+  color: string;
+}
+
+const arcsData: ArcData[] = [
   { startLat: 37.7749, startLng: -122.4194, endLat: 51.5074, endLng: -0.1278, color: "#00f2ff" },
   { startLat: 40.7128, startLng: -74.0060, endLat: 48.8566, endLng: 2.3522, color: "#7c3aed" },
   { startLat: 28.6139, startLng: 77.2090, endLat: 35.6895, endLng: 139.6917, color: "#3b82f6" },
@@ -43,9 +52,11 @@ const arcsData = [
 
 ];
 
+
 export default function MyGlobe() {
   const router = useRouter()
-  const globeRef = useRef<any>(null);
+
+  const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -103,7 +114,7 @@ export default function MyGlobe() {
                 atmosphereColor="#4ade80"
                 atmosphereAltitude={0.18}
                 arcsData={arcsData}
-                arcColor={(d: any) => d.color}
+                arcColor={(d: object) => (d as ArcData).color}
                 arcDashLength={0.4}
                 arcDashGap={2}
                 arcDashAnimateTime={2000}

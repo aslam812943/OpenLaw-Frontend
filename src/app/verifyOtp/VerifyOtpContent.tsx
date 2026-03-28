@@ -58,8 +58,9 @@ const VerifyOtpContent = () => {
 
             showToast('success', 'OTP Verified! You are now verified.');
             router.push(redirect ? `/login?redirect=${redirect}` : '/login');
-        } catch (err: any) {
-            showToast('error', err.message || 'OTP verification failed.');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'OTP verification failed.';
+            showToast('error', errorMessage);
         }
         setLoading(false);
     };
@@ -72,8 +73,9 @@ const VerifyOtpContent = () => {
             showToast('success', 'OTP resent! Please check your email.');
             setTimer(30);
             setCanResend(false);
-        } catch (err: any) {
-            showToast('error', err.message || 'Error resending OTP.');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Error resending OTP.';
+            showToast('error', errorMessage);
         }
         setResendLoading(false);
     };

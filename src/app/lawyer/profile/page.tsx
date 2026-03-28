@@ -282,8 +282,9 @@ export default function GetProfile() {
             showToast("success", "Password changed successfully")
             setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
             setShowPasswordSection(false)
-        } catch (error: any) {
-            showToast("error", error.message || "Failed to change password")
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to change password";
+            showToast("error", errorMessage)
         } finally {
             setChangingPassword(false);
         }

@@ -250,7 +250,13 @@ const LawyerSignup = () => {
       showToast("success", "Verification details submitted successfully!");
       setIsSubmitted(true);
     } catch (error: unknown) {
-      const message = (error as any).response?.data?.message || "Failed to submit form. Please try again.";
+      let message = "Failed to submit form. Please try again.";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const response = (error as { response: { data: { message?: string } } }).response;
+        message = response.data.message || message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
       setErrors({ submit: message });
       showToast("error", message);
     } finally {

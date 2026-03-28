@@ -116,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({
 
                   <div className="max-h-96 overflow-y-auto">
                     {notifications.length > 0 ? (
-                      notifications.map((notif: any) => (
+                      notifications.map((notif) => (
                         <div
                           key={notif.id}
                           className="px-5 py-4 border-b border-slate-50 hover:bg-slate-50 transition-colors"

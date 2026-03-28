@@ -128,7 +128,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             setIsConnected(false);
         });
 
-        socketInstance.on('notification', (data: any) => {
+        socketInstance.on('notification', (data: Notification) => {
             setNotifications(prev => [data, ...prev]);
             setUnreadCount(prev => prev + 1);
         });

@@ -29,8 +29,9 @@ const SubscriptionPlans: React.FC = () => {
                 } else {
                     showToast("error", "Failed to load plans.");
                 }
-            } catch (err: any) {
-                showToast("error", err.message || "An error occurred.");
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : "An error occurred.";
+                showToast("error", errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -63,9 +64,10 @@ const SubscriptionPlans: React.FC = () => {
                 showToast("error", "Failed to initiate checkout");
             }
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            showToast("error", err.message || "Checkout failed");
+            const errorMessage = err instanceof Error ? err.message : "Checkout failed";
+            showToast("error", errorMessage);
         } finally {
             setProcessingId(null);
         }

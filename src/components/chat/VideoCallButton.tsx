@@ -47,8 +47,9 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role }) =>
             } else {
                 showToast('warning', res.data?.message || res.message || 'The lawyer has not joined the call yet. Please wait for them to join.');
             }
-        } catch (error: any) {
-            showToast('error', error.message || 'Error occurred while joining call');
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error occurred while joining call';
+            showToast('error', errorMessage);
         } finally {
             setLoading(false);
         }
