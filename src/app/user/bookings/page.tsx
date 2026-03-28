@@ -102,8 +102,8 @@ const UserAppointmentsPage = () => {
             await cancelAppointment(selectedAppointmentId, reason);
             showToast("success", "Appointment cancelled successfully.");
             fetchAppointments(currentPage);
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.message || "Failed to cancel appointment. Please try again.";
+        } catch (error: unknown) {
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to cancel appointment. Please try again.";
             showToast("error", errorMessage);
         } finally {
             setIsModalOpen(false);

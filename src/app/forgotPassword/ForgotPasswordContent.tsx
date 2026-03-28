@@ -37,11 +37,12 @@ const ForgotPasswordContent = () => {
         setLoading(true);
         try {
             await userForgotPassword(email);
-
+            sessionStorage.setItem('resetEmail', email);
             showToast('success', 'Password reset OTP sent! Please check your email.');
             router.push('/resetPassword');
-        } catch (err: any) {
-            showToast('error', err.response?.data?.message || 'Failed to send password reset email.');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            showToast('error', error.response?.data?.message || error.message || 'Failed to send password reset email.');
         }
         setLoading(false);
     };

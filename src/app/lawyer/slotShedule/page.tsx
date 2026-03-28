@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, Edit, Trash2 } from 'lucide-react';
-import { scheduleCreate, scheduleUpdate, fetchAllRules, deleteRule } from '@/service/lawyerService';
+import { scheduleCreate, scheduleUpdate, fetchAllRules, deleteRule, ScheduleRule } from '@/service/lawyerService';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { showToast } from '@/utils/alerts';
@@ -61,12 +61,12 @@ export default function App() {
         const rulesData = Array.isArray(response.data) ? response.data : [];
 
 
-        const mappedRules = rulesData.map((item: any) => {
+        const mappedRules: SchedulingRule[] = rulesData.map((item: ScheduleRule & { '0'?: ScheduleRule }) => {
 
           const rule = item['0'] || item;
 
           return {
-            id: rule.id || rule._id,
+            id: rule.id || rule._id || '',
             title: rule.title,
             startTime: rule.startTime,
             endTime: rule.endTime,
@@ -359,10 +359,10 @@ export default function App() {
       if (response?.data) {
         const rulesData = Array.isArray(response.data) ? response.data : [];
 
-        const mappedRules = rulesData.map((item: any) => {
+        const mappedRules: SchedulingRule[] = rulesData.map((item: ScheduleRule & { '0'?: ScheduleRule }) => {
           const rule = item['0'] || item;
           return {
-            id: rule.id || rule._id,
+            id: rule.id || rule._id || '',
             title: rule.title,
             startTime: rule.startTime,
             endTime: rule.endTime,
@@ -381,9 +381,8 @@ export default function App() {
 
       resetForm();
 
-    } catch (err: any) {
-
-      showToast('error', err.message || 'Failed to create rule');
+    } catch (err: unknown) {
+      showToast('error', (err instanceof Error) ? err.message : 'Failed to create rule');
     }
   };
 
@@ -429,9 +428,9 @@ export default function App() {
 
       resetForm();
 
-    } catch (err: any) {
-      console.error('Update rule failed', err);
-      showToast('error', err?.response?.data?.message || 'Update failed');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Update failed';
+      showToast('error', errorMessage);
     }
   };
 
@@ -550,7 +549,7 @@ export default function App() {
                           const error = validateEndTime(value, formData.startTime, formData.slotDuration);
                           setErrors((prev) => ({ ...prev, endTime: error }));
 
-                       
+
                           if (formData.startTime) {
                             const startError = validateStartTime(formData.startTime, value, formData.slotDuration);
                             setErrors((prev) => ({ ...prev, startTime: startError }));
@@ -680,7 +679,7 @@ export default function App() {
                         Max Bookings
                       </label>
                       <input
-                      hidden
+                        hidden
                         type="number"
                         value={formData.maxBookings}
                         readOnly
@@ -697,7 +696,7 @@ export default function App() {
                         Session Type
                       </label>
                       <input
-                      hidden
+                        hidden
                         type="text"
                         value={formData.sessionType}
                         readOnly

@@ -1,39 +1,15 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { getLawyerEarnings, requestPayout, getPayoutHistory } from '@/service/lawyerService';
+import { getLawyerEarnings, requestPayout, getPayoutHistory, Earnings, PayoutRequest, Transaction } from '@/service/lawyerService';
 import { showToast } from '@/utils/alerts';
 import { DollarSign, TrendingUp, Calendar, User, CheckCircle, XCircle, ArrowLeft, Wallet } from 'lucide-react';
 import Pagination from '@/components/common/Pagination';
 
-interface Transaction {
-    bookingId: string;
-    date: string;
-    userName: string;
-    amount: number;
-    commissionAmount: number;
-    netAmount: number;
-    status: string;
-    paymentStatus: string;
-}
 
-interface EarningsData {
-    totalEarnings: number;
-    transactions: Transaction[];
-    walletBalance: number;
-    pendingBalance: number;
-    totalTransactions: number;
-}
-
-interface PayoutRequest {
-    id: string;
-    amount: number;
-    status: 'pending' | 'approved' | 'rejected';
-    requestDate: string;
-}
 
 const EarningsPage = () => {
-    const [earnings, setEarnings] = useState<EarningsData | null>(null);
+    const [earnings, setEarnings] = useState<Earnings | null>(null);
     const [payoutHistory, setPayoutHistory] = useState<PayoutRequest[]>([]);
     const [totalPayouts, setTotalPayouts] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -114,12 +90,10 @@ const EarningsPage = () => {
         try {
             await requestPayout(amount);
             showToast('success', 'Withdrawal request submitted');
-            setWithdrawModalOpen(false);
-            setWithdrawAmount('');
             setPayoutPage(1);
             fetchData();
-        } catch (error: any) {
-            showToast('error', error.message || 'Withdrawal failed');
+        } catch (error: unknown) {
+            showToast('error', (error instanceof Error) ? error.message : 'Withdrawal failed');
         } finally {
             setWithdrawing(false);
         }

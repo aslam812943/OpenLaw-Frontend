@@ -14,6 +14,13 @@ export const markAllLawyerNotificationsAsRead = async (userId: string): Promise<
   return apiClient.patch<CommonResponse<void>>(`${API_ROUTES.NOTIFICATION.MARK_READ_LAWYER('all')}?userId=${userId}&all=true`);
 };
 
+export interface Address {
+  address: string;
+  city: string;
+  state: string;
+  pincode: number | string;
+}
+
 export interface Lawyer {
   id: string;
   userId: string;
@@ -26,7 +33,8 @@ export interface Lawyer {
   practiceAreas: string[];
   languages: string[];
   documentUrls: string[];
-  address?: any;
+  Address?: Address;
+  address?: string[];
   city?: string;
   state?: string;
   profileImage?: string;
@@ -58,6 +66,7 @@ export interface Specialization {
 
 export interface ScheduleRule {
   id: string;
+  _id?: string;
   lawyerId?: string;
   title: string;
   startTime: string;
@@ -160,10 +169,31 @@ export interface SubscriptionPlan {
 
 export interface Review {
   id: string;
+  _id?: string;
   userName: string;
+  userImage?: string;
   rating: number;
   comment: string;
   createdAt: string;
+}
+
+export interface IAvailabilityRule {
+  id: string;
+  _id?: string;
+  lawyerId?: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  startDate: string;
+  endDate: string;
+  availableDays: string[];
+  bufferTime: number;
+  slotDuration: number;
+  maxBookings: number;
+  sessionType: string;
+  exceptionDays: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LawyerDashboardStats {
@@ -177,6 +207,42 @@ export interface LawyerDashboardStats {
     confirmed: number;
   };
   monthlyEarnings: { month: string; earnings: number }[];
+}
+
+export interface LawyerRegisterData {
+  name: string;
+  email: string;
+  phone: string;
+  password?: string;
+  role: string;
+  barNumber?: string;
+  barAdmissionDate?: string;
+  yearsOfPractice?: number;
+  practiceAreas?: string[];
+  languages?: string[];
+  bio?: string;
+  city?: string;
+  state?: string;
+}
+
+export interface GetAllLawyersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  specialization?: string;
+  practiceArea?: string;
+  sort?: string;
+}
+
+export interface SubscriptionResponse {
+  id: string;
+  planName: string;
+  duration: number;
+  durationUnit: string;
+  price: number;
+  commissionPercent: number;
+  isActive: boolean;
+  expiryDate?: string;
 }
 
 /* ============================================================
@@ -257,7 +323,7 @@ export const scheduleCreate = async (ruleData: Omit<ScheduleRule, 'id' | 'lawyer
   return apiClient.post<CommonResponse<ScheduleRule>>(API_ROUTES.LAWYER.SCHEDULE_CREATE, { ruleData });
 };
 
-export const lawyerRegister = async (data: any): Promise<CommonResponse<void>> => {
+export const lawyerRegister = async (data: LawyerRegisterData): Promise<CommonResponse<void>> => {
   return apiClient.post(API_ROUTES.LAWYER.REGISTER, data);
 };
 
@@ -305,7 +371,7 @@ export const changePassword = async (oldPassword: string, newPassword: string): 
   return apiClient.put(API_ROUTES.LAWYER.CHANGE_PASSWORD, { oldPassword, newPassword });
 };
 
-export const getallLawyers = async (params?: any): Promise<CommonResponse<PaginatedLawyerResponse>> => {
+export const getallLawyers = async (params?: GetAllLawyersParams): Promise<CommonResponse<PaginatedLawyerResponse>> => {
   try {
     return await apiClient.get<CommonResponse<PaginatedLawyerResponse>>(API_ROUTES.USER.GETALL_LAWYERS, { params });
   } catch (err) {
@@ -338,7 +404,6 @@ export const getAppoiments = async (page: number = 1, limit: number = 10, status
       params: { page, limit, status, search, date }
     });
   } catch (err) {
-    console.error(err);
     return { success: false, message: "Failed to fetch appointments", data: { appointments: [], total: 0 } };
   }
 };
@@ -371,17 +436,16 @@ export const checksubscription = async (): Promise<CommonResponse<{ hasSubscript
   try {
     return await apiClient.get<CommonResponse<{ hasSubscription: boolean }>>(API_ROUTES.LAWYER.CHECKSUBSCRIPTION);
   } catch (error) {
-    console.log(error);
     return { success: false, message: "Failed to check subscription", data: { hasSubscription: false } };
   }
 };
 
 
 
-export const getCurrentSubscription = async (): Promise<CommonResponse<any> | null> => {
+export const getCurrentSubscription = async (): Promise<CommonResponse<SubscriptionResponse> | null> => {
   try {
-    return await apiClient.get<CommonResponse<any>>(API_ROUTES.LAWYER.CURRENT_SUBSCRIPTION);
-  } catch (error: any) {
+    return await apiClient.get<CommonResponse<SubscriptionResponse>>(API_ROUTES.LAWYER.CURRENT_SUBSCRIPTION);
+  } catch (error: unknown) {
     console.error(error);
     return null;
   }
@@ -421,8 +485,7 @@ export const verifySubscriptionPayment = async (session_id: string): Promise<Com
 export const fetchLawyerReviews = async (id: string): Promise<CommonResponse<Review[]>> => {
   try {
     return await apiClient.get<CommonResponse<Review[]>>(API_ROUTES.LAWYER.GET_REVIEWS(id));
-  } catch (error: any) {
-    console.error(error);
+  } catch (error: unknown) {
     return { success: false, message: "Failed to fetch reviews", data: [] };
   }
 };
@@ -432,8 +495,7 @@ export const fetchLawyerReviews = async (id: string): Promise<CommonResponse<Rev
 export const getLawyerCases = async (): Promise<CommonResponse<Case[]>> => {
   try {
     return await apiClient.get<CommonResponse<Case[]>>(API_ROUTES.LAWYER.GET_CASES);
-  } catch (error: any) {
-    console.error(error);
+  } catch (error: unknown) {
     return { success: false, message: "Failed to fetch cases", data: [] };
   }
 };

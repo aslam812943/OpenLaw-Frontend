@@ -98,10 +98,10 @@ export const logoutAdmin = async (): Promise<{ success: boolean; message: string
       success: true,
       message: response.message || "Logged out successfully.",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      message: error.message || "An unexpected error occurred during logout.",
+      message: (error instanceof Error) ? error.message : "An unexpected error occurred during logout.",
     };
   }
 };

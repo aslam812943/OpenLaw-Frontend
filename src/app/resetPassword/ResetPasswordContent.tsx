@@ -1,17 +1,27 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { userResetPassword } from '@/service/userService';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, CheckCircle, ArrowRight, ChevronLeft, KeyRound } from 'lucide-react';
+import { Mail, Lock, CheckCircle, ArrowRight, ChevronLeft, KeyRound, ShieldCheck } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
 import { motion } from "framer-motion";
 
 const ResetPasswordContent = () => {
     const router = useRouter();
-    const [form, setForm] = useState({ email: '', otp: '', newPassword: '' });
-    const [errors, setErrors] = useState({ email: '', otp: '', newPassword: '' });
+    const [form, setForm] = useState({ email: '', otp: '', newPassword: '', confirmPassword: '' });
+    const [errors, setErrors] = useState({ otp: '', newPassword: '', confirmPassword: '' });
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const storedEmail = sessionStorage.getItem('resetEmail');
+        if (!storedEmail) {
+            showToast('error', 'Session expired. Please request a new OTP.');
+            router.push('/forgotPassword');
+        } else {
+            setForm(prev => ({ ...prev, email: storedEmail }));
+        }
+    }, [router]);
 
     // Validation Functions
     const validateEmail = (email: string) =>
@@ -21,19 +31,20 @@ const ResetPasswordContent = () => {
         otp.length === 6 ? '' : 'OTP must be 6 digits';
 
     const validatePassword = (password: string) =>
-        password.length >= 6
+        password.length >= 6 && password.length <= 16
             ? ''
-            : 'Password must be at least 6 characters long';
+            : 'Password must be 6-16 characters long';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setForm({ ...form, [name]: value });
 
-
         let errorMsg = '';
-        if (name === 'email') errorMsg = validateEmail(value);
         if (name === 'otp') errorMsg = validateOTP(value);
         if (name === 'newPassword') errorMsg = validatePassword(value);
+        if (name === 'confirmPassword') {
+            errorMsg = value === form.newPassword ? '' : 'Passwords do not match';
+        }
 
         setErrors({ ...errors, [name]: errorMsg });
     };
@@ -42,27 +53,30 @@ const ResetPasswordContent = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const emailError = validateEmail(form.email);
         const otpError = validateOTP(form.otp);
         const passwordError = validatePassword(form.newPassword);
+        const confirmError = form.newPassword === form.confirmPassword ? '' : 'Passwords do not match';
 
-        if (emailError || otpError || passwordError) {
+        if (otpError || passwordError || confirmError) {
             setErrors({
-                email: emailError,
                 otp: otpError,
                 newPassword: passwordError,
+                confirmPassword: confirmError
             });
             return;
         }
 
         setLoading(true);
         try {
-            await userResetPassword(form);
+            const { confirmPassword, ...submitData } = form;
+            await userResetPassword(submitData);
 
+            sessionStorage.removeItem('resetEmail');
             showToast('success', 'Password reset successful! Please login with your new password.');
             router.push('/login');
-        } catch (err: any) {
-            showToast('error', err.response?.data?.message || 'Password reset failed. Please check your OTP and try again.');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            showToast('error', error.response?.data?.message || error.message || 'Password reset failed. Please check your OTP and try again.');
         }
         setLoading(false);
     };
@@ -122,24 +136,6 @@ const ResetPasswordContent = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Email */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Email Address</label>
-                                <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                        placeholder="Enter your email"
-                                        className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border ${errors.email ? 'border-red-500' : 'border-slate-200'
-                                            } rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none transition-all`}
-                                    />
-                                </div>
-                                {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
-                            </div>
-
                             {/* OTP */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">OTP Code</label>
@@ -174,6 +170,24 @@ const ResetPasswordContent = () => {
                                     />
                                 </div>
                                 {errors.newPassword && <p className="text-xs text-red-500">{errors.newPassword}</p>}
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Confirm Password</label>
+                                <div className="relative">
+                                    <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="password"
+                                        name="confirmPassword"
+                                        value={form.confirmPassword}
+                                        onChange={handleChange}
+                                        placeholder="Confirm your new password"
+                                        className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border ${errors.confirmPassword ? 'border-red-500' : 'border-slate-200'
+                                            } rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none transition-all`}
+                                    />
+                                </div>
+                                {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
                             </div>
 
 

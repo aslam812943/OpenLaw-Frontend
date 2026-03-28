@@ -10,7 +10,7 @@ const LawyerLandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState('/homemiddle1.png');
-const router = useRouter();
+  const router = useRouter();
   const imageOptions = [
     '/homemiddle1.png',
     '/homemiddle2.png',
@@ -52,7 +52,7 @@ const router = useRouter();
                   <Search className="h-5 w-10" />
                 </div>
                 <input
-                onClick={()=>router.push("/user/lawyers")}
+                  onClick={() => router.push("/user/lawyers")}
                   type="text"
                   className="block w-full px-4 py-3 sm:py-4 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 text-sm sm:text-base rounded-lg"
                   placeholder="What legal help do you need?"
@@ -66,7 +66,7 @@ const router = useRouter();
             {/* Social Proof */}
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3 sm:-space-x-4">
-                {[{ a: 1, img: '/lawboy7.jpg' }, { b: 2, img: '/lawboy8.jpg' }, { c: 3, img: '/laweyrGirl20.jpg' }, { d: 4, img: '/profile.jpg' }].map((item, index) => (
+                {[{ img: '/lawboy7.jpg' }, { img: '/lawboy8.jpg' }, { img: '/laweyrGirl20.jpg' }, { img: '/profile.jpg' }].map((item, index) => (
                   <img
                     key={index}
                     className="h-10 w-10 sm:h-12 sm:w-13 rounded-full border-2 border-white object-cover"
@@ -206,7 +206,7 @@ const router = useRouter();
                 Connect with top-rated attorneys who are dedicated to your success. Our platform ensures you have a full support system, keeping you informed and confident throughout your legal journey.
               </p>
 
-              <a  onClick={()=>router.push('/user/lawyers')} className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
+              <a onClick={() => router.push('/user/lawyers')} className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
                 Find Your Lawyer
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
@@ -305,7 +305,7 @@ const router = useRouter();
                 We believe in complete financial transparency. See exactly what you'll pay upfront with our fixed-fee structure. No surprise bills, just clear, honest pricing for high-quality legal representation.
               </p>
 
-              <a onClick={()=>router.push('/user/lawyers')} className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
+              <a onClick={() => router.push('/user/lawyers')} className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors group">
                 Find Your Lawyer
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>

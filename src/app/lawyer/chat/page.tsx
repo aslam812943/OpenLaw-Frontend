@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getLawyerRooms } from '@/service/chatService';
+import { getLawyerRooms, ChatRoomDetails, Message } from '@/service/chatService';
 import { MessageSquare, Clock, ArrowRight, User, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showToast } from '@/utils/alerts';
 import { useSocket } from '@/context/SocketContext';
 
 export default function LawyerChatListPage() {
-    const [rooms, setRooms] = useState<any[]>([]);
+    const [rooms, setRooms] = useState<ChatRoomDetails[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const { socket, isConnected } = useSocket();
@@ -19,12 +19,15 @@ export default function LawyerChatListPage() {
             try {
                 const res = await getLawyerRooms();
                 if (res.success) {
-                    const roomMap = new Map<string, any>();
+                    const roomMap = new Map<string, ChatRoomDetails>();
 
-                    res.data.forEach((room: any) => {
+                    res.data.forEach((room) => {
                         const userId = typeof room.userId === 'object' ? room.userId.id || room.userId._id : room.userId;
-                        if (!roomMap.has(userId) || new Date(room.updatedAt) > new Date(roomMap.get(userId).updatedAt)) {
-                            roomMap.set(userId, room);
+                        if (userId) {
+                            const existing = roomMap.get(userId);
+                            if (!existing || new Date(room.updatedAt) > new Date(existing.updatedAt)) {
+                                roomMap.set(userId, room);
+                            }
                         }
                     });
 
@@ -50,7 +53,7 @@ export default function LawyerChatListPage() {
                 socket.emit('join-room', { roomId: room.id });
             });
 
-            const handleNewMessage = (message: any) => {
+            const handleNewMessage = (message: Message & { roomId: string }) => {
                 setRooms(prevRooms => {
                     const roomIndex = prevRooms.findIndex(r => r.id === message.roomId);
                     if (roomIndex === -1) return prevRooms;
@@ -115,7 +118,7 @@ export default function LawyerChatListPage() {
                             <div className="flex items-center gap-4">
                                 <div className="relative">
                                     <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden">
-                                        {room.userId?.profileImage ? (
+                                        {typeof room.userId === 'object' && room.userId.profileImage ? (
                                             <img src={room.userId.profileImage} alt={room.userId.name} className="w-full h-full object-cover" />
                                         ) : (
                                             <User size={24} className="text-slate-400" />
@@ -124,7 +127,7 @@ export default function LawyerChatListPage() {
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
-                                        {room.userId?.name || 'Unknown Patient'}
+                                        {typeof room.userId === 'object' ? room.userId.name : 'Unknown Client'}
                                     </h3>
                                     <div className="flex flex-col">
                                         <span>

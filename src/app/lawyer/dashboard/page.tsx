@@ -35,7 +35,7 @@ export default function LawyerDashboard() {
         setStats(statsRes.data);
       }
       setLawyerName(profileData?.name || 'Counselor');
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast("error", "Failed to load dashboard data");
     } finally {
       setLoading(false);
@@ -249,7 +249,7 @@ export default function LawyerDashboard() {
               <p className="text-slate-300 mb-6">
                 Explore indepth reports of your earnings and download tax-ready statements.
               </p>
-{/* 
+              {/* 
               <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition-colors duration-200 group/btn">
                 Go to Earnings
                 <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-200" />

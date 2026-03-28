@@ -49,8 +49,8 @@ const Subscription = () => {
         setTotalItems(res.data.total);
         setCurrentPage(page);
       }
-    } catch (error: any) {
-      showToast('error', error.message || 'Failed to fetch subscriptions');
+    } catch (error: unknown) {
+      showToast('error', (error as Error).message || 'Failed to fetch subscriptions');
     } finally {
       setLoading(false);
     }
@@ -94,8 +94,8 @@ const Subscription = () => {
         setShowForm(false);
         loadSubscriptions(currentPage);
       }
-    } catch (error: any) {
-      showToast('error', error.message || `Failed to ${isEditing ? 'update' : 'create'} subscription`);
+    } catch (error: unknown) {
+      showToast('error', (error as Error).message || `Failed to ${isEditing ? 'update' : 'create'} subscription`);
     } finally {
       setSubmitting(false);
     }
@@ -121,8 +121,8 @@ const Subscription = () => {
         showToast('success', res.message);
         setPlans(plans.map(p => p.id === id ? { ...p, isActive: newStatus } : p));
       }
-    } catch (error: any) {
-      showToast('error', error.message || 'Failed to update status');
+    } catch (error: unknown) {
+      showToast('error', (error as Error).message || 'Failed to update status');
     } finally {
       setTogglingId(null);
     }

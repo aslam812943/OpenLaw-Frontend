@@ -45,7 +45,7 @@ const LoginForm = () => {
         if (user.role === "lawyer") {
             dispatch(clearUserData());
             dispatch(setLawyerData({
-                id: user._id || (user as any).id,
+                id: user._id || (user as unknown as { id: string }).id,
                 email: user.email,
                 name: user.name,
                 phone: user.phone,
@@ -69,10 +69,10 @@ const LoginForm = () => {
         } else if (user.role === "user") {
             dispatch(clearLawyerData());
             dispatch(setUserData({
-                id: user._id || (user as any).id,
+                id: user._id || (user as unknown as { id: string }).id,
                 email: user.email,
                 name: user.name,
-                phone: user.phone as any,
+                phone: String(user.phone || ""),
                 role: user.role
             }));
             window.location.href = redirect;
@@ -92,8 +92,8 @@ const LoginForm = () => {
         try {
             const response = await userLogin(loginForm);
             processLoginSuccess(response);
-        } catch (err: any) {
-            showToast('error', err.message || 'Login failed');
+        } catch (err: unknown) {
+            showToast('error', (err as Error).message || 'Login failed');
         } finally {
             setLoading(false);
         }
@@ -130,8 +130,9 @@ const LoginForm = () => {
             };
 
             processLoginSuccess(loginRes);
-        } catch (error: any) {
-            showToast("error", error.response?.data?.message || "Google Login failed");
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } }; message?: string };
+            showToast("error", err.response?.data?.message || err.message || "Google Login failed");
         }
     };
 

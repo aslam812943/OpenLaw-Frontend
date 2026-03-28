@@ -33,9 +33,9 @@ export default function SuccessPage() {
                     setErrorMessage('Failed to retrieve booking details');
                 }
             })
-            .catch((err: any) => {
-
-                const message = err.response?.data?.message || err.message || 'Failed to confirm booking';
+            .catch((err: unknown) => {
+                const error = err as { response?: { data?: { message?: string } }; message?: string };
+                const message = error.response?.data?.message || error.message || 'Failed to confirm booking';
                 setErrorMessage(message);
                 setStatus('error');
                 showToast('error', message);

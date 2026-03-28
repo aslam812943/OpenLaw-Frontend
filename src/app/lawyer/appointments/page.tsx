@@ -1,7 +1,7 @@
 'use client'
 
 import { getAppoiments, updateAppointmentStatus } from "@/service/lawyerService"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState, useMemo } from "react"
 import { showToast } from "@/utils/alerts"
 import { ReusableTable, Column } from "@/components/admin/shared/ReusableTable"
 import { FilterBar } from "@/components/admin/shared/ReusableFilterBar"
@@ -32,22 +32,24 @@ interface Appointment {
 }
 
 
-const Appointments = () => {
-  const formatTime12h = (time24: string) => {
-    if (!time24) return "";
-    try {
-      const [hoursStr, minutesStr] = time24.split(":");
-      let hours = parseInt(hoursStr, 10);
-      const minutes = minutesStr;
-      const ampm = hours >= 12 ? "PM" : "AM";
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      return `${hours}:${minutes} ${ampm}`;
-    } catch (e) {
-      return time24;
-    }
-  };
+const limit = 10;
 
+const formatTime12h = (time24: string) => {
+  if (!time24) return "";
+  try {
+    const [hoursStr, minutesStr] = time24.split(":");
+    let hours = parseInt(hoursStr, 10);
+    const minutes = minutesStr;
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${hours}:${minutes} ${ampm}`;
+  } catch (e) {
+    return time24;
+  }
+};
+
+const Appointments = () => {
   const [data, setData] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,7 +62,6 @@ const Appointments = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
-  const limit = 10;
   const router = useRouter();
 
   const fetchAppointments = useCallback(async () => {
@@ -103,7 +104,7 @@ const Appointments = () => {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  const handleStatusUpdate = async (id: string, status: string, appointment?: Appointment) => {
+  const handleStatusUpdate = useCallback(async (id: string, status: string, appointment?: Appointment) => {
     if (status === 'completed' && appointment) {
       setSelectedAppointment(appointment);
       setIsModalOpen(true);
@@ -128,9 +129,9 @@ const Appointments = () => {
     } catch (error) {
       showToast("error", "Failed to update appointment status");
     }
-  };
+  }, [fetchAppointments]);
 
-  const confirmCompletion = async (feedback: string) => {
+  const confirmCompletion = useCallback(async (feedback: string) => {
     if (!selectedAppointment) return;
 
     setIsSubmitting(true);
@@ -144,9 +145,9 @@ const Appointments = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [selectedAppointment, fetchAppointments]);
 
-  const handleChat = async (userId: string, bookingId: string) => {
+  const handleChat = useCallback(async (userId: string, bookingId: string) => {
     try {
       const response = await getChatRoom({ userId, bookingId });
       if (response.success) {
@@ -155,18 +156,18 @@ const Appointments = () => {
     } catch (error) {
       showToast("error", "Failed to initiate chat");
     }
-  };
+  }, [router]);
 
-  const showDescription = (desc: string) => {
+  const showDescription = useCallback((desc: string) => {
     Swal.fire({
       title: 'Appointment Description',
       text: desc || 'No description provided.',
       icon: 'info',
       confirmButtonColor: '#0d9488'
     });
-  };
+  }, []);
 
-  const columns: Column<Appointment>[] = [
+  const columns: Column<Appointment>[] = useMemo(() => [
     {
       header: "Client Name",
       accessor: "userName",
@@ -288,7 +289,7 @@ const Appointments = () => {
         </div>
       )
     }
-  ];
+  ], [handleStatusUpdate, showDescription, handleChat]);
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen">

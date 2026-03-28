@@ -41,8 +41,8 @@ export default function LawyersPage() {
       const { lawyers, total } = await fetchLawyers(pageNum, limit, search, filter, sort);
       setLawyers(lawyers);
       setTotal(total);
-    } catch (err: any) {
-      showToast("error", err || "Failed to load lawyers.");
+    } catch (err: unknown) {
+      showToast("error", (err as { message?: string })?.message || "Failed to load lawyers.");
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export default function LawyersPage() {
             : prev
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast("error", `Failed to ${type.toLowerCase()} lawyer. Please try again.`);
     }
   };

@@ -60,7 +60,7 @@ export default function AdminDashboard() {
       if (res?.success) {
         setStats(res.data);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast("error", "Failed to fetch dashboard statistics");
     } finally {
       setLoading(false);

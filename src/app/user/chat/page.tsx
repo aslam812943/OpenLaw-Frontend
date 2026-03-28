@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUserRooms } from '@/service/chatService';
+import { getMessages, getRoomById, uploadFile, getUserRooms, getLawyerSpecificRooms, Message, ChatRoomDetails } from '@/service/chatService';
 import { MessageSquare, Clock, ArrowRight, User, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showToast } from '@/utils/alerts';
 import { useSocket } from '@/context/SocketContext';
 
 export default function UserChatListPage() {
-    const [rooms, setRooms] = useState<any[]>([]);
+    const [rooms, setRooms] = useState<ChatRoomDetails[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const { socket, isConnected } = useSocket();
@@ -19,11 +19,17 @@ export default function UserChatListPage() {
             try {
                 const res = await getUserRooms();
                 if (res.success) {
-                    const roomMap = new Map<string, any>();
+                    const roomMap = new Map<string, ChatRoomDetails>();
 
-                    res.data.forEach((room: any) => {
-                        const lawyerId = typeof room.lawyerId === 'object' ? room.lawyerId.id || room.lawyerId._id : room.lawyerId;
-                        if (!roomMap.has(lawyerId) || new Date(room.updatedAt) > new Date(roomMap.get(lawyerId).updatedAt)) {
+                    res.data.forEach((room: ChatRoomDetails) => {
+                        const lawyerId = (typeof room.lawyerId === 'object'
+                            ? (room.lawyerId.id || room.lawyerId._id)
+                            : room.lawyerId) || '';
+
+                        if (!lawyerId) return;
+
+                        const existingRoom = roomMap.get(lawyerId);
+                        if (!existingRoom || new Date(room.updatedAt) > new Date(existingRoom.updatedAt)) {
                             roomMap.set(lawyerId, room);
                         }
                     });
@@ -50,7 +56,7 @@ export default function UserChatListPage() {
                 socket.emit('join-room', { roomId: room.id });
             });
 
-            const handleNewMessage = (message: any) => {
+            const handleNewMessage = (message: Message & { roomId: string }) => {
                 setRooms(prevRooms => {
                     const roomIndex = prevRooms.findIndex(r => r.id === message.roomId);
                     if (roomIndex === -1) return prevRooms;

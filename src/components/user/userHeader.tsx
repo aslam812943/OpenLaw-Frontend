@@ -8,7 +8,7 @@ import { RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/utils/alerts";
-import { logoutUser } from "@/service/userService";
+import { logoutUser, Notification as UserNotification } from "@/service/userService";
 import { clearUserData } from "@/redux/userSlice";
 import { clearLawyerData } from "@/redux/lawyerSlice";
 import { useSocket } from "@/context/SocketContext";
@@ -129,7 +129,7 @@ const UserHeader: React.FC = () => {
 
                       <div className="max-h-96 overflow-y-auto">
                         {notifications.length > 0 ? (
-                          notifications.map((notif: any) => (
+                          notifications.map((notif: UserNotification) => (
                             <div
                               key={notif.id}
                               className="px-5 py-4 border-b border-slate-50 hover:bg-slate-50 transition-colors"
@@ -222,7 +222,7 @@ const UserHeader: React.FC = () => {
               <>
                 <Link
                   href="/login"
-                className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
+                  className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
                 >
                   Log in
                 </Link>
