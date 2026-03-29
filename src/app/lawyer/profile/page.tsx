@@ -156,6 +156,12 @@ export default function GetProfile() {
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+
+            if (!file.type.startsWith('image/')) {
+                showToast("error", "Please select an image file (jpg, png, etc.)");
+                return;
+            }
+
             setFormData(prev => ({ ...prev, profileImage: file }));
             setPreviewImage(URL.createObjectURL(file));
         }

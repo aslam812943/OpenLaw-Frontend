@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import Providers from "./Providers";
+
+export const metadata: Metadata = {
+  title: "OpenLaw - Your Legal Partner",
+  description: "Consult with the best lawyers online.",
+  icons: {
+    icon: "/logo.png",
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

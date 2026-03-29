@@ -89,6 +89,12 @@ export default function ProfilePage() {
     if (!isEditing) return;
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast("error", "Please select an image file (jpg, png, etc.)");
+      return;
+    }
+
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = () => setImagePreview(String(reader.result));
