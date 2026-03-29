@@ -134,7 +134,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-xl font-bold text-white mb-1">Revenue Performance</h2>
-                <p className="text-slate-400 text-sm">Monthly growth metrics across the platform</p>
+                <p className="text-slate-300 text-sm font-medium">Monthly growth metrics across the platform</p>
               </div>
               <button className="flex items-center gap-2 text-emerald-400 text-sm font-semibold hover:text-emerald-300 transition-colors bg-emerald-500/5 px-4 py-2 rounded-full">
                 Full Report <ArrowUpRight size={16} />
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
           {/* Booking Distribution */}
           <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-3xl p-8 hover:border-emerald-500/20 transition-all duration-300">
             <h2 className="text-xl font-bold text-white mb-1">Booking Split</h2>
-            <p className="text-slate-400 text-sm mb-8">Status distribution analysis</p>
+            <p className="text-slate-300 text-sm mb-8 font-medium">Status distribution analysis</p>
             <BookingStatusChart data={stats.bookingStats} />
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
           {/* Quick Insights */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-3xl p-6 flex flex-col justify-center">
-              <p className="text-slate-400 text-sm font-medium mb-1">Consultation Success Rate</p>
+              <p className="text-slate-300 text-sm font-semibold mb-1">Consultation Success Rate</p>
               <div className="flex items-end gap-3">
                 <span className="text-3xl font-bold text-white">
                   {stats.bookingStats.completed + stats.bookingStats.pending > 0
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-3xl p-6 flex flex-col justify-center">
-              <p className="text-slate-400 text-sm font-medium mb-1">Average Retention</p>
+              <p className="text-slate-300 text-sm font-semibold mb-1">Average Retention</p>
               <div className="flex items-end gap-3">
                 <span className="text-3xl font-bold text-white">84.5%</span>
                 <span className="text-emerald-400 text-sm font-medium pb-1.5 flex items-center gap-1">
@@ -220,18 +220,18 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h1 className="text-4xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white via-white to-slate-200 bg-clip-text text-transparent">
             Platform Analytics
           </h1>
           <p className="mt-2 text-slate-400 font-medium">
             Monitor revenue, growth, and operations performance.
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-slate-900/50 backdrop-blur-md border border-white/5 rounded-2xl px-5 py-3">
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-3">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="text-slate-300 text-sm font-semibold uppercase tracking-widest">System Live</span>
+          <span className="text-white text-sm font-semibold uppercase tracking-widest">System Live</span>
         </div>
       </div>
 

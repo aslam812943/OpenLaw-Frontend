@@ -169,7 +169,6 @@ const WalletPage = () => {
     const limit = 5;
 
     const fetchWallet = async (page: number) => {
-        if (!user.id) return;
         try {
             if (!wallet) {
                 setInitialLoading(true);
@@ -193,10 +192,6 @@ const WalletPage = () => {
     };
 
     useEffect(() => {
-        if (!user.id) {
-            router.push('/login');
-            return;
-        }
         fetchWallet(currentPage);
     }, [currentPage, user.id]);
 

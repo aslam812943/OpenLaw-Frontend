@@ -220,6 +220,7 @@ export default function LawyersPage() {
           onFilterChange={handleFilterChange}
           onSortChange={handleSortChange}
           placeholder="Search lawyers..."
+          variant="dark"
           filterOptions={[
             { label: "Active", value: "active" },
             { label: "Blocked", value: "blocked" },
@@ -238,6 +239,7 @@ export default function LawyersPage() {
           data={lawyers}
           isLoading={loading}
           emptyMessage="No lawyers found."
+          variant="dark"
         />
 
         {!loading && lawyers.length > 0 && (

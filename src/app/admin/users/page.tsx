@@ -152,6 +152,7 @@ export default function AdminUsersPage() {
               onFilterChange={handleFilterChange}
               onSortChange={handleSortChange}
               placeholder="Search users..."
+              variant="dark"
               filterOptions={[
                 { label: "Active", value: "active" },
                 { label: "Blocked", value: "blocked" },
@@ -168,6 +169,7 @@ export default function AdminUsersPage() {
               data={users}
               isLoading={loading}
               emptyMessage="No users found."
+              variant="dark"
             />
           </>
         )}
