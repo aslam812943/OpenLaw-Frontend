@@ -18,6 +18,7 @@ interface ReusableFilterBarProps {
     initialFilter?: string;
     initialSort?: string;
     initialDate?: string;
+    variant?: 'light' | 'dark';
 }
 
 export const FilterBar: React.FC<ReusableFilterBarProps> = ({
@@ -32,6 +33,7 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
     initialFilter = "",
     initialSort = "",
     initialDate = "",
+    variant = "light",
 }) => {
     const [searchValue, setSearchValue] = useState(initialSearch);
     const [selectedFilter, setSelectedFilter] = useState(initialFilter);
@@ -91,22 +93,34 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
         if (onDateChange) onDateChange("");
     };
 
+    const containerClasses = variant === 'dark'
+        ? "flex flex-col md:flex-row gap-4 mb-6 items-center justify-between bg-white/5 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-white/10"
+        : "flex flex-col md:flex-row gap-4 mb-6 items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100";
+
+    const inputClasses = variant === 'dark'
+        ? "w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-200 placeholder-slate-500 text-sm transition-all"
+        : "w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm";
+
+    const selectClasses = variant === 'dark'
+        ? "pl-9 pr-8 py-2 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-200 text-sm appearance-none cursor-pointer hover:bg-white/10 min-w-[140px] transition-all"
+        : "pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm appearance-none cursor-pointer hover:bg-gray-50 min-w-[140px]";
+
     return (
-        <div className="flex flex-col md:flex-row gap-4 mb-6 items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div className={containerClasses}>
             {/* Search Input */}
             <div className="relative w-full md:w-1/3">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${variant === 'dark' ? 'text-slate-500' : 'text-gray-400'}`} size={18} />
                 <input
                     type="text"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className={inputClasses}
                 />
                 {searchValue && (
                     <button
                         onClick={() => setSearchValue("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className={`absolute right-3 top-1/2 -translate-y-1/2 ${variant === 'dark' ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                         <X size={14} />
                     </button>
@@ -117,21 +131,21 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
                 {/* Filter Dropdown */}
                 {filterOptions.length > 0 && (
                     <div className="relative">
-                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+                        <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 ${variant === 'dark' ? 'text-slate-400' : 'text-gray-500'} pointer-events-none`} size={16} />
                         <select
                             value={selectedFilter}
                             onChange={handleFilterSelect}
-                            className="pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm appearance-none cursor-pointer hover:bg-gray-50 min-w-[140px]"
+                            className={selectClasses}
                         >
-                            <option value="">All Status</option>
+                            <option value="" className={variant === 'dark' ? 'bg-slate-900 text-slate-200' : ''}>All Status</option>
                             {filterOptions.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
+                                <option key={opt.value} value={opt.value} className={variant === 'dark' ? 'bg-slate-900 text-slate-200' : ''}>
                                     {opt.label}
                                 </option>
                             ))}
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-4 h-4 ${variant === 'dark' ? 'text-slate-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </div>
@@ -141,21 +155,21 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
                 {/* Sort Dropdown */}
                 {sortOptions.length > 0 && (
                     <div className="relative">
-                        <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+                        <ArrowUpDown className={`absolute left-3 top-1/2 -translate-y-1/2 ${variant === 'dark' ? 'text-slate-400' : 'text-gray-500'} pointer-events-none`} size={16} />
                         <select
                             value={selectedSort}
                             onChange={handleSortSelect}
-                            className="pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm appearance-none cursor-pointer hover:bg-gray-50 min-w-[140px]"
+                            className={selectClasses}
                         >
-                            <option value="">Sort By</option>
+                            <option value="" className={variant === 'dark' ? 'bg-slate-900 text-slate-200' : ''}>Sort By</option>
                             {sortOptions.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
+                                <option key={opt.value} value={opt.value} className={variant === 'dark' ? 'bg-slate-900 text-slate-200' : ''}>
                                     {opt.label}
                                 </option>
                             ))}
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-4 h-4 ${variant === 'dark' ? 'text-slate-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </div>
@@ -169,7 +183,10 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
                             type="date"
                             value={selectedDate}
                             onChange={handleDateChange}
-                            className="pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm cursor-pointer hover:bg-gray-50 min-w-[140px]"
+                            className={variant === 'dark'
+                                ? "pl-3 pr-3 py-2 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-200 text-sm cursor-pointer hover:bg-white/10 min-w-[140px] transition-all"
+                                : "pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm cursor-pointer hover:bg-gray-50 min-w-[140px]"
+                            }
                         />
                     </div>
                 )}
@@ -178,7 +195,10 @@ export const FilterBar: React.FC<ReusableFilterBarProps> = ({
                 {(selectedFilter || selectedSort || searchValue || selectedDate) && (
                     <button
                         onClick={clearFilters}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-teal-600 bg-teal-50 border border-teal-100 rounded-lg hover:bg-teal-600 hover:text-white transition-all shadow-sm active:scale-95 group"
+                        className={variant === 'dark'
+                            ? "flex items-center gap-2 px-4 py-2 text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl hover:bg-emerald-500 hover:text-white transition-all shadow-lg active:scale-95 group"
+                            : "flex items-center gap-2 px-4 py-2 text-sm font-bold text-teal-600 bg-teal-50 border border-teal-100 rounded-lg hover:bg-teal-600 hover:text-white transition-all shadow-sm active:scale-95 group"
+                        }
                     >
                         <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                         Clear Filters

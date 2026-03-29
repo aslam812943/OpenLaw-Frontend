@@ -61,38 +61,38 @@ export default function AdminPaymentsPage() {
     const columns: Column<Payment>[] = [
         {
             header: "Date",
-            render: (payment) => <span className="text-gray-600">{new Date(payment.date).toLocaleDateString()}</span>
+            render: (payment) => <span className="text-slate-400">{new Date(payment.date).toLocaleDateString()}</span>
         },
 
         {
             header: "Transaction ID",
-            render: (payment) => <span className="text-teal-600 font-mono text-sm">{payment.transactionId}</span>
+            render: (payment) => <span className="text-emerald-400 font-mono text-sm">{payment.transactionId}</span>
         },
         {
             header: "Type",
             render: (payment) => (
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${payment.type === 'subscription' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                <span className={`px-2 py-1 rounded-full text-[10px] font-bold tracking-wider ${payment.type === 'subscription' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                     }`}>
                     {payment.type.toUpperCase()}
                 </span>
             )
         },
-        { header: "User", accessor: "userName", render: (p) => <span className="text-gray-900">{p.userName || 'N/A'}</span> },
-        { header: "Lawyer", accessor: "lawyerName", render: (p) => <span className="text-gray-900">{p.lawyerName || 'N/A'}</span> },
+        { header: "User", accessor: "userName", render: (p) => <span className="text-slate-200">{p.userName || '—'}</span> },
+        { header: "Lawyer", accessor: "lawyerName", render: (p) => <span className="text-slate-200">{p.lawyerName || '—'}</span> },
         {
             header: "Amount",
             render: (payment) => (
-                <span className="font-medium text-gray-900">
-                    {payment.amount}
+                <span className="font-bold text-white">
+                    ₹{payment.amount}
                 </span>
             )
         },
         {
             header: "Status",
             render: (payment) => (
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${payment.status === 'completed' ? 'bg-green-100 text-green-700' :
-                    payment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
+                <span className={`px-2 py-1 rounded-full text-[10px] font-bold tracking-wider ${payment.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                    payment.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                        'bg-red-500/10 text-red-400 border border-red-500/20'
                     }`}>
                     {payment.status.toUpperCase()}
                 </span>
@@ -101,54 +101,54 @@ export default function AdminPaymentsPage() {
     ];
 
     return (
-        <div className="p-6 bg-gray-900 min-h-screen text-white">
-            <h1 className="text-3xl font-bold mb-6">Payments & Transactions</h1>
+        <div className="p-6 min-h-screen">
+            <h1 className="text-3xl font-bold mb-6 text-white">Payments & Transactions</h1>
 
             {/* Filters */}
-            <div className="bg-gray-800 p-4 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="bg-white/5 backdrop-blur-xl p-4 rounded-2xl mb-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 border border-white/10 shadow-2xl">
                 <input
                     type="text"
                     name="search"
                     placeholder="Search Transaction ID..."
                     value={filters.search}
                     onChange={handleFilterChange}
-                    className="bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="bg-white/5 text-slate-200 p-2 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-slate-500 text-sm transition-all"
                 />
                 <select
                     name="type"
                     value={filters.type}
                     onChange={handleFilterChange}
-                    className="bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="bg-white/5 text-slate-200 p-2 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm appearance-none cursor-pointer hover:bg-white/10 transition-all"
                 >
-                    <option value="all">All Types</option>
-                    <option value="booking">Booking</option>
-                    <option value="subscription">Subscription</option>
+                    <option value="all" className="bg-slate-900">All Types</option>
+                    <option value="booking" className="bg-slate-900">Booking</option>
+                    <option value="subscription" className="bg-slate-900">Subscription</option>
                 </select>
                 <select
                     name="status"
                     value={filters.status}
                     onChange={handleFilterChange}
-                    className="bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="bg-white/5 text-slate-200 p-2 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm appearance-none cursor-pointer hover:bg-white/10 transition-all"
                 >
-                    <option value="all">All Status</option>
-                    <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
-                    <option value="failed">Failed</option>
-                    <option value="refunded">Refunded</option>
+                    <option value="all" className="bg-slate-900">All Status</option>
+                    <option value="completed" className="bg-slate-900">Completed</option>
+                    <option value="pending" className="bg-slate-900">Pending</option>
+                    <option value="failed" className="bg-slate-900">Failed</option>
+                    <option value="refunded" className="bg-slate-900">Refunded</option>
                 </select>
                 <input
                     type="date"
                     name="startDate"
                     value={filters.startDate}
                     onChange={handleFilterChange}
-                    className="bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="bg-white/5 text-slate-200 p-2 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm cursor-pointer hover:bg-white/10 transition-all"
                 />
                 <input
                     type="date"
                     name="endDate"
                     value={filters.endDate}
                     onChange={handleFilterChange}
-                    className="bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="bg-white/5 text-slate-200 p-2 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm cursor-pointer hover:bg-white/10 transition-all"
                 />
             </div>
 
@@ -158,6 +158,7 @@ export default function AdminPaymentsPage() {
                 data={payments}
                 isLoading={loading}
                 emptyMessage="No payments found."
+                variant="dark"
             />
 
             {/* Pagination */}

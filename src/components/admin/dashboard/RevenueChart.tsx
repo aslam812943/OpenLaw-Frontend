@@ -26,18 +26,18 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
                     <XAxis
                         dataKey="month"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        tick={{ fill: '#94a3b8', fontSize: 12 }}
                         dy={10}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        tick={{ fill: '#94a3b8', fontSize: 12 }}
                         tickFormatter={(value) => `₹${value}`}
                     />
                     <Tooltip

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, Calendar, Menu, X, LogOut, MessageSquare, LayoutDashboard, Scale } from 'lucide-react';
+import { User, Calendar, Menu, X, LogOut, MessageSquare, LayoutDashboard, Scale, Wallet } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { clearUserData } from '@/redux/userSlice';
 import { useRouter } from 'next/navigation';
@@ -34,7 +34,7 @@ const UserSidebar = () => {
         { icon: <User size={22} />, label: 'Profile', path: '/user/profile' },
         { icon: <Calendar size={22} />, label: 'bookings', path: '/user/bookings' },
         { icon: <MessageSquare size={22} />, label: 'Messages', path: '/user/chat' },
-        { icon: <MessageSquare size={22} />, label: 'Wallet', path: '/user/wallet' },
+        { icon: <Wallet size={22} />, label: 'Wallet', path: '/user/wallet' },
     ];
 
     return (

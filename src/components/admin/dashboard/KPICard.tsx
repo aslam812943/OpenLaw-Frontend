@@ -22,7 +22,7 @@ export const KPICard: React.FC<KPICardProps> = ({
     color = "bg-emerald-500/10"
 }) => {
     return (
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6 transition-all duration-300 hover:border-emerald-500/30 group">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:border-emerald-500/30 group shadow-2xl shadow-black/50">
             <div className="flex justify-between items-start mb-4">
                 <div className={`p-3 rounded-xl ${color} text-emerald-500 group-hover:scale-110 transition-transform duration-300`}>
                     <Icon size={24} />

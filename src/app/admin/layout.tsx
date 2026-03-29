@@ -8,7 +8,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [collapsed, setCollapsed] = useState(false);
     const pathname = usePathname();
 
- 
+
     const isLoginPage = pathname === '/admin/login';
 
     if (isLoginPage) {
@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <div className="flex h-screen bg-gray-100 dark:bg-neutral-900">
+        <div className="flex h-screen bg-[#0a0a0a]">
             <AdminSideBar
                 collapsed={collapsed}
                 onToggle={() => setCollapsed(!collapsed)}

@@ -48,7 +48,7 @@ export const BookingStatusChart: React.FC<BookingStatusChartProps> = ({ data }) 
                     <Legend
                         verticalAlign="bottom"
                         height={36}
-                        formatter={(value) => <span className="text-slate-400 text-sm">{value}</span>}
+                        formatter={(value) => <span className="text-slate-300 text-sm">{value}</span>}
                     />
                 </PieChart>
             </ResponsiveContainer>
