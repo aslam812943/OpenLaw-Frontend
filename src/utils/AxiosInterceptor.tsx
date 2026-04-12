@@ -36,11 +36,11 @@ export default function AxiosInterceptor() {
             }
         );
 
-        
+
         const checkSession = async () => {
             if (user.id || lawyer.id) {
                 try {
-                   
+
                     const endpoint = user.id ? '/user/profile' : '/lawyer/profile';
                     await apiClient.get(endpoint);
                 } catch (error) {
@@ -55,5 +55,5 @@ export default function AxiosInterceptor() {
         };
     }, [dispatch, router, user.id, lawyer.id]);
 
-    return null;    
+    return null;
 }

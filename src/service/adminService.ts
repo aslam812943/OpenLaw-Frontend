@@ -20,6 +20,7 @@ export interface SubscriptionPlan {
   durationUnit: string;
   price: number;
   commissionPercent: number;
+  lawyerCancellationPenaltyPercent: number;
   isActive: boolean;
 }
 

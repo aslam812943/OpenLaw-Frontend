@@ -140,6 +140,8 @@ export interface Transaction {
   netAmount: number;
   status: string;
   paymentStatus: string;
+  refundAmount?: number;
+  refundStatus?: string;
 }
 
 export interface Earnings {
@@ -164,6 +166,7 @@ export interface SubscriptionPlan {
   durationUnit: string;
   price: number;
   commissionPercent: number;
+  lawyerCancellationPenaltyPercent: number;
   isActive: boolean;
 }
 
@@ -241,6 +244,7 @@ export interface SubscriptionResponse {
   durationUnit: string;
   price: number;
   commissionPercent: number;
+  lawyerCancellationPenaltyPercent: number;
   isActive: boolean;
   expiryDate?: string;
 }

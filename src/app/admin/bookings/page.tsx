@@ -18,6 +18,8 @@ interface AdminBooking {
     lawyerEarnings: number;
     status: string;
     paymentStatus: string;
+    refundAmount?: number;
+    refundStatus?: string;
     createdAt?: string;
 }
 
@@ -72,11 +74,21 @@ export default function AdminBookingsPage() {
         },
         {
             header: "Commission",
-            render: (booking) => <span className="font-bold text-emerald-400">₹{booking.adminCommission.toFixed(2)}</span>
+            render: (booking) => (
+                <div className="flex flex-col">
+                    <span className="font-bold text-emerald-400">₹{booking.adminCommission.toFixed(2)}</span>
+                    {booking.status === 'cancelled' && booking.adminCommission > 0 && <span className="text-[9px] text-slate-500 font-medium">Retention</span>}
+                </div>
+            )
         },
         {
             header: "Lawyer Earned",
-            render: (booking) => <span className="font-medium text-slate-300">₹{booking.lawyerEarnings.toFixed(2)}</span>
+            render: (booking) => (
+                <div className="flex flex-col">
+                    <span className="font-medium text-slate-300">₹{booking.lawyerEarnings.toFixed(2)}</span>
+                    {booking.status === 'cancelled' && booking.lawyerEarnings > 0 && <span className="text-[9px] text-slate-500 font-medium">Retention</span>}
+                </div>
+            )
         },
         {
             header: "Status",
@@ -89,9 +101,17 @@ export default function AdminBookingsPage() {
                     rejected: "bg-slate-500/10 text-slate-500 border border-slate-500/20"
                 };
                 return (
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${colors[booking.status] || "bg-gray-500/10 text-gray-500 border border-gray-500/20"}`}>
-                        {booking.status}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                        <span className={`px-2 py-1 rounded-full text-[10px] w-fit font-bold uppercase tracking-wider ${colors[booking.status] || "bg-gray-500/10 text-gray-500 border border-gray-500/20"}`}>
+                            {booking.status}
+                        </span>
+                        {booking.status === 'cancelled' && booking.refundStatus === 'partial' && (
+                            <span className="text-[9px] text-rose-400 font-medium">Partial Refund (70%)</span>
+                        )}
+                        {booking.status === 'cancelled' && booking.refundStatus === 'full' && (
+                            <span className="text-[9px] text-emerald-400 font-medium">Full Refund (100%)</span>
+                        )}
+                    </div>
                 );
             }
         },
