@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { createSubscription, fetchSubscriptions, toggleSubscriptionStatus, updateSubscription } from '@/service/adminService';
 import { showToast } from '@/utils/alerts';
-import { Plus, List, ArrowLeft, Loader2, DollarSign, Clock, Percent, ShieldCheck, Power, PowerOff, Edit2 } from 'lucide-react';
+import { Plus, List, ArrowLeft, Loader2, DollarSign, Clock, Percent, ShieldCheck, Power, PowerOff, Edit2, AlertCircle } from 'lucide-react';
 import Pagination from '@/components/common/Pagination';
 
 type DurationUnit = 'month' | 'year';
@@ -15,6 +15,7 @@ interface SubscriptionPlan {
   durationUnit: string;
   price: number;
   commissionPercent: number;
+  lawyerCancellationPenaltyPercent: number;
   isActive: boolean;
 }
 
@@ -35,6 +36,7 @@ const Subscription = () => {
   const [durationUnit, setDurationUnit] = useState<DurationUnit>('month');
   const [price, setPrice] = useState<number>(0);
   const [commissionPercent, setCommissionPercent] = useState<number>(0);
+  const [lawyerCancellationPenaltyPercent, setLawyerCancellationPenaltyPercent] = useState<number>(0);
 
   useEffect(() => {
     loadSubscriptions(currentPage);
@@ -76,10 +78,14 @@ const Subscription = () => {
       showToast('warning', 'Commission must be between 0 and 50%');
       return;
     }
+    if (lawyerCancellationPenaltyPercent < 0 || lawyerCancellationPenaltyPercent > 10) {
+      showToast('warning', 'Cancellation Penalty must be between 0 and 10%');
+      return;
+    }
 
     try {
       setSubmitting(true);
-      const payload = { planName, duration, durationUnit, price, commissionPercent };
+      const payload = { planName, duration, durationUnit, price, commissionPercent, lawyerCancellationPenaltyPercent };
 
       let res;
       if (isEditing && editingId) {
@@ -109,6 +115,7 @@ const Subscription = () => {
     setDurationUnit(plan.durationUnit as DurationUnit);
     setPrice(plan.price);
     setCommissionPercent(plan.commissionPercent);
+    setLawyerCancellationPenaltyPercent(plan.lawyerCancellationPenaltyPercent || 0);
     setShowForm(true);
   };
 
@@ -134,6 +141,7 @@ const Subscription = () => {
     setDurationUnit('month');
     setPrice(0);
     setCommissionPercent(0);
+    setLawyerCancellationPenaltyPercent(0);
     setIsEditing(false);
     setEditingId(null);
   };
@@ -241,6 +249,10 @@ const Subscription = () => {
                 <div className="flex items-center gap-3 text-slate-400">
                   <Percent className={`w-4 h-4 ${plan.isActive ? 'text-teal-500/70' : 'text-slate-600'}`} />
                   <span>{plan.commissionPercent}% Platform Commission</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-400">
+                  <AlertCircle className={`w-4 h-4 ${plan.isActive ? 'text-teal-500/70' : 'text-slate-600'}`} />
+                  <span>{plan.lawyerCancellationPenaltyPercent || 0}% Cancellation Penalty</span>
                 </div>
               </div>
 
@@ -358,6 +370,24 @@ const Subscription = () => {
                 />
               </div>
               <p className="text-xs text-slate-500 ml-1">Percentage taken from lawyer's booking earnings (Max 50%)</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300 ml-1">Lawyer Cancellation Penalty (%)</label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
+                <input
+                  type="number"
+                  required
+                  value={lawyerCancellationPenaltyPercent}
+                  onChange={(e) => setLawyerCancellationPenaltyPercent(Number(e.target.value))}
+                  className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                  placeholder="e.g. 5"
+                />
+              </div>
+              <p className="text-xs text-slate-500 ml-1">Penalty deducted from lawyer's wallet if they cancel a booking (Max 10%)</p>
             </div>
 
             <button

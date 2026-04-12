@@ -219,10 +219,34 @@ const EarningsPage = () => {
                                                     {earnings.transactions.map((t) => (
                                                         <tr key={t.bookingId} className="hover:bg-slate-50/80 transition-colors group">
                                                             <td className="px-6 py-5 text-sm text-slate-500 font-medium">{t.date}</td>
-                                                            <td className="px-6 py-5 text-sm text-slate-900 font-bold">{t.userName}</td>
-                                                            <td className="px-6 py-5 text-right text-sm font-semibold text-slate-500">₹{t.amount}</td>
+                                                            <td className="px-6 py-5 text-sm text-slate-900 font-bold">
+                                                                <div className="flex flex-col">
+                                                                    <span>{t.userName}</span>
+                                                                    <div className="flex gap-2 items-center mt-1">
+                                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${t.status === 'cancelled' ? 'bg-rose-100 text-rose-600 border border-rose-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}`}>
+                                                                            {t.status}
+                                                                        </span>
+                                                                        {t.status === 'cancelled' && t.refundStatus === 'partial' && (
+                                                                            <span className="text-[9px] text-rose-500 font-bold">70% REFUNDED</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-5 text-right text-sm font-semibold text-slate-500">
+                                                                <div className="flex flex-col items-end">
+                                                                    <span>₹{t.amount}</span>
+                                                                    {t.status === 'cancelled' && t.refundStatus === 'partial' && (
+                                                                        <span className="text-[9px] text-rose-400 font-medium italic">₹{(t.amount * 0.3).toFixed(2)} retained</span>
+                                                                    )}
+                                                                </div>
+                                                            </td>
                                                             <td className="px-6 py-5 text-right">
-                                                                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">₹{t.netAmount}</span>
+                                                                <div className="flex flex-col items-end gap-1">
+                                                                    <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">₹{t.netAmount}</span>
+                                                                    {t.status === 'cancelled' && (
+                                                                        <span className="text-[9px] text-slate-400 font-medium">Your Share</span>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     ))}

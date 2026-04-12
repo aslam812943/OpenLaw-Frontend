@@ -135,6 +135,10 @@ const SubscriptionsPage = () => {
                                     <div className="w-2 h-2 rounded-full bg-teal-400" />
                                     Commission Rate: <span className="text-white">{currentSubscription.commissionPercent}%</span>
                                 </div>
+                                <div className="mt-2 flex items-center gap-2 text-sm text-slate-300 font-medium">
+                                    <div className="w-2 h-2 rounded-full bg-rose-400" />
+                                    Cancellation Penalty: <span className="text-white">{currentSubscription.lawyerCancellationPenaltyPercent}%</span>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -202,6 +206,15 @@ const SubscriptionsPage = () => {
                                         </div>
                                     </li>
                                     <li className="flex items-start gap-4 text-slate-600 group">
+                                        <div className="p-2 rounded-xl bg-rose-50 text-rose-600 group-hover:bg-rose-100 transition-colors">
+                                            <AlertCircle size={18} />
+                                        </div>
+                                        <div className="py-1 text-rose-600">
+                                            <span className="font-semibold block">{plan.lawyerCancellationPenaltyPercent}%</span>
+                                            <span className="text-xs font-medium">Cancellation Penalty</span>
+                                        </div>
+                                    </li>
+                                    <li className="flex items-start gap-4 text-slate-600 group">
                                         <div className="p-2 rounded-xl bg-teal-50 text-teal-600 group-hover:bg-teal-100 transition-colors">
                                             <Check size={18} />
                                         </div>
@@ -264,7 +277,7 @@ const SubscriptionsPage = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

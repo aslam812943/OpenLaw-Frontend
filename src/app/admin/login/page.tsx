@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#0a0a0a", 
+        backgroundColor: "#0a0a0a",
         color: "#fff",
       }}
     >
@@ -91,7 +91,7 @@ export default function AdminLoginPage() {
           border: "1px solid #333",
           padding: "40px",
           borderRadius: "16px",
-          backgroundColor: "#111", 
+          backgroundColor: "#111",
           boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
           backdropFilter: "blur(10px)",
         }}

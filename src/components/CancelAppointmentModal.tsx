@@ -24,8 +24,8 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({ isOpen,
             <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
                 <h2 className="text-xl font-bold mb-2">Cancel Appointment</h2>
                 <div className="text-[11px] leading-relaxed text-amber-700 bg-amber-50 p-3 rounded-xl mb-4 border border-amber-100 italic space-y-1">
-                    <p>• Cancellations &gt; 24h before: 100% refund.</p>
-                    <p>• Cancellations &lt; 24h before: 50% refund.</p>
+                    <p>• Cancellations &gt; 48h before: 100% refund.</p>
+                    <p>• Cancellations &lt; 48h before: 70% refund.</p>
                 </div>
                 <p className="mb-4 text-gray-600 text-sm">Please provide a reason for cancellation:</p>
                 <textarea
