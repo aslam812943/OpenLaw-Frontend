@@ -8,9 +8,6 @@ import { clearLawyerData } from "@/redux/lawyerSlice";
 export const apiInstance = axios.create({
     baseURL: BASE_URL,
     withCredentials: true,
-    headers: {
-        "Content-Type": "application/json",
-    },
 });
 
 
@@ -86,8 +83,7 @@ apiInstance.interceptors.response.use(
             }
         }
 
-        const finalMessage = typeof message === 'string' ? message : "An unexpected error occurred.";
-        return Promise.reject(new Error(finalMessage));
+        return Promise.reject(error);
     }
 );
 

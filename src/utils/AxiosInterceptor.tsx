@@ -20,15 +20,32 @@ export default function AxiosInterceptor() {
         const interceptor = apiInstance.interceptors.response.use(
             (response) => response,
             (error) => {
-                if (error.response && error.response.status === 403) {
+                const status = error.response ? error.response.status : null;
+                const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
+                if (status === 401) {
+                    dispatch(clearUserData());
+                    dispatch(clearLawyerData());
+
+                    if (isAdminPath) {
+                        router.push('/admin/login');
+                    } else {
+                        router.push('/login');
+                    }
+                    return Promise.reject(error);
+                }
+
+                if (status === 403) {
                     const errorMessage = error.response.data?.message;
 
                     if (errorMessage === "Your account has been blocked or disabled.") {
                         dispatch(clearUserData());
                         dispatch(clearLawyerData());
-
-                        showToast('error', "Your account has been blocked by the admin.")
-
+                        showToast('error', "Your account has been blocked by the admin.");
+                        router.push('/login');
+                    } else if (isAdminPath) {
+                        router.push('/admin/login');
+                    } else {
                         router.push('/login');
                     }
                 }
@@ -41,7 +58,7 @@ export default function AxiosInterceptor() {
             if (user.id || lawyer.id) {
                 try {
 
-                    const endpoint = user.id ? '/user/profile' : '/lawyer/profile';
+                    const endpoint = user.id ? '/api/user/profile' : '/api/lawyer/profile';
                     await apiClient.get(endpoint);
                 } catch (error) {
                 }

@@ -66,19 +66,19 @@ const Subscription = () => {
       return;
     }
     if (duration <= 0) {
-      showToast('warning', 'Duration must be greater than 0');
+      showToast('warning', 'Duration must be a positive number (at least 1)');
       return;
     }
 
-    if (price < 50) {
-      showToast('warning', 'Price must be at least 50');
+    if (isNaN(price) || price < 50) {
+      showToast('warning', 'Price must be a valid number and at least $50');
       return;
     }
-    if (commissionPercent < 0 || commissionPercent > 50) {
+    if (isNaN(commissionPercent) || commissionPercent < 0 || commissionPercent > 50) {
       showToast('warning', 'Commission must be between 0 and 50%');
       return;
     }
-    if (lawyerCancellationPenaltyPercent < 0 || lawyerCancellationPenaltyPercent > 10) {
+    if (isNaN(lawyerCancellationPenaltyPercent) || lawyerCancellationPenaltyPercent < 0 || lawyerCancellationPenaltyPercent > 10) {
       showToast('warning', 'Cancellation Penalty must be between 0 and 10%');
       return;
     }
@@ -300,12 +300,11 @@ const Subscription = () => {
             <h2 className="text-2xl font-bold text-white">{isEditing ? 'Edit Subscription Plan' : 'New Subscription Plan'}</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300 ml-1">Plan Name</label>
               <input
                 type="text"
-                required
                 value={planName}
                 onChange={(e) => setPlanName(e.target.value)}
                 className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all placeholder:text-slate-600"
@@ -319,8 +318,6 @@ const Subscription = () => {
                 <div className="flex gap-2">
                   <input
                     type="number"
-                    min="1"
-                    required
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
                     className="w-1/3 bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
@@ -344,7 +341,6 @@ const Subscription = () => {
                   </div>
                   <input
                     type="number"
-                    required
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
                     className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
@@ -362,7 +358,6 @@ const Subscription = () => {
                 </div>
                 <input
                   type="number"
-                  required
                   value={commissionPercent}
                   onChange={(e) => setCommissionPercent(Number(e.target.value))}
                   className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
@@ -380,7 +375,6 @@ const Subscription = () => {
                 </div>
                 <input
                   type="number"
-                  required
                   value={lawyerCancellationPenaltyPercent}
                   onChange={(e) => setLawyerCancellationPenaltyPercent(Number(e.target.value))}
                   className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"

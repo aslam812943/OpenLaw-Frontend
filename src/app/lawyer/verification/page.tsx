@@ -48,6 +48,37 @@ const LawyerSignup = () => {
     languages: [] as string[],
   });
 
+
+  useEffect(() => {
+    const savedData = localStorage.getItem("lawyer_verification_draft");
+    const savedStep = localStorage.getItem("lawyer_verification_step");
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+
+        if (parsed.languages && !Array.isArray(parsed.languages)) delete parsed.languages;
+        if (parsed.practiceAreas && !Array.isArray(parsed.practiceAreas)) delete parsed.practiceAreas;
+
+        setFormData((prev) => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error("Failed to parse saved draft", e);
+      }
+    }
+    if (savedStep) {
+      setCurrentStep(parseInt(savedStep, 10));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("lawyer_verification_draft", JSON.stringify(formData));
+    localStorage.setItem("lawyer_verification_step", currentStep.toString());
+  }, [formData, currentStep]);
+
+  const clearDraft = () => {
+    localStorage.removeItem("lawyer_verification_draft");
+    localStorage.removeItem("lawyer_verification_step");
+  };
+
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -103,18 +134,38 @@ const LawyerSignup = () => {
   const languageOptions = [
     { value: "english", label: "English" },
     { value: "malayalam", label: "Malayalam" },
-    { value: "both", label: "Both (English & Malayalam)" },
+    { value: "hindi", label: "Hindi" },
+    { value: "tamil", label: "Tamil" },
+
   ];
 
   const validateBarNumber = (barNumber: string) => (!barNumber.trim() ? "Bar number is required" : "");
-  const validateBarAdmissionDate = (date: string) => (!date.trim() ? "Bar admission date is required" : "");
-  const validateYearsOfPractice = (years: string) => {
-    if (!years.trim()) return "Years of practice is required";
-    if (isNaN(Number(years)) || Number(years) < 0) return "Please enter a valid number";
+
+  const validateBarAdmissionDate = (date: string) => {
+    if (!date.trim()) return "Bar admission date is required";
+    const selectedDate = new Date(date);
+    const today = new Date();
+    if (selectedDate > today) return "Bar admission date cannot be in the future";
     return "";
   };
-  const validatePracticeAreas = (areas: string[]) => (areas.length === 0 ? "Please select at least one practice area" : "");
-  const validateLanguages = (langs: string[]) => (langs.length === 0 ? "Please select your language preference" : "");
+
+  const validateYearsOfPractice = (years: string) => {
+    if (!years.trim()) return "Years of practice is required";
+    if (isNaN(Number(years)) || Number(years) < 0) return "Please enter a valid non-negative number";
+
+    // Check consistency with admission date
+    if (formData.barAdmissionDate) {
+      const admissionYear = new Date(formData.barAdmissionDate).getFullYear();
+      const currentYear = new Date().getFullYear();
+      const maxYears = currentYear - admissionYear;
+      if (Number(years) > maxYears) {
+        return `Years of practice (${years}) cannot exceed years since admission (${maxYears})`;
+      }
+    }
+    return "";
+  };
+  const validatePracticeAreas = (areas: string[]) => (!Array.isArray(areas) || areas.length === 0 ? "Please select at least one practice area" : "");
+  const validateLanguages = (langs: string[]) => (!Array.isArray(langs) || langs.length === 0 ? "Please select your language preference" : "");
   const validateFiles = (files: File[]) => (files.length === 0 ? "Please upload at least one document" : "");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,17 +177,22 @@ const LawyerSignup = () => {
   };
 
   const togglePracticeArea = (value: string) => {
-    const updatedAreas = formData.practiceAreas.includes(value)
-      ? formData.practiceAreas.filter((area) => area !== value)
-      : [...formData.practiceAreas, value];
+    const currentAreas = Array.isArray(formData.practiceAreas) ? formData.practiceAreas : [];
+    const updatedAreas = currentAreas.includes(value)
+      ? currentAreas.filter((area) => area !== value)
+      : [...currentAreas, value];
     setFormData((prev) => ({ ...prev, practiceAreas: updatedAreas }));
     if (errors.practiceAreas) {
       setErrors((prev) => ({ ...prev, practiceAreas: "" }));
     }
   };
 
-  const selectLanguage = (value: string) => {
-    setFormData((prev) => ({ ...prev, languages: [value] }));
+  const toggleLanguage = (value: string) => {
+    const currentLangs = Array.isArray(formData.languages) ? formData.languages : [];
+    const updatedLangs = currentLangs.includes(value)
+      ? currentLangs.filter((lang) => lang !== value)
+      : [...currentLangs, value];
+    setFormData((prev) => ({ ...prev, languages: updatedLangs }));
     if (errors.languages) {
       setErrors((prev) => ({ ...prev, languages: "" }));
     }
@@ -248,6 +304,7 @@ const LawyerSignup = () => {
       await submitVerificationDetails(formDataToSend);
 
       showToast("success", "Verification details submitted successfully!");
+      clearDraft();
       setIsSubmitted(true);
     } catch (error: unknown) {
       let message = "Failed to submit form. Please try again.";
@@ -426,7 +483,7 @@ const LawyerSignup = () => {
                       <button
                         key={lang.value}
                         type="button"
-                        onClick={() => selectLanguage(lang.value)}
+                        onClick={() => toggleLanguage(lang.value)}
                         className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${isSelected
                           ? "border-teal-500 bg-teal-50 shadow-md shadow-teal-500/20"
                           : "border-slate-200 bg-white hover:border-teal-300 hover:shadow-md"
@@ -475,11 +532,28 @@ const LawyerSignup = () => {
                       className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileText className="w-5 h-5 text-teal-600 flex-shrink-0" />
-                        <span className="text-sm text-slate-700 truncate">{file.name}</span>
-                        <span className="text-xs text-slate-500 flex-shrink-0">
-                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                        </span>
+                        {file.type.startsWith("image/") ? (
+                          <div className="w-10 h-10 rounded bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                              onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-teal-50 flex items-center justify-center flex-shrink-0 border border-teal-100">
+                            <FileText className="w-5 h-5 text-teal-600" />
+                          </div>
+                        )}
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium text-slate-700 truncate">
+                            {file.name}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type.split("/")[1].toUpperCase()}
+                          </span>
+                        </div>
                       </div>
                       <button
                         type="button"

@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
 
 
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-    if (!accessToken && !isRecoverable) return NextResponse.redirect(new URL('/admin/login', request.url));
+    if ((!accessToken || role !== 'admin') && !isRecoverable) return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 
 
@@ -40,8 +40,8 @@ export function middleware(request: NextRequest) {
 
 
   if (pathname.startsWith('/user')) {
-    if(!pathname.startsWith('/user/lawyers')&&!pathname.startsWith('/user/lawyers/[id]')){
-    if ((!accessToken || role !== 'user') && !isRecoverable) return NextResponse.redirect(new URL('/login', request.url));
+    if (!pathname.startsWith('/user/lawyers') && !pathname.startsWith('/user/lawyers/[id]')) {
+      if ((!accessToken || role !== 'user') && !isRecoverable) return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 

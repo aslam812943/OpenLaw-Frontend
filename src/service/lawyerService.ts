@@ -332,9 +332,7 @@ export const lawyerRegister = async (data: LawyerRegisterData): Promise<CommonRe
 };
 
 export const submitVerificationDetails = async (formData: FormData): Promise<CommonResponse<void>> => {
-  return apiClient.post(API_ROUTES.LAWYER.VERIFY_DETAILS, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  return apiClient.post(API_ROUTES.LAWYER.VERIFY_DETAILS, formData);
 };
 
 /* ============================================================
