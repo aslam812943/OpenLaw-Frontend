@@ -126,8 +126,9 @@ const Appointments = () => {
       await updateAppointmentStatus(id, status);
       showToast("success", `Appointment ${status} successfully`);
       fetchAppointments();
-    } catch (error) {
-      showToast("error", "Failed to update appointment status");
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Failed to update appointment status";
+      showToast("error", message);
     }
   }, [fetchAppointments]);
 
@@ -140,8 +141,9 @@ const Appointments = () => {
       showToast("success", "Appointment completed successfully!");
       setIsModalOpen(false);
       fetchAppointments();
-    } catch (error) {
-      showToast("error", "Failed to complete appointment");
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Failed to complete appointment";
+      showToast("error", message);
     } finally {
       setIsSubmitting(false);
     }

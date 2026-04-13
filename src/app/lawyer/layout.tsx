@@ -15,13 +15,14 @@ export default function LawyerLayout({ children }: { children: React.ReactNode }
     const [isVerified, setIsVerified] = useState<boolean>(true);
     const [hasSubmitted, setHasSubmitted] = useState<boolean>(true);
     const [loading, setLoading] = useState<boolean>(true);
+    const [verificationStatus, setVerificationStatus] = useState<string | undefined>(undefined);
     const router = useRouter();
 
     useEffect(() => {
         const checkStatus = async () => {
             try {
                 const profile = await getprofile();
-
+                setVerificationStatus(profile?.verificationStatus);
                 setHasSubmitted(!!profile?.hasSubmittedVerification);
 
                 if (profile?.paymentVerify) {
@@ -30,8 +31,9 @@ export default function LawyerLayout({ children }: { children: React.ReactNode }
                     setIsVerified(false);
                 }
 
-                if (!profile?.hasSubmittedVerification && !isWhiteListedPage) {
+                if ((!profile?.hasSubmittedVerification || profile?.verificationStatus === 'Rejected') && !isWhiteListedPage) {
                     router.replace('/lawyer/verification');
+                    return
                 }
             } catch (error) {
                 console.error("Layout status check failed:", error);
@@ -73,8 +75,14 @@ export default function LawyerLayout({ children }: { children: React.ReactNode }
             <div className="flex flex-1 overflow-hidden">
                 <LawyerSidebar />
                 <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                    {!isVerified && !isWhiteListedPage ? (
-                        <SubscriptionPlans />
+                    {(!isVerified || verificationStatus === 'Rejected') && !isWhiteListedPage ? (
+                        verificationStatus === 'Rejected' ? (
+                            <div className="flex justify-center items-center h-full">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+                            </div>
+                        ) : (
+                            <SubscriptionPlans />
+                        )
                     ) : (
                         children
                     )}
