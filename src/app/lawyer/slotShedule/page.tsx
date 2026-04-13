@@ -6,7 +6,7 @@ import { Calendar, Clock, Plus, Edit, Trash2 } from 'lucide-react';
 import { scheduleCreate, scheduleUpdate, fetchAllRules, deleteRule, ScheduleRule } from '@/service/lawyerService';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
-import { showToast } from '@/utils/alerts';
+import { showToast, showConfirm } from '@/utils/alerts';
 
 interface SchedulingRule {
   id: string;
@@ -94,6 +94,10 @@ export default function App() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+
   const [formData, setFormData] = useState<Omit<SchedulingRule, 'id'>>({
     title: '',
     startTime: '',
@@ -170,14 +174,10 @@ export default function App() {
       return 'End date must be same or after start date';
     }
 
-    // const daysDiff = daysBetween(start, end) + 1;
-    // if (daysDiff > 31) {
-    //   return 'Rule duration may not exceed 31 days';
-    // }
-
-    // if (!isSameOrNextMonthAllowed(start, end)) {
-    //   return 'End date must be in same month or same day of next month';
-    // }
+    const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+    if (end.getTime() - start.getTime() > ONE_YEAR_MS) {
+      return 'Rule duration cannot exceed 1 year';
+    }
 
     return '';
   };
@@ -382,7 +382,8 @@ export default function App() {
       resetForm();
 
     } catch (err: unknown) {
-      showToast('error', (err instanceof Error) ? err.message : 'Failed to create rule');
+      const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || (err instanceof Error ? err.message : 'Failed to create rule');
+      showToast('error', errorMessage);
     }
   };
 
@@ -429,7 +430,7 @@ export default function App() {
       resetForm();
 
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Update failed';
+      const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || (err instanceof Error ? err.message : 'Update failed');
       showToast('error', errorMessage);
     }
   };
@@ -453,9 +454,25 @@ export default function App() {
   };
 
   const handleDeleteRule = async (id: string) => {
+    const confirmed = await showConfirm(
+      "Are you sure?",
+      "Once deleted, you will need to recreate the rule and its slots.",
+      "Yes, delete rule",
+      "warning"
+    );
+
+    if (!confirmed) return;
+
     setRules(rules.filter(rule => rule.id !== id));
     await deleteRule(id)
-    showToast('success', 'Rule delete successfully');
+    showToast('success', 'Rule deleted successfully');
+
+
+    const totalAfterDelete = rules.length - 1;
+    const maxPageAfterDelete = Math.ceil(totalAfterDelete / itemsPerPage) || 1;
+    if (currentPage > maxPageAfterDelete) {
+      setCurrentPage(maxPageAfterDelete);
+    }
   };
 
   return (
@@ -766,72 +783,114 @@ export default function App() {
               </div>
             )}
 
-            <div className="space-y-4">
-              {rules.map(rule => (
-                <div key={rule.id} className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">{rule.title}</h3>
-                      <span className="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
-                        Active
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => handleEditRule(rule)} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors">
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => handleDeleteRule(rule.id)} className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
+            <div className="space-y-6">
+              {(() => {
+                const indexOfLastRule = currentPage * itemsPerPage;
+                const indexOfFirstRule = indexOfLastRule - itemsPerPage;
+                const currentRules = rules.slice(indexOfFirstRule, indexOfLastRule);
+                const totalPages = Math.ceil(rules.length / itemsPerPage);
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Time:</span>
-                      <span className="ml-2 text-gray-900 font-medium">{rule.startTime} - {rule.endTime}</span>
+                if (currentRules.length === 0) {
+                  return (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                      <p className="text-gray-500">No rules found.</p>
                     </div>
-                    <div>
-                      <span className="text-gray-600">Dates:</span>
-                      <span className="ml-2 text-gray-900 font-medium">{rule.startDate} to {rule.endDate}</span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-gray-600">Available Days:</span>
-                      <div className="flex gap-2 mt-1">
-                        {rule.availableDays.map(day => (
-                          <span key={day} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">{day}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Buffer:</span>
-                      <span className="ml-2 text-gray-900 font-medium">{rule.bufferTime} min</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Slot Duration:</span>
-                      <span className="ml-2 text-gray-900 font-medium">{rule.slotDuration} min</span>
-                    </div>
-                    {/* <div>
-                      <span className="text-gray-600">Max Bookings:</span>
-                      <span className="ml-2 text-gray-900 font-medium">{rule.maxBookings}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Session Type:</span>
-                      <span className="ml-2 text-gray-900 font-medium">{rule.sessionType}</span>
-                    </div> */}
-                    {rule.exceptionDays && rule.exceptionDays.length > 0 && (
-                      <div className="col-span-2">
-                        <span className="text-gray-600">Exception Days:</span>
-                        <div className="flex gap-2 flex-wrap mt-1">
-                          {rule.exceptionDays.map(date => (
-                            <span key={date} className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">{date}</span>
-                          ))}
+                  );
+                }
+
+                return (
+                  <>
+                    {currentRules.map(rule => (
+                      <div key={rule.id} className="group border border-gray-100 rounded-xl p-6 bg-white hover:border-blue-200 hover:shadow-md transition-all">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="font-bold text-lg text-gray-900">{rule.title}</h3>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                Active
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span className="uppercase">{rule.sessionType}</span>
+                              <span>•</span>
+                              <span>{rule.slotDuration} min session</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEditRule(rule)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                              <Edit size={18} />
+                            </button>
+                            <button onClick={() => handleDeleteRule(rule.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-lg p-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Clock size={14} className="text-blue-500" />
+                              <span className="font-medium">{rule.startTime} - {rule.endTime}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Calendar size={14} className="text-blue-500" />
+                              <span>{rule.startDate} to {rule.endDate}</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Available Days</p>
+                            <div className="flex gap-1 flex-wrap">
+                              {daysOfWeek.map(day => (
+                                <span
+                                  key={day}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${rule.availableDays.includes(day) ? 'bg-blue-600 text-white' : 'bg-white text-gray-300 border border-gray-100'}`}
+                                >
+                                  {day}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-gray-50 flex gap-4 text-xs text-gray-500">
+                          <div>
+                            <span className="font-medium text-gray-900">{rule.bufferTime} min</span> break between sessions
+                          </div>
                         </div>
                       </div>
+                    ))}
+
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-1 pt-4">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1 rounded bg-white border border-gray-200 text-sm disabled:opacity-50 hover:bg-gray-50"
+                        >
+                          Prev
+                        </button>
+                        {[...Array(totalPages)].map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === i + 1 ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300'}`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1 rounded bg-white border border-gray-200 text-sm disabled:opacity-50 hover:bg-gray-50"
+                        >
+                          Next
+                        </button>
+                      </div>
                     )}
-                  </div>
-                </div>
-              ))}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>

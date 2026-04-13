@@ -113,6 +113,22 @@ const EarningsPage = () => {
         <div className="flex h-screen bg-slate-50 overflow-hidden">
             <main className="flex-1 overflow-y-auto pb-20">
                 <div className="max-w-7xl mx-auto px-6 py-12">
+                    {/* Debt Warning Banner */}
+                    {earnings && earnings.walletBalance < 0 && (
+                        <div className="mb-8 p-6 bg-rose-50 border border-rose-100 rounded-[1.5rem] flex items-start gap-4 animate-pulse-subtle">
+                            <div className="p-2 bg-rose-100 text-rose-600 rounded-lg">
+                                <XCircle size={20} />
+                            </div>
+                            <div>
+                                <h4 className="text-rose-900 font-bold mb-1">Outstanding Platform Debt</h4>
+                                <p className="text-rose-700 text-sm leading-relaxed">
+                                    Your wallet balance is currently negative due to appointment cancellation penalties.
+                                    This amount will be automatically deducted from your future consultation earnings.
+                                    Withdrawals are disabled until your balance is positive.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pl-2">
@@ -133,22 +149,30 @@ const EarningsPage = () => {
                             {/* Withdrawable Balance */}
                             <div className="lg:col-span-1">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="p-2 rounded-xl bg-teal-500/20 text-teal-300">
+                                    <div className={`p-2 rounded-xl ${earnings && earnings.walletBalance < 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-teal-500/20 text-teal-300'}`}>
                                         <Wallet className="w-5 h-5" />
                                     </div>
-                                    <span className="text-slate-300 font-bold uppercase tracking-wider text-xs">Withdrawable Balance</span>
+                                    <span className="text-slate-300 font-bold uppercase tracking-wider text-xs">
+                                        {earnings && earnings.walletBalance < 0 ? 'Outstanding Debt' : 'Withdrawable Balance'}
+                                    </span>
                                 </div>
-                                <h2 className="text-5xl font-bold text-white tracking-tight mb-2">
-                                    ₹{earnings?.walletBalance.toLocaleString() || 0}
+                                <h2 className={`text-5xl font-bold tracking-tight mb-2 ${earnings && earnings.walletBalance < 0 ? 'text-rose-400' : 'text-white'}`}>
+                                    ₹{Math.abs(earnings?.walletBalance || 0).toLocaleString()}
+                                    {earnings && earnings.walletBalance < 0 && <span className="text-2xl ml-2 opacity-60">DR</span>}
                                 </h2>
-                                <p className="text-slate-400 text-sm mb-8">Available for immediate withdrawal</p>
+                                <p className="text-slate-400 text-sm mb-8">
+                                    {earnings && earnings.walletBalance < 0
+                                        ? 'Amount to be cleared from future earnings'
+                                        : 'Available for immediate withdrawal'}
+                                </p>
 
                                 <button
                                     onClick={() => setWithdrawModalOpen(true)}
-                                    className="bg-teal-500 hover:bg-teal-400 text-slate-900 px-8 py-4 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-teal-500/20 active:scale-95"
+                                    disabled={!earnings || earnings.walletBalance <= 0}
+                                    className="bg-teal-500 hover:bg-teal-400 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-slate-900 px-8 py-4 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-teal-500/20 active:scale-95"
                                 >
                                     <DollarSign size={20} />
-                                    Withdraw Funds
+                                    {earnings && earnings.walletBalance < 0 ? 'Clear Debt to Withdraw' : 'Withdraw Funds'}
                                 </button>
                             </div>
 
