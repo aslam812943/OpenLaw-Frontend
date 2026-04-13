@@ -6,11 +6,12 @@ import { showToast } from '@/utils/alerts';
 import { userRegister } from '@/service/userService';
 import { lawyerRegister } from '@/service/lawyerService';
 import { Mail, Lock, User, Phone, ArrowRight, Users, Gavel } from 'lucide-react';
+import axios from 'axios';
 
 // Validation Helpers
-const validateEmail = (email: string): boolean => /\S+@\S+\.\S+/.test(email);
+const validateEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validatePassword = (password: string): boolean => password.length >= 6;
-const validateName = (name: string): boolean => /^[a-zA-Z]/.test(name.trim());
+const validateName = (name: string): boolean => /^[a-zA-Z]/.test(name.trim()) && name.trim().length >= 3 && name.trim().length <= 25;
 const validatePhone = (phone: string): boolean => /^\d{10}$/.test(phone);
 
 const RegisterForm = () => {
@@ -33,18 +34,24 @@ const RegisterForm = () => {
         setRegisterForm(prev => ({ ...prev, [name]: value }));
 
         let error = '';
-        if (name === 'name' && !validateName(value)) error = 'Name must start with a letter';
+        if (name === 'name') {
+            if (!value.trim()) error = 'Name is required';
+            else if (value.trim().length < 3) error = 'Name must be at least 3 characters';
+            else if (value.trim().length > 25) error = 'Name must not exceed 25 characters';
+            else if (!/^[a-zA-Z]/.test(value.trim())) error = 'Name must start with a letter';
+        }
         if (name === 'email' && !validateEmail(value)) error = 'Enter a valid email address';
         if (name === 'phone' && !validatePhone(value)) error = 'Enter a valid 10-digit phone number';
         if (name === 'password') {
             if (!validatePassword(value)) error = 'Password must be at least 6 characters';
             if (registerForm.conformpassword && value !== registerForm.conformpassword) {
                 setRegisterErrors(prev => ({ ...prev, conformpassword: 'Passwords do not match' }));
-            } else {
+            } else if (registerForm.conformpassword) {
                 setRegisterErrors(prev => ({ ...prev, conformpassword: '' }));
             }
         }
         if (name === 'conformpassword' && value !== registerForm.password) error = 'Passwords do not match';
+        if (name === 'conformpassword' && value === registerForm.password) error = '';
 
         setRegisterErrors(prev => ({ ...prev, [name]: error }));
     };
@@ -56,11 +63,16 @@ const RegisterForm = () => {
     const onRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const nameError = !validateName(registerForm.name) ? 'Name must start with a letter' : '';
-        const emailError = !validateEmail(registerForm.email) ? 'Enter a valid email address' : '';
-        const phoneError = !validatePhone(registerForm.phone) ? 'Enter a valid 10-digit phone number' : '';
-        const passwordError = !validatePassword(registerForm.password) ? 'Password must be at least 6 characters' : '';
-        const conformPasswordError = registerForm.conformpassword !== registerForm.password ? 'Passwords do not match' : '';
+        let nameError = '';
+        if (!registerForm.name.trim()) nameError = 'Name is required';
+        else if (registerForm.name.trim().length < 3) nameError = 'Name must be at least 3 characters';
+        else if (registerForm.name.trim().length > 25) nameError = 'Name must not exceed 25 characters';
+        else if (!/^[a-zA-Z]/.test(registerForm.name.trim())) nameError = 'Name must start with a letter';
+
+        const emailError = !registerForm.email ? 'Email is required' : !validateEmail(registerForm.email) ? 'Enter a valid email address' : '';
+        const phoneError = !registerForm.phone ? 'Phone number is required' : !validatePhone(registerForm.phone) ? 'Enter a valid 10-digit phone number' : '';
+        const passwordError = !registerForm.password ? 'Password is required' : !validatePassword(registerForm.password) ? 'Password must be at least 6 characters' : '';
+        const conformPasswordError = !registerForm.conformpassword ? 'Please confirm your password' : registerForm.conformpassword !== registerForm.password ? 'Passwords do not match' : '';
 
         setRegisterErrors({
             name: nameError,
@@ -86,7 +98,10 @@ const RegisterForm = () => {
             showToast('success', 'Registration successful! OTP sent to your email/phone.');
             router.push(redirect ? `/verifyOtp?redirect=${redirect}` : '/verifyOtp');
         } catch (err: unknown) {
-            showToast('error', (err as Error).message || 'Failed to register');
+            const errorMessage = axios.isAxiosError(err)
+                ? err.response?.data?.message || 'Registration failed. Please try again.'
+                : err instanceof Error ? err.message : 'Registration failed. Please try again.';
+            showToast('error', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -165,6 +180,7 @@ const RegisterForm = () => {
                             placeholder="Password"
                             className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${registerErrors.password ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none transition-all`}
                         />
+                        {registerErrors.password && <p className="text-xs text-red-500 mt-1">{registerErrors.password}</p>}
                     </div>
                     <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -176,9 +192,9 @@ const RegisterForm = () => {
                             placeholder="Confirm"
                             className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${registerErrors.conformpassword ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none transition-all`}
                         />
+                        {registerErrors.conformpassword && <p className="text-xs text-red-500 mt-1">{registerErrors.conformpassword}</p>}
                     </div>
                 </div>
-                {(registerErrors.password || registerErrors.conformpassword) && <p className="text-xs text-red-500 mt-1">{registerErrors.password || registerErrors.conformpassword}</p>}
             </div>
 
             <button

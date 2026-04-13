@@ -10,6 +10,7 @@ import { showToast } from '@/utils/alerts';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import RoleSelectionModal from '../RoleSelectionModal';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import axios from 'axios';
 
 // Validation Helpers
 const validateEmail = (email: string): boolean => /\S+@\S+\.\S+/.test(email);
@@ -33,8 +34,14 @@ const LoginForm = () => {
         setLoginForm(prev => ({ ...prev, [name]: value }));
 
         let error = "";
-        if (name === "email" && !validateEmail(value)) error = "Please enter a valid email address";
-        if (name === "password" && !validatePassword(value)) error = "Password must be at least 6 characters";
+        if (name === "email") {
+            if (!value.trim()) error = "Email is required";
+            else if (!validateEmail(value)) error = "Please enter a valid email address";
+        }
+        if (name === "password") {
+            if (!value) error = "Password is required";
+            else if (!validatePassword(value)) error = "Password must be at least 6 characters";
+        }
         setLoginErrors(prev => ({ ...prev, [name]: error }));
     };
 
@@ -82,8 +89,8 @@ const LoginForm = () => {
 
     const onLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const emailError = !validateEmail(loginForm.email) ? "Please enter a valid email address" : "";
-        const passwordError = !validatePassword(loginForm.password) ? "Password must be at least 6 characters" : "";
+        const emailError = !loginForm.email ? "Email is required" : !validateEmail(loginForm.email) ? "Please enter a valid email address" : "";
+        const passwordError = !loginForm.password ? "Password is required" : !validatePassword(loginForm.password) ? "Password must be at least 6 characters" : "";
         setLoginErrors({ email: emailError, password: passwordError });
 
         if (emailError || passwordError) return;
@@ -93,7 +100,10 @@ const LoginForm = () => {
             const response = await userLogin(loginForm);
             processLoginSuccess(response);
         } catch (err: unknown) {
-            showToast('error', (err as Error).message || 'Login failed');
+            const errorMessage = axios.isAxiosError(err)
+                ? err.response?.data?.message || 'Login failed. Please try again.'
+                : err instanceof Error ? err.message : 'Login failed. Please try again.';
+            showToast('error', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -106,8 +116,11 @@ const LoginForm = () => {
                 return;
             }
             await processGoogleLogin(token);
-        } catch (error) {
-            showToast("error", "Google Login failed");
+        } catch (error: unknown) {
+            const errorMessage = axios.isAxiosError(error)
+                ? error.response?.data?.message || 'Google Login failed'
+                : error instanceof Error ? error.message : 'Google Login failed';
+            showToast("error", errorMessage);
         }
     };
 

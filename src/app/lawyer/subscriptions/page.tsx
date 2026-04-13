@@ -135,9 +135,12 @@ const SubscriptionsPage = () => {
                                     <div className="w-2 h-2 rounded-full bg-teal-400" />
                                     Commission Rate: <span className="text-white">{currentSubscription.commissionPercent}%</span>
                                 </div>
-                                <div className="mt-2 flex items-center gap-2 text-sm text-slate-300 font-medium">
-                                    <div className="w-2 h-2 rounded-full bg-rose-400" />
-                                    Cancellation Penalty: <span className="text-white">{currentSubscription.lawyerCancellationPenaltyPercent}%</span>
+                                <div className="mt-2 flex flex-col items-end gap-1 text-sm text-slate-300 font-medium">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-rose-400" />
+                                        Cancellation Penalty: <span className="text-white">{currentSubscription.lawyerCancellationPenaltyPercent}%</span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-normal">(Fee on lawyer-initiated cancellations)</p>
                                 </div>
                             </div>
                         </div>
@@ -209,9 +212,14 @@ const SubscriptionsPage = () => {
                                         <div className="p-2 rounded-xl bg-rose-50 text-rose-600 group-hover:bg-rose-100 transition-colors">
                                             <AlertCircle size={18} />
                                         </div>
-                                        <div className="py-1 text-rose-600">
-                                            <span className="font-semibold block">{plan.lawyerCancellationPenaltyPercent}%</span>
-                                            <span className="text-xs font-medium">Cancellation Penalty</span>
+                                        <div className="py-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold text-slate-900 block">{plan.lawyerCancellationPenaltyPercent}%</span>
+                                                <span className="text-xs font-medium text-slate-400">Cancellation Penalty</span>
+                                            </div>
+                                            <p className="text-[10px] text-slate-500 leading-tight mt-1">
+                                                Fee applies when you cancel a confirmed appointment.
+                                            </p>
                                         </div>
                                     </li>
                                     <li className="flex items-start gap-4 text-slate-600 group">
