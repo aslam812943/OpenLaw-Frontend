@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from "react"
-import { getprofile, updateProfile, changePassword } from "@/service/lawyerService"
+import { getprofile, updateProfile, changePassword, fetchSpecializations } from "@/service/lawyerService";
 import { showToast } from "@/utils/alerts"
 import { useDispatch } from "react-redux"
 import { setLawyerData } from "@/redux/lawyerSlice"
@@ -22,10 +22,32 @@ import {
     Camera,
     Upload,
     Lock,
+    Eye,
+    EyeOff,
     Shield,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Gavel,
+    Heart,
+    Home,
+    Building,
+    Landmark,
+    Plane,
+    TrendingUp,
+    Leaf,
+    Cross,
+    UserCheck,
+    Music,
+    Ship,
+    ScrollText,
+    Book
 } from "lucide-react"
+
+interface Specialization {
+    id: string;
+    name: string;
+    isActive: boolean;
+}
 
 export default function GetProfile() {
     interface ProfileData {
@@ -69,16 +91,55 @@ export default function GetProfile() {
     const [showChengePassword, setShowChengePassword] = useState(true)
 
     const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
-        street: '',
-        city: '',
-        state: '',
-        pincode: '',
-        profileImage: null as File | null,
-        bio: '',
-        consultationFee: ''
-    })
+        name: "",
+        email: "",
+        phone: "",
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
+        bio: "",
+        consultationFee: "",
+        practiceAreas: [] as string[],
+        languages: [] as string[],
+        profileImage: null as File | null
+    });
+
+    const [specializations, setSpecializations] = useState<Specialization[]>([]);
+    const [loadingSpecs, setLoadingSpecs] = useState(false);
+
+    const languageOptions = [
+        { value: "english", label: "English" },
+        { value: "malayalam", label: "Malayalam" },
+        { value: "hindi", label: "Hindi" },
+        { value: "tamil", label: "Tamil" },
+    ];
+
+    const getIconForArea = (areaName: string) => {
+        const lower = areaName.toLowerCase();
+        if (lower.includes("corporate")) return Briefcase;
+        if (lower.includes("criminal")) return Gavel;
+        if (lower.includes("family")) return Heart;
+        if (lower.includes("property") || lower.includes("real estate")) return Home;
+        if (lower.includes("civil")) return User;
+        if (lower.includes("labor") || lower.includes("employment")) return Building;
+        if (lower.includes("consumer")) return Shield;
+        if (lower.includes("tax")) return DollarSign;
+        if (lower.includes("intellectual") || lower.includes("ip")) return FileText;
+        if (lower.includes("constitutional")) return Landmark;
+        if (lower.includes("international")) return Globe;
+        if (lower.includes("immigration")) return Plane;
+        if (lower.includes("securities") || lower.includes("finance")) return TrendingUp;
+        if (lower.includes("environment")) return Leaf;
+        if (lower.includes("health") || lower.includes("medical")) return Cross;
+        if (lower.includes("rights")) return UserCheck;
+        if (lower.includes("entertainment") || lower.includes("media")) return Music;
+        if (lower.includes("maritime")) return Ship;
+        if (lower.includes("bankrupt")) return DollarSign;
+        if (lower.includes("estate") || lower.includes("probate")) return ScrollText;
+        return Book;
+    };
+
     const [previewImage, setPreviewImage] = useState<string | null>(null)
     const [passwordData, setPasswordData] = useState({
         oldPassword: '',
@@ -86,9 +147,12 @@ export default function GetProfile() {
         confirmPassword: ''
     })
     const [showPasswordSection, setShowPasswordSection] = useState(false)
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [changingPassword, setChangingPassword] = useState(false)
 
-    const fetchProfile = async () => {
+    const fetchProfileData = async () => {
         try {
             const profileData = await getprofile();
             setData({
@@ -124,18 +188,20 @@ export default function GetProfile() {
 
             setShowChengePassword(profileData.isPassword || false)
 
-
             const addr = profileData?.Address;
             setFormData({
                 name: profileData?.name || '',
-                phone: profileData?.phone || '',
+                email: profileData?.email || '',
+                phone: profileData?.phone?.toString() || '',
                 street: addr?.address || '',
                 city: addr?.city || '',
                 state: addr?.state || '',
                 pincode: addr?.pincode?.toString() || '',
-                profileImage: null,
                 bio: profileData?.bio || '',
-                consultationFee: profileData?.consultationFee?.toString() || '0'
+                consultationFee: profileData?.consultationFee?.toString() || '0',
+                practiceAreas: profileData?.practiceAreas || [],
+                languages: profileData?.languages || [],
+                profileImage: null
             })
         } catch (error) {
             showToast("error", "Failed to fetch profile");
@@ -144,8 +210,23 @@ export default function GetProfile() {
         }
     };
 
+    const loadSpecializations = async () => {
+        setLoadingSpecs(true);
+        try {
+            const response = await fetchSpecializations();
+            if (response.success && response.data) {
+                setSpecializations(response.data);
+            }
+        } catch (error) {
+            console.error("Failed to load specializations", error);
+        } finally {
+            setLoadingSpecs(false);
+        }
+    };
+
     useEffect(() => {
-        fetchProfile();
+        fetchProfileData();
+        loadSpecializations();
     }, [])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -168,45 +249,68 @@ export default function GetProfile() {
     }
 
     const validateForm = () => {
-        if (formData.name.trim().length <= 2) {
+        const name = formData.name.trim();
+        const phone = formData.phone.toString().trim();
+        const street = formData.street.trim();
+        const city = formData.city.trim();
+        const state = formData.state.trim();
+        const pincode = formData.pincode.trim();
+        const bio = formData.bio.trim();
+        const fee = Number(formData.consultationFee);
+
+        if (name.length <= 2) {
             showToast("error", "Name must be greater than 2 characters")
             return false
         }
-        if (!/^[a-zA-Z]/.test(formData.name.trim())) {
+        if (!/^[a-zA-Z]/.test(name)) {
             showToast("error", "Name must start with a letter")
             return false
         }
-        if (formData.phone.toString().length !== 10 || !/^\d+$/.test(formData.phone.toString())) {
+        if (phone.length !== 10 || !/^\d+$/.test(phone)) {
             showToast("error", "Phone number must be exactly 10 digits")
             return false
         }
-        if (formData.street.trim().length < 2) {
+        if (street.length < 2) {
             showToast("error", "Street address must be at least 2 characters")
             return false
         }
-        if (formData.city.trim().length < 2) {
+        if (city.length < 2) {
             showToast("error", "City must be at least 2 characters")
             return false
         }
-        if (formData.state.trim().length < 2) {
+        if (state.length < 2) {
             showToast("error", "State must be at least 2 characters")
             return false
         }
-        if (formData.pincode.length < 4 || !/^\d+$/.test(formData.pincode)) {
-            showToast("error", "Pincode must be a valid number with at least 4 digits")
+        if (pincode.length !== 6 || !/^\d+$/.test(pincode)) {
+            showToast("error", "Pincode must be exactly 6 digits")
             return false
         }
 
-        const fee = Number(formData.consultationFee);
         if (isNaN(fee) || fee < 0 || formData.consultationFee.toString().trim() === "") {
             showToast("error", "Please enter a valid consultation fee (0 or more)")
             return false
         }
 
-        if (formData.bio.trim().length < 5) {
+        if (bio.length < 5) {
             showToast("error", "Bio must be at least 5 characters")
             return false
         }
+        if (bio.length > 1000) {
+            showToast("error", "Bio must not exceed 1000 characters")
+            return false
+        }
+
+        if (formData.practiceAreas.length === 0) {
+            showToast("error", "At least one practice area is required")
+            return false
+        }
+
+        if (formData.languages.length === 0) {
+            showToast("error", "At least one language is required")
+            return false
+        }
+
         return true
     }
 
@@ -216,25 +320,28 @@ export default function GetProfile() {
         setSaving(true);
         try {
             const dataToSend = new FormData();
-            dataToSend.append('name', formData.name);
-            dataToSend.append('phone', formData.phone.toString());
-            dataToSend.append('address', formData.street);
-            dataToSend.append('city', formData.city);
-            dataToSend.append('state', formData.state);
-            dataToSend.append('pincode', formData.pincode);
-            dataToSend.append('bio', formData.bio);
-            dataToSend.append('consultationFee', formData.consultationFee);
+            dataToSend.append('name', formData.name.trim());
+            dataToSend.append('phone', formData.phone.toString().trim());
+            dataToSend.append('address', formData.street.trim());
+            dataToSend.append('city', formData.city.trim());
+            dataToSend.append('state', formData.state.trim());
+            dataToSend.append('pincode', formData.pincode.trim());
+            dataToSend.append('bio', formData.bio.trim());
+            dataToSend.append('consultationFee', formData.consultationFee.toString().trim());
+            dataToSend.append('practiceAreas', JSON.stringify(formData.practiceAreas));
+            dataToSend.append('languages', JSON.stringify(formData.languages));
 
             if (formData.profileImage) {
                 dataToSend.append('profileImage', formData.profileImage);
             }
 
             await updateProfile(dataToSend);
-            await fetchProfile();
+            await fetchProfileData();
             setIsEditing(false);
             showToast("success", "Profile updated successfully")
-        } catch (error) {
-            showToast("error", "Failed to update profile")
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || "Failed to update profile";
+            showToast("error", errorMessage)
         } finally {
             setSaving(false);
         }
@@ -247,6 +354,7 @@ export default function GetProfile() {
         const addressArray = data.address || [];
         setFormData({
             name: data.name || '',
+            email: data.email || '',
             phone: data.phone.toString() || '',
             street: addressArray[0] || '',
             city: addressArray[1] || '',
@@ -254,7 +362,9 @@ export default function GetProfile() {
             pincode: addressArray[3] || '',
             profileImage: null,
             bio: data.bio || '',
-            consultationFee: data.consultationFee?.toString() || '0'
+            consultationFee: data.consultationFee?.toString() || '0',
+            practiceAreas: data.practiceAreas || [],
+            languages: data.languages || []
         })
     }
 
@@ -263,7 +373,7 @@ export default function GetProfile() {
         setPasswordData(prev => ({ ...prev, [name]: value }))
     }
 
-    const validatePasswordForm = () => {
+    const handlePasswordSubmit = async () => {
         if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
             showToast("error", "All password fields are required")
             return false
@@ -276,11 +386,6 @@ export default function GetProfile() {
             showToast("error", "New passwords do not match")
             return false
         }
-        return true
-    }
-
-    const handlePasswordSubmit = async () => {
-        if (!validatePasswordForm()) return;
 
         setChangingPassword(true);
         try {
@@ -288,8 +393,8 @@ export default function GetProfile() {
             showToast("success", "Password changed successfully")
             setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
             setShowPasswordSection(false)
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to change password";
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || "Failed to change password";
             showToast("error", errorMessage)
         } finally {
             setChangingPassword(false);
@@ -309,7 +414,6 @@ export default function GetProfile() {
 
     return (
         <div className="min-h-screen bg-slate-50 pb-12">
-            {/* Hero / Cover Section */}
             <div className="relative h-64 bg-slate-900 overflow-hidden">
                 <div className="absolute inset-0 opacity-20">
                     <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-slate-900"></div>
@@ -354,15 +458,11 @@ export default function GetProfile() {
                 </div>
             </div>
 
-            {/* Main Content Area */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-                    {/* Left Panel: Profile Info & Quick Contacts */}
                     <div className="lg:col-span-4 space-y-6">
                         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                             <div className="p-8 text-center pt-12 relative">
-                                {/* Profile Image with Camera Overlay */}
                                 <div className="relative inline-block mb-6">
                                     <div className="h-32 w-32 rounded-3xl bg-slate-50 p-1 shadow-2xl overflow-hidden ring-4 ring-white relative group">
                                         {previewImage ? (
@@ -483,7 +583,6 @@ export default function GetProfile() {
                             </div>
                         </div>
 
-                        {/* Address Section */}
                         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
                             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center">
                                 <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mr-3">
@@ -574,13 +673,21 @@ export default function GetProfile() {
                             </h2>
 
                             {isEditing ? (
-                                <textarea
-                                    name="bio"
-                                    value={formData.bio}
-                                    onChange={handleInputChange}
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none min-h-[160px] transition-all"
-                                    placeholder="Briefly describe your expertise, achievements, and legal philosophy..."
-                                />
+                                <div className="space-y-2">
+                                    <textarea
+                                        name="bio"
+                                        value={formData.bio}
+                                        onChange={handleInputChange}
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none min-h-[160px] transition-all"
+                                        placeholder="Briefly describe your expertise, achievements, and legal philosophy..."
+                                        maxLength={1000}
+                                    />
+                                    <div className="flex justify-end px-2">
+                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${formData.bio.length > 900 ? 'text-red-500' : 'text-slate-400'}`}>
+                                            {formData.bio.length} / 1000 Characters
+                                        </span>
+                                    </div>
+                                </div>
                             ) : (
                                 <p className="text-slate-600 leading-relaxed">
                                     {data.bio || 'Your professional biography will appear here once updated.'}
@@ -597,17 +704,49 @@ export default function GetProfile() {
                                     </div>
                                     Practice Areas
                                 </h2>
-                                <div className="flex flex-wrap gap-2">
-                                    {data.practiceAreas && data.practiceAreas.length > 0 ? (
-                                        data.practiceAreas.map((area, index) => (
-                                            <span key={index} className="px-3.5 py-1.5 bg-teal-50/50 text-teal-700 rounded-xl text-xs font-bold border border-teal-100/50 uppercase tracking-wide">
-                                                {area}
-                                            </span>
-                                        ))
-                                    ) : (
-                                        <p className="text-slate-400 text-sm italic">Not specified</p>
-                                    )}
-                                </div>
+                                {isEditing ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-2 border border-slate-100 rounded-xl bg-slate-50/50">
+                                        {specializations.map((spec) => {
+                                            const Icon = getIconForArea(spec.name);
+                                            const isSelected = formData.practiceAreas.some(a => a.toLowerCase() === spec.name.toLowerCase());
+                                            return (
+                                                <button
+                                                    key={spec.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updated = isSelected
+                                                            ? formData.practiceAreas.filter(a => a.toLowerCase() !== spec.name.toLowerCase())
+                                                            : [...formData.practiceAreas, spec.name];
+                                                        setFormData(prev => ({ ...prev, practiceAreas: updated }));
+                                                    }}
+                                                    className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-[11px] font-bold uppercase tracking-wider ${isSelected
+                                                        ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-sm shadow-teal-500/10'
+                                                        : 'border-white bg-white text-slate-500 hover:border-slate-200 shadow-sm'
+                                                        }`}
+                                                >
+                                                    <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                                                    <span className="truncate">{spec.name}</span>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        {data.practiceAreas && data.practiceAreas.length > 0 ? (
+                                            data.practiceAreas.map((area, index) => {
+                                                const Icon = getIconForArea(area);
+                                                return (
+                                                    <span key={index} className="px-3.5 py-1.5 bg-teal-50/50 text-teal-700 rounded-xl text-xs font-bold border border-teal-100/50 uppercase tracking-wide flex items-center gap-1.5">
+                                                        <Icon className="w-3 h-3" />
+                                                        {area}
+                                                    </span>
+                                                )
+                                            })
+                                        ) : (
+                                            <p className="text-slate-400 text-sm italic">Not specified</p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Languages */}
@@ -618,17 +757,44 @@ export default function GetProfile() {
                                     </div>
                                     Languages
                                 </h2>
-                                <div className="flex flex-wrap gap-2">
-                                    {data.languages && data.languages.length > 0 ? (
-                                        data.languages.map((lang, index) => (
-                                            <span key={index} className="px-3.5 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold border border-slate-200/50 uppercase tracking-wide">
-                                                {lang}
-                                            </span>
-                                        ))
-                                    ) : (
-                                        <p className="text-slate-400 text-sm italic">Not specified</p>
-                                    )}
-                                </div>
+                                {isEditing ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {languageOptions.map((lang) => {
+                                            const isSelected = formData.languages.some(l => l.toLowerCase() === lang.label.toLowerCase());
+                                            return (
+                                                <button
+                                                    key={lang.value}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updated = isSelected
+                                                            ? formData.languages.filter(l => l.toLowerCase() !== lang.label.toLowerCase())
+                                                            : [...formData.languages, lang.label];
+                                                        setFormData(prev => ({ ...prev, languages: updated }));
+                                                    }}
+                                                    className={`px-4 py-2 rounded-xl border-2 transition-all text-xs font-bold uppercase tracking-wider ${isSelected
+                                                        ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-sm shadow-teal-500/10'
+                                                        : 'border-white bg-white text-slate-500 hover:border-slate-200 shadow-sm'
+                                                        }`}
+                                                >
+                                                    {lang.label}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        {data.languages && data.languages.length > 0 ? (
+                                            data.languages.map((lang, index) => (
+                                                <span key={index} className="px-3.5 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold border border-slate-200/50 uppercase tracking-wide flex items-center gap-1.5">
+                                                    <Globe className="w-3 h-3 text-slate-400" />
+                                                    {lang}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <p className="text-slate-400 text-sm italic">Not specified</p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -718,36 +884,63 @@ export default function GetProfile() {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block pl-1">Current Password</label>
-                                            <input
-                                                type="password"
-                                                name="oldPassword"
-                                                value={passwordData.oldPassword}
-                                                onChange={handlePasswordChange}
-                                                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
-                                                placeholder="••••••••"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showCurrentPassword ? "text" : "password"}
+                                                    name="oldPassword"
+                                                    value={passwordData.oldPassword}
+                                                    onChange={handlePasswordChange}
+                                                    className="w-full p-3.5 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                                    placeholder="••••••••"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-600 transition-colors"
+                                                >
+                                                    {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block pl-1">New Password</label>
-                                            <input
-                                                type="password"
-                                                name="newPassword"
-                                                value={passwordData.newPassword}
-                                                onChange={handlePasswordChange}
-                                                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
-                                                placeholder="Min 6 characters"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showNewPassword ? "text" : "password"}
+                                                    name="newPassword"
+                                                    value={passwordData.newPassword}
+                                                    onChange={handlePasswordChange}
+                                                    className="w-full p-3.5 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                                    placeholder="Min 6 characters"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-600 transition-colors"
+                                                >
+                                                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block pl-1">Confirm New Password</label>
-                                            <input
-                                                type="password"
-                                                name="confirmPassword"
-                                                value={passwordData.confirmPassword}
-                                                onChange={handlePasswordChange}
-                                                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
-                                                placeholder="Repeat new password"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showConfirmPassword ? "text" : "password"}
+                                                    name="confirmPassword"
+                                                    value={passwordData.confirmPassword}
+                                                    onChange={handlePasswordChange}
+                                                    className="w-full p-3.5 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                                    placeholder="Repeat new password"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-600 transition-colors"
+                                                >
+                                                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex justify-end">
