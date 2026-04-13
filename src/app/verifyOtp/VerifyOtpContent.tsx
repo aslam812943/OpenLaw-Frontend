@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import { verifyUserOtp, resendUserOtp } from '@/service/userService';
-import { UserCheck, Shield, Mail, ArrowRight, ChevronLeft, KeyRound } from 'lucide-react';
+import { UserCheck, Shield, ChevronLeft, KeyRound } from 'lucide-react';
 import { showToast } from '@/utils/alerts';
+import axios from 'axios';
 
 const VerifyOtpContent = () => {
     const router = useRouter();
@@ -59,7 +60,9 @@ const VerifyOtpContent = () => {
             showToast('success', 'OTP Verified! You are now verified.');
             router.push(redirect ? `/login?redirect=${redirect}` : '/login');
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : 'OTP verification failed.';
+            const errorMessage = axios.isAxiosError(err)
+                ? err.response?.data?.message || 'OTP verification failed.'
+                : err instanceof Error ? err.message : 'OTP verification failed.';
             showToast('error', errorMessage);
         }
         setLoading(false);
@@ -74,7 +77,9 @@ const VerifyOtpContent = () => {
             setTimer(30);
             setCanResend(false);
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : 'Error resending OTP.';
+            const errorMessage = axios.isAxiosError(err)
+                ? err.response?.data?.message || 'Error resending OTP.'
+                : err instanceof Error ? err.message : 'Error resending OTP.';
             showToast('error', errorMessage);
         }
         setResendLoading(false);

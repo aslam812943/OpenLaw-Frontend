@@ -3,7 +3,7 @@ import { getSubscriptionPlans, createSubscriptionCheckout, getprofile } from "@/
 import { useRouter } from "next/navigation";
 import { showToast } from "@/utils/alerts";
 import { motion } from 'framer-motion';
-import { Check, Zap, Star, Shield } from 'lucide-react';
+import { Check, Zap, Star, Shield, Activity } from 'lucide-react';
 
 interface Subscription {
     id: string;
@@ -12,6 +12,7 @@ interface Subscription {
     durationUnit: string;
     price: number;
     commissionPercent: number;
+    lawyerCancellationPenaltyPercent: number;
 }
 
 const SubscriptionPlans: React.FC = () => {
@@ -140,6 +141,17 @@ const SubscriptionPlans: React.FC = () => {
                                 <div className="py-1">
                                     <span className="font-semibold text-slate-900 block">Verified Status</span>
                                     <span className="text-sm">Trust badge on profile</span>
+                                </div>
+                            </li>
+                            <li className="flex items-start gap-4 text-slate-600 group">
+                                <div className="p-2 rounded-xl bg-red-50 text-red-600 group-hover:bg-red-100 transition-colors">
+                                    <Activity size={18} />
+                                </div>
+                                <div className="py-1">
+                                    <span className="font-semibold text-slate-900 block">Cancellation Penalty</span>
+                                    <span className="text-[11px] leading-tight text-slate-500 block mt-0.5">
+                                        A {plan.lawyerCancellationPenaltyPercent}% fee applies if you cancel a confirmed booking.
+                                    </span>
                                 </div>
                             </li>
                         </ul>
