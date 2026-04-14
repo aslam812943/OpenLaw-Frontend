@@ -288,7 +288,12 @@ export default function GetProfile() {
         }
 
         if (isNaN(fee) || fee < 0 || formData.consultationFee.toString().trim() === "") {
-            showToast("error", "Please enter a valid consultation fee (0 or more)")
+            showToast("error", "Consultation fee is required")
+            return false
+        }
+
+        if (!previewImage && !data.profileImage && !formData.profileImage) {
+            showToast("error", "Profile photo is required")
             return false
         }
 
@@ -481,7 +486,7 @@ export default function GetProfile() {
                                                 onClick={() => fileInputRef.current?.click()}
                                             >
                                                 <Camera className="text-white w-8 h-8 mb-1" />
-                                                <span className="text-[10px] text-white font-bold uppercase tracking-wider">Change</span>
+                                                <span className="text-[10px] text-white font-bold uppercase tracking-wider">Change Profile Photo <span className="text-red-500">*</span></span>
                                             </div>
                                         )}
                                     </div>
@@ -561,7 +566,9 @@ export default function GetProfile() {
                                             <DollarSign size={18} />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Min. Consultation Fee</p>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                                Min. Consultation Fee {isEditing && <span className="text-red-500">*</span>}
+                                            </p>
                                             {isEditing ? (
                                                 <div className="flex items-center">
                                                     <span className="text-slate-400 mr-1">₹</span>

@@ -247,28 +247,40 @@ const EarningsPage = () => {
                                                                 <div className="flex flex-col">
                                                                     <span>{t.userName}</span>
                                                                     <div className="flex gap-2 items-center mt-1">
-                                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${t.status === 'cancelled' ? 'bg-rose-100 text-rose-600 border border-rose-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}`}>
+                                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${(t.status === 'cancelled' || t.status === 'rejected') ? 'bg-rose-100 text-rose-600 border border-rose-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}`}>
                                                                             {t.status}
                                                                         </span>
                                                                         {t.status === 'cancelled' && t.refundStatus === 'partial' && (
                                                                             <span className="text-[9px] text-rose-500 font-bold">70% REFUNDED</span>
+                                                                        )}
+                                                                        {t.status === 'rejected' && (
+                                                                            <span className="text-[9px] text-rose-500 font-bold uppercase tracking-widest">Penalized</span>
                                                                         )}
                                                                     </div>
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-5 text-right text-sm font-semibold text-slate-500">
                                                                 <div className="flex flex-col items-end">
-                                                                    <span>₹{t.amount}</span>
+                                                                    <span className={t.status === 'rejected' ? 'line-through opacity-50' : ''}>₹{t.amount}</span>
                                                                     {t.status === 'cancelled' && t.refundStatus === 'partial' && (
                                                                         <span className="text-[9px] text-rose-400 font-medium italic">₹{(t.amount * 0.3).toFixed(2)} retained</span>
+                                                                    )}
+                                                                    {t.status === 'rejected' && (
+                                                                        <span className="text-[9px] text-rose-400 font-medium italic">Full Refunded</span>
                                                                     )}
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-5 text-right">
                                                                 <div className="flex flex-col items-end gap-1">
-                                                                    <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">₹{t.netAmount}</span>
-                                                                    {t.status === 'cancelled' && (
-                                                                        <span className="text-[9px] text-slate-400 font-medium">Your Share</span>
+                                                                    <span className={`text-sm font-bold px-3 py-1 rounded-full border ${t.netAmount < 0
+                                                                        ? 'text-rose-600 bg-rose-50 border-rose-100'
+                                                                        : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
+                                                                        {t.netAmount < 0 ? `-₹${Math.abs(t.netAmount)}` : `₹${t.netAmount}`}
+                                                                    </span>
+                                                                    {(t.status === 'cancelled' || t.status === 'rejected') && (
+                                                                        <span className="text-[9px] text-slate-400 font-medium">
+                                                                            {t.status === 'rejected' ? 'Penalty Paid' : 'Your Share'}
+                                                                        </span>
                                                                     )}
                                                                 </div>
                                                             </td>
