@@ -1,0 +1,252 @@
+./app/forgotPassword/ForgotPasswordContent.tsx:7:import { showToast } from '@/utils/alerts';
+./app/forgotPassword/ForgotPasswordContent.tsx:41:            showToast('success', 'Password reset OTP sent! Please check your email.');
+./app/forgotPassword/ForgotPasswordContent.tsx:45:            showToast('error', error.response?.data?.message || error.message || 'Failed to send password reset email.');
+./app/video-call/[id]/page.tsx:12:import { showToast } from '@/utils/alerts';
+./app/video-call/[id]/page.tsx:59:                showToast('error', 'Could not access camera/microphone');
+./app/video-call/[id]/page.tsx:186:                showToast('success', 'Connected to secure legal tunnel');
+./app/video-call/[id]/page.tsx:220:                showToast('info', 'Legal consultation session ended');
+./app/user/chat/[id]/page.tsx:12:import { showToast } from '@/utils/alerts';
+./app/user/chat/[id]/page.tsx:87:                showToast('error', 'Failed to load chat data');
+./app/user/chat/[id]/page.tsx:131:            socket.on('chat-error', (error: { message?: string }) => showToast('error', error.message || 'An error occurred'));
+./app/user/chat/[id]/page.tsx:209:            showToast('error', 'Failed to send message');
+./app/user/chat/[id]/page.tsx:226:            showToast('error', 'Failed to upload file');
+./app/user/chat/page.tsx:8:import { showToast } from '@/utils/alerts';
+./app/user/chat/page.tsx:44:                showToast('error', 'Failed to fetch chat rooms');
+./app/user/lawyers/[id]/page.tsx:16:import { showToast } from "@/utils/alerts";
+./app/user/lawyers/[id]/page.tsx:67:        showToast("error", "Failed to fetch lawyer details");
+./app/user/lawyers/[id]/page.tsx:215:      showToast("error", "Please login to book an appointment.");
+./app/user/lawyers/[id]/page.tsx:223:      showToast("error", "Please enter your consultation concern in the notes.");
+./app/user/lawyers/[id]/page.tsx:245:        showToast("error", "Failed to initiate payment. Please try again.");
+./app/user/lawyers/[id]/page.tsx:248:      showToast("error", (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message || "Payment failed. Please try again.");
+./app/user/lawyers/[id]/page.tsx:254:      showToast("error", "Please login to book an appointment.");
+./app/user/lawyers/[id]/page.tsx:262:      showToast("error", "Please enter your consultation concern in the notes.");
+./app/user/lawyers/[id]/page.tsx:267:      showToast("error", "Insufficient wallet balance.");
+./app/user/lawyers/[id]/page.tsx:289:        showToast("success", "Appointment booked successfully using wallet!");
+./app/user/lawyers/[id]/page.tsx:294:        showToast("error", response.message || "Failed to book with wallet.");
+./app/user/lawyers/[id]/page.tsx:297:      showToast("error", (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message || "Wallet booking failed.");
+./app/user/lawyers/[id]/page.tsx:305:      showToast("error", "Please login to proceed.");
+./app/user/lawyers/[id]/page.tsx:316:      showToast("success", "Appointment rescheduled successfully!");
+./app/user/lawyers/[id]/page.tsx:321:      showToast("error", (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message || "Failed to reschedule appointment.");
+./app/user/lawyers/[id]/page.tsx:363:      showToast("error", "Please select a rating");
+./app/user/lawyers/[id]/page.tsx:367:      showToast("error", "Please write a comment");
+./app/user/lawyers/[id]/page.tsx:372:      showToast("error", "You must be logged in to review");
+./app/user/lawyers/[id]/page.tsx:384:      showToast("success", "Review submitted successfully!");
+./app/user/lawyers/[id]/page.tsx:394:      showToast("error", (error as Error).message || "Failed to submit review");
+./app/user/profile/page.tsx:15:import { showToast } from "@/utils/alerts";
+./app/user/profile/page.tsx:82:      showToast("error", (err as { message?: string })?.message || "Failed to fetch profile");
+./app/user/profile/page.tsx:94:      showToast("error", "Please select an image file (jpg, png, etc.)");
+./app/user/profile/page.tsx:107:    if (formData.name.trim().length < 2) return showToast("error", "Name must be at least 2 characters");
+./app/user/profile/page.tsx:108:    if (!/^[a-zA-Z]/.test(formData.name.trim())) return showToast("error", "Name must start with a letter");
+./app/user/profile/page.tsx:109:    if (!/^\d{10}$/.test(formData.phone)) return showToast("error", "Phone number must be exactly 10 digits");
+./app/user/profile/page.tsx:110:    if (formData.address.trim().length < 6) return showToast("error", "Address must be at least 6 characters");
+./app/user/profile/page.tsx:111:    if (formData.city.trim().length < 2) return showToast("error", "City must be at least 2 characters");
+./app/user/profile/page.tsx:112:    if (!/^\d{6}$/.test(formData.pincode)) return showToast("error", "Pincode must be exactly 6 digits");
+./app/user/profile/page.tsx:126:      showToast("success", "Profile updated successfully");
+./app/user/profile/page.tsx:129:      showToast("error", (err as { message?: string })?.message || "Failed to update profile");
+./app/user/profile/page.tsx:138:    if (!formData.oldPassword || !formData.newPassword) return showToast("error", "Enter old and new password");
+./app/user/profile/page.tsx:139:    if (formData.newPassword !== formData.confirmPassword) return showToast('error', 'New passwords do not match');
+./app/user/profile/page.tsx:140:    if (formData.newPassword.length < 6) return showToast("error", "New password must be at least 6 characters");
+./app/user/profile/page.tsx:148:      showToast("success", res.message || "Password changed successfully");
+./app/user/profile/page.tsx:152:      showToast("error", (err as { message?: string })?.message || "Password change failed");
+./app/user/wallet/page.tsx:8:import { showToast } from "@/utils/alerts"
+./app/user/wallet/page.tsx:28:        showToast("success", "ID copied to clipboard");
+./app/user/wallet/page.tsx:184:                showToast("error", response.message || "Failed to fetch wallet details");
+./app/user/wallet/page.tsx:187:            showToast("error", "An error occurred while fetching wallet details");
+./app/user/bookings/page.tsx:12:import { showToast } from '../../../utils/alerts';
+./app/user/bookings/page.tsx:57:            showToast("error", "Failed to fetch appointments. Please try again.");
+./app/user/bookings/page.tsx:103:            showToast("success", "Appointment cancelled successfully.");
+./app/user/bookings/page.tsx:107:            showToast("error", errorMessage);
+./app/user/bookings/page.tsx:121:            showToast("error", "Failed to initiate chat");
+./app/verifyOtp/VerifyOtpContent.tsx:7:import { showToast } from '@/utils/alerts';
+./app/verifyOtp/VerifyOtpContent.tsx:60:            showToast('success', 'OTP Verified! You are now verified.');
+./app/verifyOtp/VerifyOtpContent.tsx:66:            showToast('error', errorMessage);
+./app/verifyOtp/VerifyOtpContent.tsx:76:            showToast('success', 'OTP resent! Please check your email.');
+./app/verifyOtp/VerifyOtpContent.tsx:83:            showToast('error', errorMessage);
+./app/success/page.tsx:7:import { showToast } from '@/utils/alerts';
+./app/success/page.tsx:30:                    showToast('success', response.message || 'Payment successful! Booking confirmed.');
+./app/success/page.tsx:41:                showToast('error', message);
+./app/lawyer/reviews/page.tsx:7:import { showToast } from '@/utils/alerts';
+./app/lawyer/reviews/page.tsx:30:                showToast('error', (error instanceof Error) ? error.message : 'Failed to load reviews');
+./app/lawyer/chat/[id]/page.tsx:12:import { showToast } from '@/utils/alerts';
+./app/lawyer/chat/[id]/page.tsx:92:                showToast('error', 'Failed to load chat data');
+./app/lawyer/chat/[id]/page.tsx:132:            socket.on('chat-error', (error: { message?: string }) => showToast('error', error.message || 'An error occurred'));
+./app/lawyer/chat/[id]/page.tsx:212:            showToast('error', 'Failed to send message');
+./app/lawyer/chat/[id]/page.tsx:229:            showToast('error', 'Failed to upload file');
+./app/lawyer/chat/page.tsx:8:import { showToast } from '@/utils/alerts';
+./app/lawyer/chat/page.tsx:41:                showToast('error', 'Failed to fetch chat rooms');
+./app/lawyer/slotShedule/page.tsx:9:import { showToast, showConfirm } from '@/utils/alerts';
+./app/lawyer/slotShedule/page.tsx:53:          showToast('info', 'lawyer id missing')
+./app/lawyer/slotShedule/page.tsx:87:        showToast("error", "Failed to fetch rules");
+./app/lawyer/slotShedule/page.tsx:225:      showToast('error', 'Invalid exception date');
+./app/lawyer/slotShedule/page.tsx:229:      showToast('error', 'Set start and end dates before adding exception days');
+./app/lawyer/slotShedule/page.tsx:236:      showToast('error', 'Exception date must be inside start and end date range');
+./app/lawyer/slotShedule/page.tsx:241:      showToast('error', 'This exception date is already added');
+./app/lawyer/slotShedule/page.tsx:339:      showToast('error', 'Lawyer ID missing. Please login again.');
+./app/lawyer/slotShedule/page.tsx:344:      showToast('error', 'Please fix validation errors first.');
+./app/lawyer/slotShedule/page.tsx:355:      showToast('success', res?.message || 'Rule created successfully');
+./app/lawyer/slotShedule/page.tsx:386:      showToast('error', errorMessage);
+./app/lawyer/slotShedule/page.tsx:413:      showToast('error', 'Please fix validation errors');
+./app/lawyer/slotShedule/page.tsx:421:      showToast('success', 'Rule updated successfully');
+./app/lawyer/slotShedule/page.tsx:434:      showToast('error', errorMessage);
+./app/lawyer/slotShedule/page.tsx:468:    showToast('success', 'Rule deleted successfully');
+./app/lawyer/subscriptions/page.tsx:7:import { showToast } from '@/utils/alerts';
+./app/lawyer/subscriptions/page.tsx:36:                showToast('error', (error instanceof Error) ? error.message : 'Failed to load subscription data');
+./app/lawyer/subscriptions/page.tsx:72:            showToast('error', (error instanceof Error) ? error.message : 'Failed to initiate checkout');
+./app/lawyer/verification/page.tsx:8:import { showToast } from "@/utils/alerts";
+./app/lawyer/verification/page.tsx:128:        showToast("error", "Failed to load practice areas");
+./app/lawyer/verification/page.tsx:219:      showToast("error", errorMsg);
+./app/lawyer/verification/page.tsx:228:      showToast("success", "File(s) uploaded successfully.");
+./app/lawyer/verification/page.tsx:238:    showToast("info", "File removed.");
+./app/lawyer/verification/page.tsx:274:      showToast("success", "Step completed successfully.");
+./app/lawyer/verification/page.tsx:276:      showToast("error", "Please fill all required fields before proceeding.");
+./app/lawyer/verification/page.tsx:283:    showToast("info", "Moved to previous step.");
+./app/lawyer/verification/page.tsx:288:      showToast("error", "Please fix validation errors before submitting.");
+./app/lawyer/verification/page.tsx:306:      showToast("success", "Verification details submitted successfully!");
+./app/lawyer/verification/page.tsx:318:      showToast("error", message);
+./app/lawyer/profile/page.tsx:5:import { showToast } from "@/utils/alerts"
+./app/lawyer/profile/page.tsx:207:            showToast("error", "Failed to fetch profile");
+./app/lawyer/profile/page.tsx:242:                showToast("error", "Please select an image file (jpg, png, etc.)");
+./app/lawyer/profile/page.tsx:262:            showToast("error", "Name must be greater than 2 characters")
+./app/lawyer/profile/page.tsx:266:            showToast("error", "Name must start with a letter")
+./app/lawyer/profile/page.tsx:270:            showToast("error", "Phone number must be exactly 10 digits")
+./app/lawyer/profile/page.tsx:274:            showToast("error", "Street address must be at least 2 characters")
+./app/lawyer/profile/page.tsx:278:            showToast("error", "City must be at least 2 characters")
+./app/lawyer/profile/page.tsx:282:            showToast("error", "State must be at least 2 characters")
+./app/lawyer/profile/page.tsx:286:            showToast("error", "Pincode must be exactly 6 digits")
+./app/lawyer/profile/page.tsx:291:            showToast("error", "Consultation fee is required")
+./app/lawyer/profile/page.tsx:296:            showToast("error", "Profile photo is required")
+./app/lawyer/profile/page.tsx:301:            showToast("error", "Bio must be at least 5 characters")
+./app/lawyer/profile/page.tsx:305:            showToast("error", "Bio must not exceed 1000 characters")
+./app/lawyer/profile/page.tsx:310:            showToast("error", "At least one practice area is required")
+./app/lawyer/profile/page.tsx:315:            showToast("error", "At least one language is required")
+./app/lawyer/profile/page.tsx:346:            showToast("success", "Profile updated successfully")
+./app/lawyer/profile/page.tsx:349:            showToast("error", errorMessage)
+./app/lawyer/profile/page.tsx:383:            showToast("error", "All password fields are required")
+./app/lawyer/profile/page.tsx:387:            showToast("error", "New password must be at least 6 characters")
+./app/lawyer/profile/page.tsx:391:            showToast("error", "New passwords do not match")
+./app/lawyer/profile/page.tsx:398:            showToast("success", "Password changed successfully")
+./app/lawyer/profile/page.tsx:403:            showToast("error", errorMessage)
+./app/lawyer/earnings/page.tsx:5:import { showToast } from '@/utils/alerts';
+./app/lawyer/earnings/page.tsx:32:            showToast('error', 'Failed to fetch transactions');
+./app/lawyer/earnings/page.tsx:47:            showToast('error', 'Failed to fetch payout history');
+./app/lawyer/earnings/page.tsx:81:            showToast('error', 'Please enter a valid amount');
+./app/lawyer/earnings/page.tsx:85:            showToast('error', 'Insufficient balance');
+./app/lawyer/earnings/page.tsx:92:            showToast('success', 'Withdrawal request submitted');
+./app/lawyer/earnings/page.tsx:96:            showToast('error', (error instanceof Error) ? error.message : 'Withdrawal failed');
+./app/lawyer/cases/page.tsx:6:import { showToast } from '@/utils/alerts';
+./app/lawyer/cases/page.tsx:22:        showToast('error', 'Failed to fetch cases');
+./app/lawyer/appointments/page.tsx:5:import { showToast } from "@/utils/alerts"
+./app/lawyer/appointments/page.tsx:76:      showToast("error", "Failed to fetch appointments");
+./app/lawyer/appointments/page.tsx:127:      showToast("success", `Appointment ${status} successfully`);
+./app/lawyer/appointments/page.tsx:131:      showToast("error", message);
+./app/lawyer/appointments/page.tsx:141:      showToast("success", "Appointment completed successfully!");
+./app/lawyer/appointments/page.tsx:146:      showToast("error", message);
+./app/lawyer/appointments/page.tsx:159:      showToast("error", "Failed to initiate chat");
+./app/lawyer/dashboard/page.tsx:11:import { showToast } from '@/utils/alerts';
+./app/lawyer/dashboard/page.tsx:39:      showToast("error", "Failed to load dashboard data");
+./app/resetPassword/ResetPasswordContent.tsx:7:import { showToast } from '@/utils/alerts';
+./app/resetPassword/ResetPasswordContent.tsx:19:            showToast('error', 'Session expired. Please request a new OTP.');
+./app/resetPassword/ResetPasswordContent.tsx:75:            showToast('success', 'Password reset successful! Please login with your new password.');
+./app/resetPassword/ResetPasswordContent.tsx:79:            showToast('error', error.response?.data?.message || error.message || 'Password reset failed. Please check your OTP and try again.');
+./app/admin/lawyers/page.tsx:14:import { showToast } from "@/utils/alerts";
+./app/admin/lawyers/page.tsx:45:      showToast("error", (err as { message?: string })?.message || "Failed to load lawyers.");
+./app/admin/lawyers/page.tsx:81:        showToast("success", "Lawyer blocked successfully.");
+./app/admin/lawyers/page.tsx:89:        showToast("success", "Lawyer unblocked successfully.");
+./app/admin/lawyers/page.tsx:97:        showToast("success", "Lawyer approved successfully.");
+./app/admin/lawyers/page.tsx:112:        showToast("warning", "Lawyer rejected successfully.");
+./app/admin/lawyers/page.tsx:127:      showToast("error", `Failed to ${type.toLowerCase()} lawyer. Please try again.`);
+./app/admin/lawyers/page.tsx:144:      showToast("error", "Please enter a rejection reason.");
+./app/admin/payouts/page.tsx:6:import { showToast } from '@/utils/alerts';
+./app/admin/payouts/page.tsx:33:            showToast('error', 'Failed to fetch payout requests');
+./app/admin/payouts/page.tsx:56:            showToast('success', 'Payout approved successfully');
+./app/admin/payouts/page.tsx:59:            showToast('error', (error as Error).message || 'Approval failed');
+./app/admin/payouts/page.tsx:82:                showToast("success", "Lawyer unblocked successfully.");
+./app/admin/payouts/page.tsx:85:                showToast("success", "Lawyer blocked successfully.");
+./app/admin/payouts/page.tsx:89:            showToast("error", `Failed to ${type.toLowerCase()} lawyer.`);
+./app/admin/subscription/page.tsx:5:import { showToast } from '@/utils/alerts';
+./app/admin/subscription/page.tsx:55:      showToast('error', (error as Error).message || 'Failed to fetch subscriptions');
+./app/admin/subscription/page.tsx:65:      showToast('warning', 'Plan name is required');
+./app/admin/subscription/page.tsx:69:      showToast('warning', 'Duration must be a positive number (at least 1)');
+./app/admin/subscription/page.tsx:74:      showToast('warning', 'Price must be a valid number and at least $50');
+./app/admin/subscription/page.tsx:78:      showToast('warning', 'Commission must be between 0 and 50%');
+./app/admin/subscription/page.tsx:82:      showToast('warning', 'Cancellation Penalty must be between 0 and 10%');
+./app/admin/subscription/page.tsx:98:        showToast('success', isEditing ? 'Subscription plan updated successfully' : 'Subscription plan created successfully');
+./app/admin/subscription/page.tsx:104:      showToast('error', (error as Error).message || `Failed to ${isEditing ? 'update' : 'create'} subscription`);
+./app/admin/subscription/page.tsx:128:        showToast('success', res.message);
+./app/admin/subscription/page.tsx:132:      showToast('error', (error as Error).message || 'Failed to update status');
+./app/admin/users/page.tsx:5:import { showToast } from "@/utils/alerts";
+./app/admin/users/page.tsx:36:      showToast("error", (e as Error).message || "Failed to load users.");
+./app/admin/users/page.tsx:81:        showToast("success", response || "User blocked successfully.");
+./app/admin/users/page.tsx:91:        showToast("success", response || "User unblocked successfully.");
+./app/admin/users/page.tsx:101:      showToast(
+./app/admin/specializations/page.tsx:6:import { showToast } from '@/utils/alerts';
+./app/admin/specializations/page.tsx:27:            showToast('error', 'Failed to fetch specializations');
+./app/admin/specializations/page.tsx:74:                    showToast('success', 'Specialization updated successfully');
+./app/admin/specializations/page.tsx:78:                    showToast('error', res.message || 'Failed to update');
+./app/admin/specializations/page.tsx:83:                    showToast('success', 'Specialization created successfully');
+./app/admin/specializations/page.tsx:87:                    showToast('error', res.message || 'Failed to create');
+./app/admin/specializations/page.tsx:91:            showToast('error', (error as Error).message || 'An error occurred');
+./app/admin/specializations/page.tsx:110:                    showToast('success', 'Deleted successfully');
+./app/admin/specializations/page.tsx:113:                    showToast('error', res.message || 'Failed to delete');
+./app/admin/specializations/page.tsx:116:                showToast('error', 'Failed to delete');
+./app/admin/dashboard/page.tsx:20:import { showToast } from '@/utils/alerts';
+./app/admin/dashboard/page.tsx:64:      showToast("error", "Failed to fetch dashboard statistics");
+./app/admin/login/page.tsx:6:import { showToast } from "@/utils/alerts";
+./app/admin/login/page.tsx:34:      showToast("error", "Please fill in all fields.");
+./app/admin/login/page.tsx:39:      showToast("error", "Please enter a valid email address.");
+./app/admin/login/page.tsx:44:      showToast("error", "Password must be at least 6 characters long.");
+./app/admin/login/page.tsx:56:        showToast("success", "✅ Login successful!");
+./app/admin/login/page.tsx:62:      showToast(
+./components/Header.tsx:10:import { showToast } from "@/utils/alerts";
+./components/Header.tsx:29:        showToast("success", result.message);
+./components/Header.tsx:31:        showToast("error", result.message);
+./components/Header.tsx:35:      showToast("error", "Logout failed. Please try again later.");
+./components/chat/VideoCallButton.tsx:7:import { showToast } from '@/utils/alerts';
+./components/chat/VideoCallButton.tsx:24:                    showToast('success', 'Lawyer has joined the call! You can now join.');
+./components/chat/VideoCallButton.tsx:48:                showToast('warning', res.data?.message || res.message || 'The lawyer has not joined the call yet. Please wait for them to join.');
+./components/chat/VideoCallButton.tsx:52:            showToast('error', errorMessage);
+./components/AdminSIdeBar.tsx:22:import { showToast } from '@/utils/alerts';
+./components/AdminSIdeBar.tsx:84:        showToast("success", result.message);
+./components/AdminSIdeBar.tsx:87:        showToast("error", result.message);
+./components/AdminSIdeBar.tsx:91:      showToast("error", "Logout failed. Please try again later.");
+./components/user/BookingDetailsModal.tsx:8:import { showToast } from '@/utils/alerts'
+./components/user/BookingDetailsModal.tsx:130:            showToast('success', 'Follow-up request cancelled successfully');
+./components/user/BookingDetailsModal.tsx:135:            showToast('error', err.response?.data?.message || err.message || 'Failed to cancel follow-up request');
+./components/user/userHeader.tsx:10:import { showToast } from "@/utils/alerts";
+./components/user/userHeader.tsx:33:        showToast("success", result.message);
+./components/user/userHeader.tsx:38:        showToast("error", result.message);
+./components/user/userHeader.tsx:42:      showToast("error", "Logout failed. Please try again later.");
+./components/lawyer/SubscriptionPlans.tsx:4:import { showToast } from "@/utils/alerts";
+./components/lawyer/SubscriptionPlans.tsx:31:                    showToast("error", "Failed to load plans.");
+./components/lawyer/SubscriptionPlans.tsx:35:                showToast("error", errorMessage);
+./components/lawyer/SubscriptionPlans.tsx:50:                showToast("error", "Could not fetch lawyer details. Please try logging in again.");
+./components/lawyer/SubscriptionPlans.tsx:65:                showToast("error", "Failed to initiate checkout");
+./components/lawyer/SubscriptionPlans.tsx:71:            showToast("error", errorMessage);
+./components/lawyer/LawyerSidebar.tsx:22:import { showToast } from '@/utils/alerts';
+./components/lawyer/LawyerSidebar.tsx:79:        showToast('success', 'Logout successful');
+./components/lawyer/LawyerSidebar.tsx:84:      showToast('error', errorMessage);
+./components/lawyer/LawyerRescheduleModal.tsx:7:import { showToast } from '@/utils/alerts'
+./components/lawyer/LawyerRescheduleModal.tsx:91:            showToast('error', 'Please select a time slot')
+./components/lawyer/LawyerRescheduleModal.tsx:99:                showToast('success', 'Appointment rescheduled successfully')
+./components/lawyer/LawyerRescheduleModal.tsx:103:                showToast('error', res.message || 'Failed to reschedule appointment')
+./components/lawyer/LawyerRescheduleModal.tsx:106:            showToast('error', 'An error occurred while rescheduling')
+./components/auth/RegisterForm.tsx:5:import { showToast } from '@/utils/alerts';
+./components/auth/RegisterForm.tsx:98:            showToast('success', 'Registration successful! OTP sent to your email/phone.');
+./components/auth/RegisterForm.tsx:104:            showToast('error', errorMessage);
+./components/auth/LoginForm.tsx:9:import { showToast } from '@/utils/alerts';
+./components/auth/LoginForm.tsx:49:        showToast("success", data.message || "Login successful");
+./components/auth/LoginForm.tsx:64:                showToast("error", "Admin rejected your verification. Please submit valid information again.");
+./components/auth/LoginForm.tsx:106:            showToast('error', errorMessage);
+./components/auth/LoginForm.tsx:115:                showToast("error", "No credential received from Google");
+./components/auth/LoginForm.tsx:123:            showToast("error", errorMessage);
+./components/auth/LoginForm.tsx:148:            showToast("error", err.response?.data?.message || err.message || "Google Login failed");
+./components/auth/LoginForm.tsx:229:                        onError={() => showToast("error", "Google Login Failed")}
+./grep_results.txt:1:./app/user/lawyers/[id]/page.tsx:      showToast("error", "Please login to book an appointment.");
+./grep_results.txt:2:./app/user/lawyers/[id]/page.tsx:      showToast("error", "Please login to book an appointment.");
+./grep_results.txt:3:./app/user/lawyers/[id]/page.tsx:      showToast("error", "Please login to proceed.");
+./grep_results.txt:4:./app/lawyer/slotShedule/page.tsx:      showToast('error', 'Lawyer ID missing. Please login again.');
+./grep_results.txt:5:./app/resetPassword/ResetPasswordContent.tsx:            showToast('success', 'Password reset successful! Please login with your new password.');
+./utils/alerts.ts:4:export function showToast(
+./utils/alerts.ts:48:  }).showToast();
+./utils/AxiosInterceptor.tsx:7:import { showToast } from '@/utils/alerts';
+./utils/AxiosInterceptor.tsx:32:                        showToast('error', "Your account has been blocked by the admin.");
