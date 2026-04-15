@@ -225,7 +225,7 @@ const AllLawyers = () => {
               onChange={(e) => setSort(e.target.value)}
               className="block w-full md:w-48 pl-4 pr-10 py-3 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer hover:border-teal-500 transition-colors"
             >
-              <option value="">Sort: Relevance</option>
+              <option value="">Sort</option>
               <option value="experience-desc">Experience: High to Low</option>
               <option value="experience-asc">Experience: Low to High</option>
             </select>
@@ -369,7 +369,7 @@ const AllLawyers = () => {
                               <span className="font-medium">{lawyer.yearsOfPractice || 5}+ Years Exp.</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium"> ₹{lawyer.consultationFee || 200} / hr</span>
+                              <span className="font-medium"> ₹{lawyer.consultationFee} / hr</span>
                             </div>
                           </div>
                         </div>
