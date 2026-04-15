@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react';
-import { Bell, Settings, LogOut, ChevronDown, User, HelpCircle, Shield, Search } from 'lucide-react';
-import { useSelector, useDispatch } from "react-redux";
+import React, { useState, useRef, useEffect } from 'react';
+import { Bell, LogOut, ChevronDown, User, Shield, X, Calendar, AlertTriangle, CheckCircle, CheckCheck } from 'lucide-react';
+import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,16 +19,20 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('unread');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const router = useRouter()
   const lawyer = useSelector((state: RootState) => state.lawyer);
 
-  React.useEffect(() => {
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
-
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -37,6 +41,24 @@ const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const { notifications, unreadCount, markAsRead, clearNotifications } = useSocket();
+
+  const filteredNotifications = notifications.filter(n =>
+    notifFilter === 'all' ? true : !n.isRead
+  );
+
+  const getNotifIcon = (message: string) => {
+    const lower = message.toLowerCase();
+    if (lower.includes('booking') || lower.includes('appointment')) return <Calendar className="w-4 h-4 text-teal-500" />;
+    if (lower.includes('penalty') || lower.includes('deducted') || lower.includes('cancel')) return <AlertTriangle className="w-4 h-4 text-amber-500" />;
+    return <CheckCircle className="w-4 h-4 text-blue-500" />;
+  };
+
+  const getNotifBg = (message: string) => {
+    const lower = message.toLowerCase();
+    if (lower.includes('booking') || lower.includes('appointment')) return 'bg-teal-50';
+    if (lower.includes('penalty') || lower.includes('deducted') || lower.includes('cancel')) return 'bg-amber-50';
+    return 'bg-blue-50';
+  };
 
   return (
     <header className="sticky top-0 right-0 bg-white/70 backdrop-blur-xl z-50 border-b border-slate-100/50 w-full">
@@ -59,30 +81,16 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Global Search (Added for style) */}
-        <div className="hidden md:flex items-center flex-1 max-w-md mx-10">
-          {/* <div className="relative w-full group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Quick search Cases, Clients..."
-              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/10 focus:bg-white focus:border-teal-500/20 transition-all font-medium text-slate-700"
-            />
-          </div> */}
-        </div>
-
         {/* Right Side */}
         <div className="flex items-center space-x-3">
 
-
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setShowNotifications(!showNotifications);
-                if (!showNotifications) markAsRead();
               }}
               className="p-2.5 bg-slate-50 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors relative group"
             >
@@ -100,55 +108,118 @@ const Header: React.FC<HeaderProps> = ({
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 origin-top-right ring-1 ring-slate-900/5"
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-3 w-[400px] bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-50 origin-top-right ring-1 ring-slate-900/5"
                 >
-                  <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-                    <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Notifications</p>
-                    {notifications.length > 0 && (
+                  {/* Header */}
+                  <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-br from-slate-50/50 to-white flex justify-between items-start">
+                    <div className="flex gap-3.5">
+                      <div className="p-3 bg-slate-900 rounded-2xl shadow-lg shadow-slate-900/20">
+                        <Bell className="w-5 h-5 text-teal-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-black text-slate-900 tracking-tight">Notification</h3>
+                        <p className="text-xs text-slate-500 font-bold mt-0.5">{unreadCount} unread notifications</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Tabs & Actions */}
+                  <div className="px-6 py-4 flex justify-between items-center bg-white border-b border-slate-50">
+                    <div className="flex gap-2 p-1 bg-slate-100/50 rounded-xl">
                       <button
-                        onClick={() => clearNotifications()}
-                        className="text-[10px] font-bold text-teal-600 hover:text-teal-700"
+                        onClick={() => setNotifFilter('unread')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-2 ${notifFilter === 'unread' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                       >
-                        Clear all
+                        Unread
+                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${notifFilter === 'unread' ? 'bg-teal-50 text-teal-600' : 'bg-slate-200 text-slate-600'}`}>
+                          {unreadCount}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => setNotifFilter('all')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${notifFilter === 'all' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        All
+                      </button>
+                    </div>
+
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={() => markAsRead()}
+                        className="p-2 bg-teal-50 text-teal-600 rounded-xl hover:bg-teal-100 transition-all flex items-center"
+                        title="Mark all as read"
+                      >
+                        <CheckCheck className="w-4 h-4" />
                       </button>
                     )}
                   </div>
 
-                  <div className="max-h-96 overflow-y-auto">
-                    {notifications.length > 0 ? (
-                      notifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          className="px-5 py-4 border-b border-slate-50 hover:bg-slate-50 transition-colors"
-                        >
-                          <p className={`text-sm leading-snug ${notif.isRead ? 'text-slate-500' : 'text-slate-900 font-semibold'}`}>
-                            {notif.message}
-                          </p>
-                          <p className="text-[10px] text-slate-400 mt-1 font-bold">
-                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      ))
+                  {/* Notification List */}
+                  <div className="max-h-[420px] overflow-y-auto custom-scrollbar">
+                    {filteredNotifications.length > 0 ? (
+                      <div className="divide-y divide-slate-50">
+                        {filteredNotifications.map((notif) => (
+                          <motion.div
+                            key={notif.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="relative flex items-start gap-4 px-6 py-5 hover:bg-slate-50/80 transition-all cursor-default group"
+                          >
+                            <div className={`p-2.5 rounded-2xl mt-0.5 ${getNotifBg(notif.message)}`}>
+                              {getNotifIcon(notif.message)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start gap-2">
+                                <p className={`text-sm leading-relaxed ${notif.isRead ? 'text-slate-500' : 'text-slate-800 font-bold'}`}>
+                                  {notif.message}
+                                </p>
+                                {!notif.isRead && (
+                                  <span className="flex-shrink-0 w-2 h-2 bg-teal-500 rounded-full mt-2 ring-4 ring-teal-500/10" />
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-400 mt-2 font-bold uppercase tracking-wider">
+                                {new Date(notif.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
                     ) : (
-                      <div className="px-5 py-10 text-center">
-                        <Bell className="w-8 h-8 text-slate-200 mx-auto mb-3" />
-                        <p className="text-sm text-slate-400 font-medium">No new notifications</p>
+                      <div className="flex flex-col items-center justify-center py-16 text-center px-10">
+                        <div className="w-20 h-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-6 ring-1 ring-slate-100 shadow-inner">
+                          <Bell className="w-8 h-8 text-slate-200" />
+                        </div>
+                        <h4 className="text-base font-black text-slate-900 mb-2">All caught up!</h4>
+                        <p className="text-sm text-slate-400 font-medium">No new notifications in this category.</p>
                       </div>
                     )}
                   </div>
+
+                  {/* Footer */}
+                  {notifications.length > 0 && (
+                    <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/30 flex justify-between items-center text-[11px] font-bold">
+                      <span className="text-slate-400 uppercase tracking-widest">OpenLaw Notification Center</span>
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={() => clearNotifications()}
+                          className="text-rose-500 hover:text-rose-600 uppercase tracking-widest"
+                        >
+                          Clear History
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-
-          {/* Settings icon */}
-          {/* <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2.5 bg-slate-50 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
-          >
-            <Settings className="w-5 h-5" />
-          </motion.button> */}
 
           {/* Divider */}
           <div className="w-px h-8 bg-slate-200/50 mx-2" />
@@ -204,33 +275,9 @@ const Header: React.FC<HeaderProps> = ({
                         <User className="w-4 h-4" />
                       </div>
                       <span className="font-semibold text-slate-600 group-hover:text-slate-900">My Profile</span>
-                    </button >
-                    {/* <button
-                      className="w-full px-3 py-2.5 rounded-xl text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center space-x-3 group transition-colors"
-                    >
-                      <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all text-slate-500 group-hover:text-teal-600">
-                        <Settings className="w-4 h-4" />
-                      </div>
-                      <span className="font-semibold text-slate-600 group-hover:text-slate-900">Account Settings</span>
                     </button>
-                    <button
-                      className="w-full px-3 py-2.5 rounded-xl text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center space-x-3 group transition-colors"
-                    >
-                      <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all text-slate-500 group-hover:text-teal-600">
-                        <HelpCircle className="w-4 h-4" />
-                      </div>
-                      <span className="font-semibold text-slate-600 group-hover:text-slate-900">Help Center</span>
-                    </button> */}
                   </div>
                   <div className="p-2 border-t border-slate-50 bg-slate-50/30">
-                    {/* <button
-                      className="w-full px-3 py-2.5 rounded-xl text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3 group transition-colors"
-                    >
-                      <div className="p-1.5 bg-red-100/50 rounded-lg group-hover:bg-red-500 group-hover:text-white transition-all text-red-600">
-                        <LogOut className="w-4 h-4" />
-                      </div>
-                      <span className="font-bold text-red-600">Sign Out</span>
-                    </button> */}
                   </div>
                 </motion.div>
               )}

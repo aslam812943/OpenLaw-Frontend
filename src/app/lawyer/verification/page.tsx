@@ -144,6 +144,7 @@ const LawyerSignup = () => {
   const validateBarAdmissionDate = (date: string) => {
     if (!date.trim()) return "Bar admission date is required";
     const selectedDate = new Date(date);
+    if (isNaN(selectedDate.getTime())) return "Please enter a valid date";
     const today = new Date();
     if (selectedDate > today) return "Bar admission date cannot be in the future";
     return "";
@@ -153,7 +154,7 @@ const LawyerSignup = () => {
     if (!years.trim()) return "Years of practice is required";
     if (isNaN(Number(years)) || Number(years) < 0) return "Please enter a valid non-negative number";
 
-    // Check consistency with admission date
+
     if (formData.barAdmissionDate) {
       const admissionYear = new Date(formData.barAdmissionDate).getFullYear();
       const currentYear = new Date().getFullYear();
@@ -204,21 +205,27 @@ const LawyerSignup = () => {
     const validFiles: File[] = [];
     let errorMsg = "";
 
-    selectedFiles.forEach((file) => {
-      if (file.size > maxSize) {
-        errorMsg = `${file.name} exceeds 10MB limit`;
-      } else if (!["application/pdf", "image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
-        errorMsg = `${file.name} is not a valid format (PDF, JPG, PNG only)`;
-      } else {
-        validFiles.push(file);
-      }
-    });
+    if (files.length + selectedFiles.length > 5) {
+      errorMsg = "Maximum 5 documents can be uploaded";
+    }
+
+    if (!errorMsg) {
+      selectedFiles.forEach((file) => {
+        if (file.size > maxSize) {
+          errorMsg = `${file.name} exceeds 10MB limit`;
+        } else if (!["application/pdf", "image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
+          errorMsg = `${file.name} is not a valid format (PDF, JPG, PNG only)`;
+        } else {
+          validFiles.push(file);
+        }
+      });
+    }
 
     if (errorMsg) {
       setUploadMessage(errorMsg);
       showToast("error", errorMsg);
       setTimeout(() => setUploadMessage(""), 3000);
-    } else {
+    } else if (validFiles.length > 0) {
       const updatedFiles = [...files, ...validFiles];
       setFiles(updatedFiles);
       setUploadMessage("");
@@ -403,6 +410,7 @@ const LawyerSignup = () => {
                   name="barAdmissionDate"
                   value={formData.barAdmissionDate}
                   onChange={handleInputChange}
+                  max={new Date().toISOString().split("T")[0]}
                   className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-all focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none ${errors.barAdmissionDate ? "border-red-500" : "border-slate-200"
                     }`}
                 />
@@ -506,14 +514,26 @@ const LawyerSignup = () => {
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-slate-900">Verification Documents</h2>
               <div
-                className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-teal-500 transition-all duration-300 group cursor-pointer"
-                onClick={() => document.getElementById("documentUpload")?.click()}
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 group ${files.length >= 5
+                  ? "border-amber-200 bg-amber-50 cursor-not-allowed"
+                  : "border-slate-300 hover:border-teal-500 cursor-pointer"
+                  }`}
+                onClick={() => {
+                  if (files.length < 5) {
+                    document.getElementById("documentUpload")?.click();
+                  } else {
+                    showToast("warning", "Maximum upload limit reached (5 files)");
+                  }
+                }}
               >
-                <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400 group-hover:text-teal-600 transition-colors duration-300" />
+                <Upload className={`w-12 h-12 mx-auto mb-4 transition-colors duration-300 ${files.length >= 5 ? "text-amber-400" : "text-slate-400 group-hover:text-teal-600"
+                  }`} />
                 <p className="text-sm text-slate-600 mb-2 font-medium">
-                  Upload Bar License & Professional ID
+                  {files.length >= 5 ? "Maximum limit reached" : "Upload Bar License & Professional ID"}
                 </p>
-                <p className="text-xs text-slate-500">PDF, JPG or PNG (Max. 10MB each)</p>
+                <p className="text-xs text-slate-500">
+                  PDF, JPG or PNG (Max. 10MB each) • <span className={files.length >= 5 ? "text-amber-600 font-bold" : ""}>{files.length}/5 files</span>
+                </p>
                 <input
                   id="documentUpload"
                   type="file"
@@ -521,6 +541,7 @@ const LawyerSignup = () => {
                   multiple
                   onChange={handleFileChange}
                   className="hidden"
+                  disabled={files.length >= 5}
                 />
               </div>
               {files.length > 0 && (

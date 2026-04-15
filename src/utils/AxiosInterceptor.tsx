@@ -22,15 +22,19 @@ export default function AxiosInterceptor() {
             (error) => {
                 const status = error.response ? error.response.status : null;
                 const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+                const isLoggedIn = Boolean(user.id || lawyer.id);
 
                 if (status === 401) {
-                    dispatch(clearUserData());
-                    dispatch(clearLawyerData());
 
-                    if (isAdminPath) {
-                        router.push('/admin/login');
-                    } else {
-                        router.push('/login');
+                    if (!isLoggedIn) {
+                        dispatch(clearUserData());
+                        dispatch(clearLawyerData());
+
+                        if (isAdminPath) {
+                            router.push('/admin/login');
+                        } else {
+                            router.push('/login');
+                        }
                     }
                     return Promise.reject(error);
                 }

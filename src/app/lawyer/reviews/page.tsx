@@ -83,9 +83,10 @@ const ReviewsPage = () => {
                                 >
                                     <div className="flex items-center gap-3 mb-4">
                                         <img
-                                            src={review.userImage || "/default-user.jpg"}
+                                            src={review.userImage || "/profile.jpg"}
                                             alt={review.userName}
                                             className="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-100"
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "/profile.jpg" }}
                                         />
                                         <div>
                                             <h4 className="font-bold text-slate-900">{review.userName || "Anonymous Client"}</h4>

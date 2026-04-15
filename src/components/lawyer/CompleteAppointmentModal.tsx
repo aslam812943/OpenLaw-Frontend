@@ -7,6 +7,7 @@ import { getAppoiments, getAppointmentById, updateAppointmentStatus } from "@/se
 import { getChatRoom, getMessages, Message } from '@/service/chatService'
 import ImageModal from '@/components/ui/ImageModal'
 import FollowUpSelectionModal from './FollowUpSelectionModal'
+import { showToast } from '@/utils/alerts'
 
 const isImageUrl = (url: string): boolean => {
     if (!url) return false;
@@ -68,6 +69,13 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
         }
     };
 
+    const getAppointmentEndDateTime = (date: string, endTime: string) => {
+        const appointmentEnd = new Date(date);
+        const [hours, minutes] = endTime.split(":").map(Number);
+        appointmentEnd.setHours(hours, minutes, 0, 0);
+        return appointmentEnd;
+    };
+
     const isReadOnly = appointment?.status === 'completed' || appointment?.status === 'follow-up';
     const [feedback, setFeedback] = useState(appointment?.lawyerFeedback || '')
     const [messages, setMessages] = useState<Message[]>([]);
@@ -124,6 +132,8 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
     };
 
     if (!appointment) return null;
+
+    const hasAppointmentEnded = getAppointmentEndDateTime(appointment.date, appointment.endTime) <= new Date();
 
     const documents = messages.filter(m =>
         m.type === 'document' ||
@@ -387,7 +397,13 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                                         {!isReadOnly && !isFollowUpDone && (
                                             <button
                                                 disabled={!feedback.trim() || isSubmitting}
-                                                onClick={() => setIsFollowUpModalOpen(true)}
+                                                onClick={() => {
+                                                    if (!hasAppointmentEnded) {
+                                                        showToast("error", "Follow-up can only be added after the booked time has finished.");
+                                                        return;
+                                                    }
+                                                    setIsFollowUpModalOpen(true);
+                                                }}
                                                 className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 border-2 ${!feedback.trim() || isSubmitting
                                                     ? 'border-slate-100 text-slate-300 cursor-not-allowed'
                                                     : 'border-teal-600 text-teal-600 hover:bg-teal-50 shadow-sm active:scale-[0.98]'

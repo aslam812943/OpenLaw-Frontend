@@ -199,7 +199,11 @@ export default function LawyersSinglePage() {
   }
 
   function updateCalendar(slotsData: Slot[]) {
-    const uniqueDates = [...new Set(slotsData.map((slot) => slot.date))];
+    const uniqueDates = [...new Set(
+      slotsData
+        .filter(slot => !slot.isBooked && !isPastSlot(slot.date, slot.startTime))
+        .map((slot) => slot.date)
+    )];
     const calendar = generateMonthDays(currentYear, currentMonth, uniqueDates as string[]);
     setCalendarDays(calendar.days);
   }
@@ -626,7 +630,12 @@ export default function LawyersSinglePage() {
                         {[...reviews, ...reviews].map((review, i) => (
                           <div key={`${review._id}-${i}`} className="w-[300px] flex-shrink-0 bg-slate-50 p-4 rounded-xl border border-slate-100">
                             <div className="flex items-center gap-3 mb-3">
-                              <img src={review.userImage || "/default-user.jpg"} alt={review.userName} className="w-8 h-8 rounded-full object-cover bg-slate-200" />
+                              <img
+                                src={review.userImage || "/profile.jpg"}
+                                alt={review.userName}
+                                className="w-8 h-8 rounded-full object-cover bg-slate-200"
+                                onError={(e) => { (e.target as HTMLImageElement).src = "/profile.jpg" }}
+                              />
                               <div>
                                 <div className="font-bold text-slate-900 text-sm">{review.userName || "Anonymous"}</div>
                                 <div className="flex text-amber-400 text-xs">
@@ -646,7 +655,12 @@ export default function LawyersSinglePage() {
                       {reviews.map((review) => (
                         <div key={review.id} className="bg-slate-50 p-5 rounded-xl border border-slate-200">
                           <div className="flex items-center gap-3 mb-3">
-                            <img src={review.userImage || "/default-user.jpg"} alt={review.userName} className="w-10 h-10 rounded-full object-cover bg-slate-200" />
+                            <img
+                              src={review.userImage || "/profile.jpg"}
+                              alt={review.userName}
+                              className="w-10 h-10 rounded-full object-cover bg-slate-200"
+                              onError={(e) => { (e.target as HTMLImageElement).src = "/profile.jpg" }}
+                            />
                             <div>
                               <div className="font-bold text-slate-900 text-sm">{review.userName || "Anonymous"}</div>
                               <div className="flex text-amber-400 gap-0.5">

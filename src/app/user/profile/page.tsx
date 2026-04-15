@@ -43,6 +43,7 @@ export default function ProfilePage() {
   });
 
   const [showPasswordInputs, setShowPasswordInputs] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -77,7 +78,8 @@ export default function ProfilePage() {
 
       setIsEditing(false);
       setImageFile(null);
-      setShowChangePassword(data.isPassword || false);
+     
+      setHasPassword(data.isPassword === true);
     } catch (err: unknown) {
       showToast("error", (err as { message?: string })?.message || "Failed to fetch profile");
     } finally {
@@ -386,7 +388,15 @@ export default function ProfilePage() {
                     <p className="text-slate-500 mt-2 font-medium">Protect your account with a strong, updated password.</p>
                   </div>
 
-                  {!showPasswordInputs ? (
+                  {!hasPassword ? (
+                    <div className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100 flex flex-col items-center text-center">
+                      <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4 text-teal-400">
+                        <ShieldCheck size={32} />
+                      </div>
+                      <h4 className="text-lg font-black text-slate-900 mb-2">Signed in with Google</h4>
+                      <p className="text-slate-500 text-sm max-w-xs">Your account uses Google Sign-In. Password management is handled through your Google account.</p>
+                    </div>
+                  ) : !hasPassword ? (
                     <div className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100 flex flex-col items-center text-center">
                       <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4 text-slate-400">
                         <ShieldCheck size={32} />

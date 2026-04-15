@@ -5,6 +5,7 @@ import { X, Calendar, Clock, Send, AlertCircle, ChevronLeft, ChevronRight } from
 import { motion, AnimatePresence } from 'framer-motion'
 import { getallslots, setFollowUp, Slot } from '@/service/lawyerService'
 import { toast } from 'sonner'
+import axios from 'axios'
 
 interface FollowUpSelectionModalProps {
     isOpen: boolean;
@@ -29,6 +30,17 @@ const FollowUpSelectionModal: React.FC<FollowUpSelectionModalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [slots, setSlots] = useState<Slot[]>([])
     const [loadingSlots, setLoadingSlots] = useState(false)
+    const isPastSlot = (slotDate: string, startTime: string) => {
+        try {
+            const now = new Date();
+            const [year, month, day] = slotDate.split('-').map(Number);
+            const [hours, minutes] = startTime.split(':').map(Number);
+            const slotDateTime = new Date(year, month - 1, day, hours, minutes);
+            return slotDateTime <= now;
+        } catch (e) {
+            return false;
+        }
+    };
 
     useEffect(() => {
         const fetchSlots = async () => {
@@ -55,6 +67,7 @@ const FollowUpSelectionModal: React.FC<FollowUpSelectionModalProps> = ({
         const dates = Array.from(new Set(
             slots.filter((s: Slot) => {
                 if (s.isBooked) return false;
+                if (isPastSlot(s.date, s.startTime)) return false; 
                 const slotDate = new Date(s.date);
                 slotDate.setHours(0, 0, 0, 0);
                 return slotDate >= today;
@@ -65,7 +78,11 @@ const FollowUpSelectionModal: React.FC<FollowUpSelectionModalProps> = ({
 
 
     const slotsForSelectedDate = useMemo(() => {
-        return slots.filter((s: Slot) => s.date === date && !s.isBooked);
+        return slots.filter((s: Slot) =>
+            s.date === date &&
+            !s.isBooked &&
+            !isPastSlot(s.date, s.startTime) 
+        );
     }, [slots, date]);
 
     const handleSubmit = async () => {
@@ -88,8 +105,13 @@ const FollowUpSelectionModal: React.FC<FollowUpSelectionModalProps> = ({
             } else {
                 toast.error(res.message || 'Failed to set follow-up')
             }
-        } catch (error) {
-            toast.error('An error occurred while setting follow-up')
+        } catch (error: unknown) {
+            const message = axios.isAxiosError(error)
+                ? error.response?.data?.message || 'Failed to set follow-up'
+                : error instanceof Error
+                    ? error.message
+                    : 'Failed to set follow-up';
+            toast.error(message)
         } finally {
             setIsSubmitting(false)
         }
