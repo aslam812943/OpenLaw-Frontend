@@ -678,7 +678,7 @@ export default function LawyersSinglePage() {
                   <div>
                     <p className="text-sm text-slate-500 font-medium uppercase tracking-wide">Consultation Fee</p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-slate-900"> ₹{lawyer.consultationFee || 2000}</span>
+                      <span className="text-3xl font-bold text-slate-900"> ₹{lawyer.consultationFee}</span>
                       <span className="text-sm text-slate-400">/ hr</span>
                     </div>
                   </div>
