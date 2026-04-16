@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
+import { canJoinCall } from '@/service/chatService';
 import {
     Mic, MicOff, Video, VideoOff, PhoneOff,
     User, Settings
@@ -22,7 +23,7 @@ const ICE_SERVERS = {
 };
 
 export default function VideoCallPage() {
-    const { id: bookingId } = useParams();
+    const { id: bookingIdParam } = useParams();
     const router = useRouter();
     const { socket, isConnected } = useSocket();
 
@@ -31,6 +32,9 @@ export default function VideoCallPage() {
     const userId = useSelector((state: RootState) => state.user.id);
     const currentUserId = lawyerId || userId;
     const userRole = lawyerId ? 'lawyer' : 'user';
+
+    const bookingId = Array.isArray(bookingIdParam) ? bookingIdParam[0] : bookingIdParam;
+    const [isCallAllowed, setIsCallAllowed] = useState<boolean | null>(null);
 
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -44,8 +48,29 @@ export default function VideoCallPage() {
     const peerConnection = useRef<RTCPeerConnection | null>(null);
     const iceCandidatesQueue = useRef<RTCIceCandidateInit[]>([]);
 
-    // Initialize Local Stream
     useEffect(() => {
+        const verify = async () => {
+            if (!bookingId) return;
+            try {
+                const res = await canJoinCall(bookingId);
+                const allowed = !!(res.success && res.data?.canJoin);
+                setIsCallAllowed(allowed);
+                if (!allowed) {
+                    showToast('warning', res.data?.message || 'Call not available yet');
+                    router.back();
+                }
+            } catch {
+                setIsCallAllowed(false);
+                showToast('error', 'Failed to verify call availability');
+                router.back();
+            }
+        };
+
+        verify();
+    }, [bookingId, router]);
+
+    useEffect(() => {
+        if (isCallAllowed !== true) return;
         const initLocalStream = async () => {
             try {
     
@@ -66,7 +91,7 @@ export default function VideoCallPage() {
         return () => {
             localStream?.getTracks().forEach(track => track.stop());
         };
-    }, []);
+    }, [isCallAllowed]);
 
     const processQueuedCandidates = useCallback(async () => {
         if (!peerConnection.current || !peerConnection.current.remoteDescription) return;
@@ -218,7 +243,7 @@ export default function VideoCallPage() {
             });
             socket.on('video-call-ended', () => {
                 showToast('info', 'Legal consultation session ended');
-                endCall();
+                cleanupAndExit(false);
             });
 
             setupPeerConnection();
@@ -251,11 +276,17 @@ export default function VideoCallPage() {
         }
     };
 
-    const endCall = () => {
-        socket?.emit('video-call-end', { bookingId });
+    const cleanupAndExit = (emitEndEvent: boolean) => {
+        if (emitEndEvent && userRole === 'lawyer') {
+            socket?.emit('video-call-end', { bookingId });
+        }
         localStream?.getTracks().forEach(track => track.stop());
         peerConnection.current?.close();
         router.back();
+    };
+
+    const endCall = () => {
+        cleanupAndExit(true);
     };
 
     return (
@@ -346,12 +377,14 @@ export default function VideoCallPage() {
                         {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
                     </button>
 
-                    <button
-                        onClick={endCall}
-                        className="p-4 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-full transition-all shadow-xl shadow-rose-500/40 group"
-                    >
-                        <PhoneOff size={28} className="group-hover:rotate-[135deg] transition-transform" />
-                    </button>
+                    {userRole === 'lawyer' && (
+                        <button
+                            onClick={endCall}
+                            className="p-4 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-full transition-all shadow-xl shadow-rose-500/40 group"
+                        >
+                            <PhoneOff size={28} className="group-hover:rotate-[135deg] transition-transform" />
+                        </button>
+                    )}
                 </div>
 
                 <button className="p-4 bg-white/10 backdrop-blur-2xl text-white hover:bg-white/20 rounded-full ring-1 ring-white/20 transition-all opacity-50 cursor-not-allowed">

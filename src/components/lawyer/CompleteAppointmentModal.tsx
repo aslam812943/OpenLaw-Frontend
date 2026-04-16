@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, ExternalLink, Image, Video, Play } from 'lucide-react'
+import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, ExternalLink, Image, Video, Play, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getAppoiments, getAppointmentById, updateAppointmentStatus } from "@/service/lawyerService"
 import { getChatRoom, getMessages, Message } from '@/service/chatService'
@@ -34,6 +34,7 @@ interface Appointment {
     followUpTime?: string;
     followUpStatus?: 'none' | 'pending' | 'booked';
     parentBookingId?: string;
+    cancellationReason?: string;
 }
 
 
@@ -76,7 +77,16 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
         return appointmentEnd;
     };
 
-    const isReadOnly = appointment?.status === 'completed' || appointment?.status === 'follow-up';
+    const isReadOnly = ['completed', 'follow-up', 'rejected', 'cancelled'].includes(appointment?.status || '');
+    const statusBadgeClassName = appointment?.status === 'completed'
+        ? 'bg-emerald-100 text-emerald-700'
+        : appointment?.status === 'follow-up'
+            ? 'bg-indigo-100 text-indigo-700'
+            : appointment?.status === 'confirmed'
+                ? 'bg-blue-100 text-blue-700'
+                : appointment?.status === 'pending'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-rose-100 text-rose-700';
     const [feedback, setFeedback] = useState(appointment?.lawyerFeedback || '')
     const [messages, setMessages] = useState<Message[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
@@ -163,15 +173,20 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                                         <CheckCircle className="w-6 h-6 text-teal-400" />
                                     )}
                                     <h2 className="text-xl font-bold tracking-tight">
-                                        {isReadOnly ? 'Consultation Summary' : 'Complete Consultation'}
+                                        {isReadOnly && ['rejected', 'cancelled'].includes(appointment.status) ? 'Booking Details' : isReadOnly ? 'Consultation Summary' : 'Complete Consultation'}
                                     </h2>
                                 </div>
-                                <button
-                                    onClick={onClose}
-                                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-widest ${statusBadgeClassName}`}>
+                                        {appointment.status}
+                                    </span>
+                                    <button
+                                        onClick={onClose}
+                                        className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
@@ -259,6 +274,18 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                                         "{appointment.desctiption || 'No description provided.'}"
                                     </div>
                                 </div>
+
+                                {appointment.cancellationReason && (
+                                    <div className="mb-8">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <AlertCircle className="w-4 h-4 text-rose-400" />
+                                            <h3 className="text-xs uppercase font-extrabold tracking-widest text-rose-400">Cancellation Reason</h3>
+                                        </div>
+                                        <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-sm text-rose-700">
+                                            {appointment.cancellationReason}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Case History / Documents */}
                                 <div className="mb-8 pt-8 border-t border-slate-100">

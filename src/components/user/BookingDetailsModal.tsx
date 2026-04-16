@@ -74,6 +74,27 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     const [loadingParent, setLoadingParent] = useState(false);
     const [isCancellingFollowUp, setIsCancellingFollowUp] = useState(false);
 
+    const isFollowUpExpired = (() => {
+        if (!appointment?.followUpType || appointment.followUpType === 'none' || !appointment.followUpDate) {
+            return false;
+        }
+
+        const now = new Date();
+
+        if (appointment.followUpType === 'specific') {
+            if (!appointment.followUpTime) return false;
+            const followUpDateTime = new Date(`${appointment.followUpDate}T${appointment.followUpTime}`);
+            return !Number.isNaN(followUpDateTime.getTime()) && followUpDateTime < now;
+        }
+
+        if (appointment.followUpType === 'deadline') {
+            const deadlineEnd = new Date(`${appointment.followUpDate}T23:59:59`);
+            return !Number.isNaN(deadlineEnd.getTime()) && deadlineEnd < now;
+        }
+
+        return false;
+    })();
+
     useEffect(() => {
         if (isOpen && appointment?.id) {
             fetchCaseHistory();
@@ -374,11 +395,14 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                                 )}
 
                                 {/* Follow-up Details */}
-                                {appointment.followUpType && appointment.followUpType !== 'none' && (appointment.followUpStatus === 'pending' || appointment.followUpStatus === 'booked') && (
+                                {appointment.followUpType &&
+                                    appointment.followUpType !== 'none' &&
+                                    !isFollowUpExpired &&
+                                    (appointment.followUpStatus === 'pending' || appointment.followUpStatus === 'booked') && (
                                     <div className="space-y-3 mt-8 pt-8 border-t border-slate-100">
                                         <div className="flex items-center gap-2">
                                             <Calendar className="w-5 h-5 text-teal-600" />
-                                            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Proposed Follow-up</h3>
+                                            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Follow-up Consultation</h3>
                                         </div>
                                         <div className="w-full p-6 rounded-2xl bg-teal-50 border border-teal-100 shadow-sm">
                                             <div className="flex flex-col gap-4">
