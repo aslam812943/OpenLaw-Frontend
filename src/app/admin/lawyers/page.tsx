@@ -35,6 +35,15 @@ export default function LawyersPage() {
     lawyer: Lawyer | null
   }>({ isOpen: false, type: "", lawyer: null });
 
+  const formatPhone = (phone: unknown): string => {
+    if (phone === null || phone === undefined) return "Not provided";
+    const value = String(phone).trim();
+    if (!value || value.toLowerCase() === "nan" || value.toLowerCase() === "undefined" || value.toLowerCase() === "null") {
+      return "Not provided";
+    }
+    return value;
+  };
+
   const loadLawyers = async (pageNum: number) => {
     try {
       setLoading(true);
@@ -160,12 +169,15 @@ export default function LawyersPage() {
   const columns: Column<Lawyer>[] = [
     { header: "Name", accessor: "name", className: "font-medium" },
     { header: "Email", accessor: "email" },
-    { header: "Phone", accessor: "phone" },
-    { header: "Years", accessor: "yearsOfPractice" },
     {
-      header: "Practice Area",
-      render: (lawyer) => lawyer.practiceAreas?.[0] || "—",
+      header: "Phone",
+      render: (lawyer) => formatPhone(lawyer.phone??'Not provided'),
     },
+    { header: "Years", accessor: "yearsOfPractice" },
+    // {
+    //   header: "Practice Area",
+    //   render: (lawyer) => lawyer.practiceAreas?.[0] || "—",
+    // },
     {
       header: "Status",
       render: (lawyer) =>
@@ -255,48 +267,52 @@ export default function LawyersPage() {
 
         {/*  Lawyer Detail Modal */}
         {selectedLawyer && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-[600px] p-6 relative max-h-[90vh] overflow-y-auto">
-              <h2 className="text-lg font-semibold mb-4">Lawyer Profile Details</h2>
-
-              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                <p><span className="font-medium">Name:</span> {selectedLawyer.name}</p>
-                <p><span className="font-medium">Email:</span> {selectedLawyer.email}</p>
-                <p><span className="font-medium">Phone:</span> {selectedLawyer.phone}</p>
-                <p><span className="font-medium">Bar Number:</span> {selectedLawyer.barNumber}</p>
-                <p><span className="font-medium">Bar Admission:</span> {selectedLawyer.barAdmissionDate}</p>
-                <p><span className="font-medium">Years of Practice:</span> {selectedLawyer.yearsOfPractice}</p>
-                <p><span className="font-medium">Verified:</span> {selectedLawyer.isVerified ? "Yes" : "No"}</p>
-                <p><span className="font-medium">Blocked:</span> {selectedLawyer.isBlock ? "Yes" : "No"}</p>
-                <p><span className="font-medium">Status:</span> {selectedLawyer.verificationStatus}</p>
-                <p className="col-span-2"><span className="font-medium">Practice Areas:</span> {selectedLawyer.practiceAreas.join(", ")}</p>
-                <p className="col-span-2"><span className="font-medium">Languages:</span> {selectedLawyer.languages.join(", ")}</p>
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-3xl bg-[#111111] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+              <div className="px-6 py-4 border-b border-slate-800 bg-[#161616]">
+                <h2 className="text-lg font-semibold text-white">Lawyer Profile Details</h2>
               </div>
 
-              {/*  Documents */}
-              <div className="mb-5">
-                <h3 className="text-base font-semibold mb-2">Uploaded Documents</h3>
-                {selectedLawyer.documentUrls.length > 0 ? (
-                  <ul className="space-y-2">
-                    {selectedLawyer.documentUrls.map((url, index) => (
-                      <li key={index} className="flex justify-between items-center border-b pb-1">
-                        <span>Document {index + 1}</span>
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                          View
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500 text-sm">No documents uploaded.</p>
-                )}
+              <div className="p-6 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 text-sm">
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Name</p><p className="text-slate-100 font-medium mt-1">{selectedLawyer.name || "Not provided"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Email</p><p className="text-slate-100 font-medium mt-1 break-all">{selectedLawyer.email || "Not provided"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Phone</p><p className="text-slate-100 font-medium mt-1">{formatPhone(selectedLawyer.phone)}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Bar Number</p><p className="text-slate-100 font-medium mt-1">{selectedLawyer.barNumber || "Not provided"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Bar Admission</p><p className="text-slate-100 font-medium mt-1">{selectedLawyer.barAdmissionDate || "Not provided"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Years of Practice</p><p className="text-slate-100 font-medium mt-1">{selectedLawyer.yearsOfPractice ?? "Not provided"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Verified</p><p className={`font-semibold mt-1 ${selectedLawyer.isVerified ? "text-emerald-400" : "text-amber-400"}`}>{selectedLawyer.isVerified ? "Yes" : "No"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs uppercase">Blocked</p><p className={`font-semibold mt-1 ${selectedLawyer.isBlock ? "text-rose-400" : "text-emerald-400"}`}>{selectedLawyer.isBlock ? "Yes" : "No"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3 md:col-span-2"><p className="text-slate-400 text-xs uppercase">Status</p><p className="text-slate-100 font-medium mt-1">{selectedLawyer.verificationStatus || "Not provided"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3 md:col-span-2"><p className="text-slate-400 text-xs uppercase">Practice Areas</p><p className="text-slate-100 font-medium mt-1">{selectedLawyer.practiceAreas?.length ? selectedLawyer.practiceAreas.join(", ") : "Not provided"}</p></div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3 md:col-span-2"><p className="text-slate-400 text-xs uppercase">Languages</p><p className="text-slate-100 font-medium mt-1">{selectedLawyer.languages?.length ? selectedLawyer.languages.join(", ") : "Not provided"}</p></div>
+                </div>
+
+                {/*  Documents */}
+                <div className="mb-5">
+                  <h3 className="text-base font-semibold text-slate-100 mb-2">Uploaded Documents</h3>
+                  {selectedLawyer.documentUrls.length > 0 ? (
+                    <ul className="space-y-2">
+                      {selectedLawyer.documentUrls.map((url, index) => (
+                        <li key={index} className="flex justify-between items-center border-b border-slate-800 pb-2 text-sm">
+                          <span className="text-slate-300">Document {index + 1}</span>
+                          <a href={url} target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 hover:underline">
+                            View
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-slate-400 text-sm">No documents uploaded.</p>
+                  )}
+                </div>
               </div>
 
               {/*  Action Buttons */}
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-800 bg-[#161616]">
                 <button
                   onClick={() => setSelectedLawyer(null)}
-                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+                  className="px-4 py-2 rounded-lg border border-slate-600 text-slate-200 hover:bg-slate-700 transition-colors"
                 >
                   Close
                 </button>
@@ -309,9 +325,9 @@ export default function LawyersPage() {
                       lawyer: selectedLawyer
                     })
                   }
-                  className={`px-4 py-2 rounded-lg ${selectedLawyer.isBlock
-                    ? "bg-green-500 hover:bg-green-600 text-white"
-                    : "bg-red-500 hover:bg-red-600 text-white"
+                  className={`px-4 py-2 rounded-lg text-white transition-colors ${selectedLawyer.isBlock
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-rose-600 hover:bg-rose-700"
                     }`}
                 >
                   {selectedLawyer.isBlock ? "Unblock" : "Block"}
@@ -321,7 +337,7 @@ export default function LawyersPage() {
                   <>
                     <button
                       onClick={handleRejectClick}
-                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors"
                     >
                       Reject
                     </button>
@@ -330,7 +346,7 @@ export default function LawyersPage() {
                       onClick={() =>
                         setShowActionModal({ isOpen: true, type: "Approve", lawyer: selectedLawyer })
                       }
-                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
                     >
                       Approve
                     </button>

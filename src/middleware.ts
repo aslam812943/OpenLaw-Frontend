@@ -29,6 +29,15 @@ export function middleware(request: NextRequest) {
   const authRoutes = ['/login', '/sign-up', '/forgotPassword'];
 
 
+  if (pathname.startsWith('/admin') && accessToken && role && role !== 'admin') {
+    const redirectTo =
+      role === 'lawyer' ? '/lawyer/dashboard' :
+        role === 'user' ? '/' :
+          '/';
+    return NextResponse.redirect(new URL(redirectTo, request.url));
+  }
+
+
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     if ((!accessToken || role !== 'admin') && !isRecoverable) return NextResponse.redirect(new URL('/admin/login', request.url));
   }
@@ -61,7 +70,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname === '/admin/login' && accessToken) {
+  if (pathname === '/admin/login' && accessToken && role === 'admin') {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url));
   }
 

@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import AxiosInterceptor from "@/utils/AxiosInterceptor";
 import { ConfirmProvider } from "@/context/ConfirmContext";
 import { SocketProvider } from "@/context/SocketContext";
+import IncomingVideoCallSidePopup from "@/components/user/IncomingVideoCallSidePopup";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             <SocketProvider>
               <AxiosInterceptor />
               {children}
+              <IncomingVideoCallSidePopup />
             </SocketProvider>
           </ConfirmProvider>
         </PersistGate>

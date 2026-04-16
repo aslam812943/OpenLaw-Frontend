@@ -23,6 +23,15 @@ export default function AdminUsersPage() {
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("");
 
+  const formatPhone = (phone: unknown): string => {
+    if (phone === null || phone === undefined) return "Not provided";
+    const value = String(phone).trim();
+    if (!value || value.toLowerCase() === "nan" || value.toLowerCase() === "undefined" || value.toLowerCase() === "null") {
+      return "Not provided";
+    }
+    return value;
+  };
+
   const loadUsers = async (pageNum: number) => {
     try {
       setLoading(true);
@@ -110,7 +119,10 @@ export default function AdminUsersPage() {
   const columns: Column<IUser>[] = [
     { header: "Name", accessor: "name" },
     { header: "Email", accessor: "email" },
-    { header: "Phone", accessor: "phone" },
+    {
+      header: "Phone",
+      render: (u) => formatPhone(u.phone),
+    },
     {
       header: "Status",
       render: (u) =>
@@ -176,31 +188,37 @@ export default function AdminUsersPage() {
 
         {/* Modal */}
         {selectedUser && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-[500px] p-6 relative">
-              <h2 className="text-lg font-semibold mb-4">User Details</h2>
-              <div className="space-y-2 text-sm">
-                <p>
-                  <span className="font-medium">Name:</span>{" "}
-                  {selectedUser.name}
-                </p>
-                <p>
-                  <span className="font-medium">Email:</span>{" "}
-                  {selectedUser.email}
-                </p>
-                <p>
-                  <span className="font-medium">Phone:</span>{" "}
-                  {selectedUser.phone}
-                </p>
-                <p>
-                  <span className="font-medium">Blocked:</span>{" "}
-                  {selectedUser.isBlock ? "Yes" : "No"}
-                </p>
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-xl bg-[#111111] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-800 bg-[#161616]">
+                <h2 className="text-lg font-semibold text-white">User Details</h2>
               </div>
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3">
+                    <p className="text-slate-400 text-xs uppercase tracking-wide">Name</p>
+                    <p className="text-slate-100 font-medium mt-1">{selectedUser.name || "Not provided"}</p>
+                  </div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3">
+                    <p className="text-slate-400 text-xs uppercase tracking-wide">Email</p>
+                    <p className="text-slate-100 font-medium mt-1 break-all">{selectedUser.email || "Not provided"}</p>
+                  </div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3">
+                    <p className="text-slate-400 text-xs uppercase tracking-wide">Phone</p>
+                    <p className="text-slate-100 font-medium mt-1">{formatPhone(selectedUser.phone)}</p>
+                  </div>
+                  <div className="bg-[#1a1a1a] border border-slate-800 rounded-xl p-3">
+                    <p className="text-slate-400 text-xs uppercase tracking-wide">Status</p>
+                    <p className={`font-semibold mt-1 ${selectedUser.isBlock ? "text-rose-400" : "text-emerald-400"}`}>
+                      {selectedUser.isBlock ? "Blocked" : "Active"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-800 bg-[#161616]">
                 <button
                   onClick={() => setSelectedUser(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 border border-slate-600 text-slate-200 rounded-lg hover:bg-slate-700 transition-colors"
                 >
                   Close
                 </button>
@@ -211,9 +229,9 @@ export default function AdminUsersPage() {
                       selectedUser._id
                     )
                   }
-                  className={`px-4 py-2 rounded-lg ${selectedUser.isBlock
-                    ? "bg-green-500 hover:bg-green-600 text-white"
-                    : "bg-red-500 hover:bg-red-600 text-white"
+                  className={`px-4 py-2 rounded-lg text-white transition-colors ${selectedUser.isBlock
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-rose-600 hover:bg-rose-700"
                     }`}
                 >
                   {selectedUser.isBlock ? "Unblock" : "Block"}

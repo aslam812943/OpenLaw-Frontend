@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useSocket } from '@/context/SocketContext';
 import { getMessages, getRoomById, uploadFile, getUserRooms, getLawyerSpecificRooms, Message, ChatRoomDetails } from '@/service/chatService';
-import { Send, Menu, MoreVertical, User, Paperclip, FileIcon, ChevronLeft, Search, Dot, Image as ImageIcon, Video, FileText } from 'lucide-react';
+import { Send, Menu, MoreVertical, User, Paperclip, FileIcon, ChevronLeft, Search, Dot, Image as ImageIcon, Video, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/components/ui/ImageModal';
 import { showToast } from '@/utils/alerts';
@@ -54,9 +54,13 @@ export default function UserChatPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [expandedLawyerGroups, setExpandedLawyerGroups] = useState<string[]>([]);
+    const activeRoomId = Array.isArray(roomId) ? roomId[0] : roomId;
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const bookingStatus = roomInfo?.bookingDetails?.status;
+    const isChatReadOnly = ['completed', 'cancelled', 'rejected'].includes((bookingStatus || '').toLowerCase());
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -187,7 +191,7 @@ export default function UserChatPage() {
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         const content = newMessage.trim();
-        if (!content || !socket || !isConnected) return;
+        if (!content || !socket || !isConnected || isChatReadOnly) return;
 
         const tempMessage: Message = {
             id: `temp-${Date.now()}`,
@@ -212,7 +216,7 @@ export default function UserChatPage() {
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !socket || !isConnected) return;
+        if (!file || !socket || !isConnected || isChatReadOnly) return;
 
         setIsUploading(true);
         try {
@@ -253,6 +257,61 @@ export default function UserChatPage() {
         }
     }, [messages, roomId]);
 
+    const filteredRooms = rooms.filter(room =>
+        room.lawyerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        room.bookingDetails?.bookingId?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const groupedRooms = useMemo(() => {
+        const map = new Map<string, ChatRoomDetails[]>();
+        filteredRooms.forEach((room) => {
+            const key = (typeof room.lawyerId === 'object' ? (room.lawyerId._id || room.lawyerId.id) : room.lawyerId) || 'unknown';
+            const existing = map.get(key) || [];
+            existing.push(room);
+            map.set(key, existing);
+        });
+
+        return Array.from(map.entries())
+            .map(([lawyerKey, lawyerRooms]) => ({
+                lawyerKey,
+                rooms: lawyerRooms.sort((a, b) => {
+                    if (a.id === activeRoomId) return -1;
+                    if (b.id === activeRoomId) return 1;
+                    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+                })
+            }))
+            .sort((a, b) => {
+                const aHasActive = a.rooms.some((room) => room.id === activeRoomId);
+                const bHasActive = b.rooms.some((room) => room.id === activeRoomId);
+                if (aHasActive) return -1;
+                if (bHasActive) return 1;
+                return new Date(b.rooms[0]?.updatedAt || 0).getTime() - new Date(a.rooms[0]?.updatedAt || 0).getTime();
+            });
+    }, [filteredRooms, activeRoomId]);
+
+    useEffect(() => {
+        if (!activeRoomId || rooms.length === 0) return;
+
+        const selectedRoom = rooms.find((room) => room.id === activeRoomId);
+        if (!selectedRoom) return;
+
+        const selectedLawyerKey = (typeof selectedRoom.lawyerId === 'object'
+            ? (selectedRoom.lawyerId._id || selectedRoom.lawyerId.id)
+            : selectedRoom.lawyerId) || '';
+
+        if (!selectedLawyerKey) return;
+
+        setExpandedLawyerGroups((prev) =>
+            prev.includes(selectedLawyerKey) ? prev : [...prev, selectedLawyerKey]
+        );
+    }, [activeRoomId, rooms]);
+
+    const toggleLawyerGroup = (lawyerKey: string) => {
+        setExpandedLawyerGroups((prev) =>
+            prev.includes(lawyerKey) ? prev.filter((k) => k !== lawyerKey) : [...prev, lawyerKey]
+        );
+    };
+
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-white">
@@ -263,11 +322,6 @@ export default function UserChatPage() {
             </div>
         );
     }
-
-    const filteredRooms = rooms.filter(room =>
-        room.lawyerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.bookingDetails?.bookingId?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     const renderSidebarContent = () => (
         <>
@@ -284,99 +338,86 @@ export default function UserChatPage() {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-3 space-y-1">
-                {filteredRooms.map((room) => (
-                    <button
-                        key={room.id}
-                        onClick={() => {
-                            router.push(`/user/chat/${room.id}`);
-                            setIsMobileSidebarOpen(false);
-                        }}
-                        className={`w-full group relative flex items-center gap-3 p-3 rounded-2xl transition-all ${room.id === roomId
-                            ? 'bg-teal-50 text-teal-900 shadow-sm ring-1 ring-teal-500/20'
-                            : 'hover:bg-slate-50 text-slate-600 hover:text-slate-900'
-                            }`}
-                    >
-                        {/* Hover Tooltip - Bottom Position */}
-                        <div className="absolute top-full left-0 right-0 px-2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[999] pointer-events-none scale-95 group-hover:scale-100 origin-top">
-                            <div className="bg-white/95 backdrop-blur-xl p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100">
-                                <div className="space-y-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <span className="text-[10px] font-bold text-teal-600 uppercase tracking-[0.2em]">Booking Reference</span>
-                                        <span className="text-sm font-black text-slate-900 font-mono tracking-tighter">{room.bookingDetails?.bookingId || 'REF-PENDING'}</span>
-                                    </div>
-                                    <div className="h-px bg-slate-100 w-full" />
-                                    <div className="flex flex-col gap-1.5">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consultation Schedule</span>
-                                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                                            <span>{room.bookingDetails?.startTime || 'TBD'}</span>
-                                            <span className="text-slate-300">•</span>
-                                            <span>{room.bookingDetails?.date ? new Date(room.bookingDetails.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date Pending'}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reason for Inquiry</span>
-                                        <p className="text-xs text-slate-600 leading-relaxed italic border-l-2 border-teal-500/30 pl-3 py-0.5">
-                                            "{room.bookingDetails?.description || 'No specific details provided for this session.'}"
-                                        </p>
+            <div className="flex-1 overflow-y-auto px-3 space-y-3">
+                {groupedRooms.map(({ lawyerKey, rooms: lawyerRooms }) => {
+                    const latestRoom = lawyerRooms[0];
+                    const olderRooms = lawyerRooms.slice(1);
+                    const isExpanded = expandedLawyerGroups.includes(lawyerKey);
+                    return (
+                        <div key={lawyerKey} className="space-y-1.5">
+                            <button
+                                onClick={() => {
+                                    router.push(`/user/chat/${latestRoom.id}`);
+                                    setIsMobileSidebarOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${latestRoom.id === roomId
+                                    ? 'bg-teal-50 text-teal-900 shadow-sm ring-1 ring-teal-500/20'
+                                    : 'hover:bg-slate-50 text-slate-600 hover:text-slate-900'
+                                    }`}
+                            >
+                                <div className="relative flex-shrink-0">
+                                    <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden ring-2 ring-white">
+                                        {latestRoom.lawyerId?.profileImage ? (
+                                            <img src={latestRoom.lawyerId.profileImage} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center relative">
+                                                <User size={20} className="text-slate-400" />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                                {/* Arrow pointing up */}
-                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-slate-100 rotate-45" />
-                            </div>
-                        </div>
-
-                        <div className="relative flex-shrink-0">
-                            <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden ring-2 ring-white">
-                                {room.lawyerId?.profileImage ? (
-                                    <img src={room.lawyerId.profileImage} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center relative">
-                                        <User size={20} className="text-slate-400" />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div className="text-left min-w-0 flex-1">
-                            <div className="flex justify-between items-start gap-1">
-                                <p className="font-bold text-sm truncate">{room.lawyerId?.name}</p>
-                                {room.lastMessage && (
-                                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                                        {new Date(room.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="flex flex-col gap-0.5">
-                                {room.lastMessage ? (
-                                    <p className="text-xs text-slate-500 truncate">
-                                        {room.lastMessage.type === 'image' || (typeof room.lastMessage.content === 'string' && room.lastMessage.content.startsWith('https://res.cloudinary.com') && (room.lastMessage.content.includes('/image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(room.lastMessage.content))) ? (
-                                            <span className="flex items-center gap-1.5 text-teal-600 font-semibold italic">
-                                                <ImageIcon size={12} /> Image
+                                <div className="text-left min-w-0 flex-1">
+                                    <div className="flex justify-between items-start gap-1">
+                                        <p className="font-bold text-sm truncate">{latestRoom.lawyerId?.name}</p>
+                                        {latestRoom.lastMessage && (
+                                            <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                                {new Date(latestRoom.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
-                                        ) : room.lastMessage.content}
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 truncate">
+                                        {latestRoom.bookingDetails?.bookingId || 'Latest consultation'}
                                     </p>
-                                ) : (
-                                    <p className="text-xs text-slate-400 truncate">Online Consultation</p>
-                                )}
-
-                                {/* Mobile-only Case Details */}
-                                <div className="lg:hidden mt-2 pt-2 border-t border-slate-100/50 flex flex-col gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[9px] font-bold text-teal-600 uppercase tracking-wider">ID:</span>
-                                        <span className="text-[10px] font-mono font-bold text-slate-700">{room.bookingDetails?.bookingId || 'PENDING'}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Time:</span>
-                                        <span className="text-[10px] font-semibold text-slate-600">
-                                            {room.bookingDetails?.startTime || 'TBD'} • {room.bookingDetails?.date ? new Date(room.bookingDetails.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Pending'}
-                                        </span>
-                                    </div>
                                 </div>
-                            </div>
+                            </button>
+
+                            {olderRooms.length > 0 && (
+                                <>
+                                    <button
+                                        onClick={() => toggleLawyerGroup(lawyerKey)}
+                                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                                    >
+                                        <span>{isExpanded ? 'Hide older bookings' : `Show ${olderRooms.length} older booking chats`}</span>
+                                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </button>
+
+                                    {isExpanded && (
+                                        <div className="pl-3 space-y-1">
+                                            {olderRooms.map((room) => (
+                                                <button
+                                                    key={room.id}
+                                                    onClick={() => {
+                                                        router.push(`/user/chat/${room.id}`);
+                                                        setIsMobileSidebarOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all border ${room.id === roomId
+                                                        ? 'bg-teal-50 border-teal-200 text-teal-800'
+                                                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                        }`}
+                                                >
+                                                    <div className="font-semibold">{room.bookingDetails?.bookingId || 'Booking chat'}</div>
+                                                    <div className="text-[10px] text-slate-400 mt-0.5">
+                                                        {room.bookingDetails?.date ? new Date(room.bookingDetails.date).toLocaleDateString() : 'Date unavailable'}
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
-                    </button>
-                ))}
+                    );
+                })}
             </div>
         </>
     );
@@ -452,7 +493,11 @@ export default function UserChatPage() {
 
                     <div className="flex items-center gap-2">
                         {roomInfo?.bookingId && (
-                            <VideoCallButton bookingId={roomInfo.bookingId} role="user" />
+                            <VideoCallButton
+                                bookingId={roomInfo.bookingId}
+                                role="user"
+                                lawyerName={roomInfo?.lawyerId?.name}
+                            />
                         )}
                         <button
                             onClick={() => setIsMobileSidebarOpen(true)}
@@ -564,6 +609,11 @@ export default function UserChatPage() {
 
                 {/* Footer Input Area */}
                 <footer className="p-4 lg:p-6 bg-white border-t border-slate-100">
+                    {isChatReadOnly && (
+                        <div className="max-w-5xl mx-auto mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+                            This chat is read-only because the booking is {bookingStatus || 'closed'}. You can view previous messages only.
+                        </div>
+                    )}
                     <div className="max-w-5xl mx-auto flex items-center gap-3 bg-slate-50 p-2 rounded-[2rem] border border-slate-100 shadow-inner ring-1 ring-slate-200/50">
                         <input
                             type="file"
@@ -575,7 +625,7 @@ export default function UserChatPage() {
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading || !isConnected}
+                            disabled={isUploading || !isConnected || isChatReadOnly}
                             className="p-3 text-slate-400 hover:text-teal-600 hover:bg-white rounded-full transition-all disabled:opacity-50 shadow-sm hover:shadow"
                         >
                             {isUploading ? (
@@ -590,12 +640,13 @@ export default function UserChatPage() {
                                 type="text"
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Write your message here..."
+                                placeholder={isChatReadOnly ? 'Read-only chat' : 'Write your message here...'}
+                                disabled={isChatReadOnly}
                                 className="flex-1 bg-transparent border-none focus:ring-0 text-slate-800 placeholder-slate-400 font-medium py-3 px-2"
                             />
                             <button
                                 type="submit"
-                                disabled={!newMessage.trim() || !isConnected}
+                                disabled={!newMessage.trim() || !isConnected || isChatReadOnly}
                                 className="bg-teal-500 hover:bg-teal-600 active:scale-95 disabled:opacity-50 disabled:grayscale p-3.5 rounded-full text-white shadow-xl shadow-teal-500/20 transition-all"
                             >
                                 <Send size={22} />

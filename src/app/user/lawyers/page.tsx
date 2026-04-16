@@ -369,7 +369,7 @@ const AllLawyers = () => {
                               <span className="font-medium">{lawyer.yearsOfPractice || 5}+ Years Exp.</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium"> ₹{lawyer.consultationFee} / hr</span>
+                              <span className="font-medium"> ₹{lawyer.consultationFee} </span>
                             </div>
                           </div>
                         </div>

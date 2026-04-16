@@ -17,7 +17,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
             <div className="flex flex-1 overflow-hidden">
                 {!shouldHideSidebar && <UserSidebar />}
 
-                <main className="flex-1 overflow-y-auto w-full">
+                <main className="flex-1 overflow-y-auto w-full relative">
                     {children}
                 </main>
             </div>

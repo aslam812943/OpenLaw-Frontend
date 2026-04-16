@@ -2,7 +2,7 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import {
   Mail, Phone, MapPin, Award, Scale, Calendar,
@@ -15,11 +15,13 @@ import { useRouter } from "next/navigation";
 import { checkChatAccess, getChatRoom } from "@/service/chatService";
 import { showToast } from "@/utils/alerts";
 import { getSingleLawyer, getallslots, Lawyer, Slot } from "@/service/lawyerService";
-import { handlepayAndBook, addReview, allReview, Review, getWallet, bookWithWallet, rescheduleAppointment } from "@/service/userService";
+import { handlepayAndBook, addReview, allReview, Review, getWallet, bookWithWallet, rescheduleAppointment, getprofile } from "@/service/userService";
+import { setUserData } from "@/redux/userSlice";
 
 export default function LawyersSinglePage() {
   const { id } = useParams();
   const searchParams = useSearchParams();
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const [calendarDays, setCalendarDays] = useState<{ date: string, available: boolean }[]>([]);
   const [selectedTime, setSelectedTime] = useState<{ start: string; end: string } | null>(null);
@@ -121,14 +123,33 @@ export default function LawyersSinglePage() {
 
     if (dateParam && timeParam && slots.length > 0) {
       const matchingSlot = slots.find(s => s.date === dateParam && s.startTime === timeParam);
-      if (matchingSlot) {
+      if (matchingSlot && !matchingSlot.isBooked) {
         setSelectedSlotId(matchingSlot.id);
         setSelectedTime({ start: matchingSlot.startTime, end: matchingSlot.endTime });
         setConsultationFee(Number(matchingSlot.consultationFee));
         setBookingSlot(true);
+      } else {
+        setSelectedSlotId(null);
+        setSelectedTime(null);
+        setBookingSlot(false);
       }
     }
   }, [slots, searchParams]);
+
+
+  useEffect(() => {
+    if (!selectedDate || !selectedTime) return;
+
+    const matchingSlot = slots.find(
+      s => s.date === selectedDate && s.startTime === selectedTime.start
+    );
+
+    if (!matchingSlot || matchingSlot.isBooked) {
+      setSelectedSlotId(null);
+      setSelectedTime(null);
+      setBookingSlot(false);
+    }
+  }, [slots, selectedDate, selectedTime]);
 
   const isPastDate = (date: string) => {
     const today = new Date();
@@ -214,8 +235,30 @@ export default function LawyersSinglePage() {
     }
   }, [currentMonth, currentYear, slots]);
 
+  const getEffectiveUserId = async (): Promise<string | null> => {
+    if (user.id) return user.id;
+
+    try {
+      const profile = await getprofile();
+      const resolvedId = profile?._id || (profile as unknown as { id?: string })?.id || null;
+      if (resolvedId) {
+        dispatch(setUserData({
+          id: resolvedId,
+          email: profile.email || user.email,
+          name: profile.name || user.name,
+          phone: profile.phone || user.phone,
+          role: profile.role || user.role || "user"
+        }));
+      }
+      return resolvedId;
+    } catch {
+      return null;
+    }
+  };
+
   const HandlePayment = async () => {
-    if (!user.id) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       showToast("error", "Please login to book an appointment.");
       router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
@@ -229,7 +272,7 @@ export default function LawyersSinglePage() {
     }
 
     const obj = {
-      userId: user.id as string,
+      userId: effectiveUserId,
       lawyerId: lawyer.id,
       lawyerName: lawyer.name,
       date: selectedDate,
@@ -254,7 +297,8 @@ export default function LawyersSinglePage() {
   };
 
   const handleWalletPayment = async () => {
-    if (!user.id) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       showToast("error", "Please login to book an appointment.");
       router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
@@ -275,7 +319,7 @@ export default function LawyersSinglePage() {
     setIsProcessing(true);
 
     const obj = {
-      userId: user.id as string,
+      userId: effectiveUserId,
       lawyerId: lawyer.id,
       lawyerName: lawyer.name,
       date: selectedDate,
@@ -305,7 +349,8 @@ export default function LawyersSinglePage() {
   };
 
   const handleReschedule = async () => {
-    if (!user.id) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       showToast("error", "Please login to proceed.");
       router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;

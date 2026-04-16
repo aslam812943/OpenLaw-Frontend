@@ -1,5 +1,0 @@
-./app/user/lawyers/[id]/page.tsx:      showToast("error", "Please login to book an appointment.");
-./app/user/lawyers/[id]/page.tsx:      showToast("error", "Please login to book an appointment.");
-./app/user/lawyers/[id]/page.tsx:      showToast("error", "Please login to proceed.");
-./app/lawyer/slotShedule/page.tsx:      showToast('error', 'Lawyer ID missing. Please login again.');
-./app/resetPassword/ResetPasswordContent.tsx:            showToast('success', 'Password reset successful! Please login with your new password.');

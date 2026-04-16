@@ -417,29 +417,63 @@ export default function GetProfile() {
         )
     }
 
-    return (
-        <div className="min-h-screen bg-slate-50 pb-12">
-            <div className="relative h-64 bg-slate-900 overflow-hidden">
-                <div className="absolute inset-0 opacity-20">
-                    <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-slate-900"></div>
-                    <div className="absolute inset-x-0 h-full w-full bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:20px_20px] [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
-                </div>
+    const fullAddress = data.address?.filter(Boolean).join(", ");
+    const profileStats = [
+        {
+            label: "Years Practice",
+            value: `${data.yearsOfPractice || 0}+`,
+            icon: Briefcase,
+        },
+        {
+            label: "Consultation Fee",
+            value: `₹${data.consultationFee || 0}`,
+            icon: DollarSign,
+        },
+        {
+            label: "Practice Areas",
+            value: `${data.practiceAreas?.length || 0}`,
+            icon: Shield,
+        },
+        {
+            label: "Bar Since",
+            value: data.barAdmissionDate || "N/A",
+            icon: Calendar,
+        }
+    ];
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full relative">
-                    <div className="flex justify-end pt-6">
+    return (
+        <div className="min-h-screen bg-slate-100 pb-12">
+            <div className="relative overflow-hidden border-b border-slate-800 bg-[#07051a]">
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,#07051a_0%,#0a0820_45%,#0d1330_100%)]" />
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:18px_18px]" />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pt-8 pb-24">
+                    <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="max-w-3xl">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-slate-200">
+                                <Shield className="h-3.5 w-3.5" />
+                                Lawyer Profile
+                            </div>
+                            <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                                Professional profile overview
+                            </h1>
+                            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+                                Keep your profile simple, clear, and aligned with the rest of the dashboard.
+                            </p>
+                        </div>
+
                         {!isEditing ? (
                             <button
                                 onClick={() => setIsEditing(true)}
-                                className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center transition-all duration-300 border border-white/20 shadow-lg"
+                                className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/15"
                             >
                                 <Edit2 size={16} className="mr-2" />
                                 Edit Profile
                             </button>
                         ) : (
-                            <div className="flex space-x-3">
+                            <div className="flex flex-wrap gap-3">
                                 <button
                                     onClick={handleCancel}
-                                    className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center transition-all duration-300 border border-white/20 shadow-lg"
+                                    className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/15"
                                     disabled={saving}
                                 >
                                     <X size={16} className="mr-2" />
@@ -447,11 +481,11 @@ export default function GetProfile() {
                                 </button>
                                 <button
                                     onClick={handleSave}
-                                    className="bg-teal-500 hover:bg-teal-400 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center transition-all duration-300 shadow-lg shadow-teal-500/20"
+                                    className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-bold text-slate-900 transition-all duration-300 hover:bg-slate-100"
                                     disabled={saving}
                                 >
                                     {saving ? (
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-900 mr-2"></div>
                                     ) : (
                                         <Save size={16} className="mr-2" />
                                     )}
@@ -460,16 +494,36 @@ export default function GetProfile() {
                             </div>
                         )}
                     </div>
+
+                    <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        {profileStats.map((stat) => {
+                            const Icon = stat.icon;
+                            return (
+                                <div key={stat.label} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-300">{stat.label}</p>
+                                            <p className="mt-3 text-2xl font-extrabold text-white">{stat.value}</p>
+                                        </div>
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white">
+                                            <Icon size={20} />
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="lg:col-span-4 space-y-6">
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div className="p-8 text-center pt-12 relative">
+                        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+                            <div className="relative p-8 pt-10 text-center">
+                                <div className="absolute inset-x-0 top-0 h-24 bg-[#0b0820]" />
                                 <div className="relative inline-block mb-6">
-                                    <div className="h-32 w-32 rounded-3xl bg-slate-50 p-1 shadow-2xl overflow-hidden ring-4 ring-white relative group">
+                                    <div className="h-36 w-36 rounded-[28px] bg-white p-1.5 shadow-2xl overflow-hidden ring-4 ring-white/80 relative group">
                                         {previewImage ? (
                                             <img src={previewImage} alt="Preview" className="w-full h-full object-cover rounded-2xl" />
                                         ) : data.profileImage ? (
@@ -499,6 +553,7 @@ export default function GetProfile() {
                                     />
                                 </div>
 
+                                <div className="relative">
                                 {isEditing ? (
                                     <div className="mb-4">
                                         <input
@@ -511,15 +566,27 @@ export default function GetProfile() {
                                         />
                                     </div>
                                 ) : (
-                                    <h1 className="text-2xl font-bold text-slate-900 mb-1">{data.name || 'Lawyer Name'}</h1>
+                                    <h1 className="text-3xl font-extrabold text-slate-900 mb-1">{data.name || 'Lawyer Name'}</h1>
                                 )}
 
-                                <p className="text-teal-600 font-semibold text-sm flex items-center justify-center mb-6">
+                                <div className="mx-auto mb-6 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">
                                     <Award className="w-4 h-4 mr-1.5" />
                                     Bar No: {data.barNumber || 'N/A'}
-                                </p>
+                                </div>
+                                </div>
 
-                                <div className="space-y-4 text-left border-t border-slate-50 pt-6">
+                                <div className="mb-6 grid grid-cols-2 gap-3 text-left">
+                                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Primary Location</p>
+                                        <p className="mt-2 text-sm font-semibold text-slate-700">{data.address?.[1] || data.address?.[2] || "Not added"}</p>
+                                    </div>
+                                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">Languages</p>
+                                        <p className="mt-2 text-sm font-semibold text-slate-700">{data.languages?.length || 0} selected</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 text-left border-t border-slate-100 pt-6">
                                     <div className="flex items-center space-x-3 group">
                                         <div className="p-2.5 bg-slate-50 text-slate-400 rounded-xl group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
                                             <Mail size={18} />
@@ -590,9 +657,9 @@ export default function GetProfile() {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+                        <div className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm">
                             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center">
-                                <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mr-3">
+                                <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
                                     <MapPin size={18} />
                                 </div>
                                 Address Details
@@ -650,12 +717,8 @@ export default function GetProfile() {
                             ) : (
                                 <div className="space-y-2.5">
                                     {data.address && data.address.length > 0 ? (
-                                        <div className="bg-slate-50/50 p-5 rounded-2xl border border-dashed border-slate-200">
-                                            <p className="text-sm font-semibold text-slate-700 mb-1">{data.address[0]}</p>
-                                            <p className="text-sm text-slate-500">
-                                                {data.address[1]} {data.address[2] && `• ${data.address[2]}`}
-                                            </p>
-                                            <p className="text-sm font-mono text-slate-400 mt-2">{data.address[3]}</p>
+                                        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                                            <p className="text-sm font-semibold text-slate-700">{fullAddress || "No address provided"}</p>
                                         </div>
                                     ) : (
                                         <div className="text-center py-6">
@@ -671,9 +734,9 @@ export default function GetProfile() {
                     <div className="lg:col-span-8 space-y-6">
 
                         {/* Bio / Professional Summary */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+                        <div className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm">
                             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center">
-                                <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center mr-3">
+                                <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
                                     <FileText size={18} />
                                 </div>
                                 Professional Summary
@@ -696,9 +759,11 @@ export default function GetProfile() {
                                     </div>
                                 </div>
                             ) : (
-                                <p className="text-slate-600 leading-relaxed">
-                                    {data.bio || 'Your professional biography will appear here once updated.'}
-                                </p>
+                                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                                    <p className="text-slate-600 leading-relaxed">
+                                        {data.bio || 'Your professional biography will appear here once updated.'}
+                                    </p>
+                                </div>
                             )}
                         </div>
 

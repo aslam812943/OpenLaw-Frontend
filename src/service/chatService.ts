@@ -53,6 +53,7 @@ export interface ChatRoomDetails {
         startTime: string;
         description: string;
         date: string;
+        status?: string;
     };
     updatedAt: string;
     createdAt: string;

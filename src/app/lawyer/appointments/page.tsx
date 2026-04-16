@@ -29,6 +29,7 @@ interface Appointment {
   bookingId?: string;
   lawyerId?: string;
   rescheduleCount?: number;
+  cancellationReason?: string;
 }
 
 
@@ -258,7 +259,7 @@ const Appointments = () => {
               MARK COMPLETED
             </button>
           )}
-          {['completed', 'follow-up'].includes(row.status) && (
+          {['completed', 'follow-up', 'rejected', 'cancelled'].includes(row.status) && (
             <button
               onClick={() => handleStatusUpdate(row.id, 'completed', row)}
               className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all"
