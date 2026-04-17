@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, CheckCircle, FileText, User, Calendar, Clock, CreditCard, ExternalLink, Image, Video, Play, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { getAppoiments, getAppointmentById, updateAppointmentStatus } from "@/service/lawyerService"
+import { getAppoiments, getAppointmentById, updateAppointmentStatus, reportNoShow } from "@/service/lawyerService"
 import { getChatRoom, getMessages, Message } from '@/service/chatService'
 import ImageModal from '@/components/ui/ImageModal'
 import FollowUpSelectionModal from './FollowUpSelectionModal'
@@ -96,6 +96,8 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
     const [isFollowUpDone, setIsFollowUpDone] = useState(false);
     const [parentBooking, setParentBooking] = useState<Appointment | null>(null);
     const [loadingParent, setLoadingParent] = useState(false);
+    const [isReportingNoShow, setIsReportingNoShow] = useState(false);
+    const [showConfirmNoShow, setShowConfirmNoShow] = useState(false);
 
     useEffect(() => {
         if (isOpen && appointment?.id) {
@@ -138,6 +140,32 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
             console.error("Failed to fetch case history", error);
         } finally {
             setLoadingHistory(false);
+        }
+    };
+
+    const handleReportNoShow = async () => {
+        if (!appointment?.id) return;
+        setShowConfirmNoShow(true);
+    };
+
+    const confirmNoShowAction = async () => {
+        if (!appointment?.id) return;
+        setShowConfirmNoShow(false);
+
+        setIsReportingNoShow(true);
+        try {
+            const res = await reportNoShow(appointment.id);
+            if (res.success) {
+                showToast("success", "User Reported as No-Show. Consultation completed.");
+                onClose();
+                if (onSuccess) onSuccess();
+            } else {
+                showToast("error", res.message || "Failed to report no-show.");
+            }
+        } catch (error: any) {
+            showToast("error", error.response?.data?.message || "An error occurred while reporting no-show.");
+        } finally {
+            setIsReportingNoShow(false);
         }
     };
 
@@ -405,61 +433,80 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                             </div>
 
                             {/* Actions Footer */}
-                            <div className="px-8 py-5 border-t border-slate-100 bg-white shrink-0 flex items-center gap-4">
+                            <div className="px-8 py-6 border-t border-slate-100 bg-slate-50/50 shrink-0">
                                 {isReadOnly ? (
                                     <button
                                         onClick={onClose}
-                                        className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-sm font-bold transition-all"
+                                        className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-sm font-bold transition-all shadow-lg active:scale-[0.99]"
                                     >
                                         CLOSE WINDOW
                                     </button>
                                 ) : (
-                                    <>
+                                    <div className="flex flex-col sm:flex-row items-center gap-3">
                                         <button
                                             onClick={onClose}
-                                            className="px-6 py-3 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                                            className="w-full sm:w-auto px-6 py-3 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors order-last sm:order-first"
                                         >
                                             Cancel
                                         </button>
-                                        {!isReadOnly && !isFollowUpDone && (
+
+                                        <div className="flex flex-1 w-full gap-3">
+                                            {!isReadOnly && !isFollowUpDone && (
+                                                <button
+                                                    disabled={!feedback.trim() || isSubmitting || isReportingNoShow}
+                                                    onClick={() => {
+                                                        if (!hasAppointmentEnded) {
+                                                            showToast("error", "Follow-up can only be added after the booked time has finished.");
+                                                            return;
+                                                        }
+                                                        setIsFollowUpModalOpen(true);
+                                                    }}
+                                                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-bold transition-all duration-300 border-2 ${!feedback.trim() || isSubmitting || isReportingNoShow
+                                                        ? 'border-slate-100 text-slate-300 cursor-not-allowed'
+                                                        : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-[0.98]'
+                                                        }`}
+                                                >
+                                                    FOLLOW-UP
+                                                </button>
+                                            )}
+
                                             <button
-                                                disabled={!feedback.trim() || isSubmitting}
-                                                onClick={() => {
-                                                    if (!hasAppointmentEnded) {
-                                                        showToast("error", "Follow-up can only be added after the booked time has finished.");
-                                                        return;
-                                                    }
-                                                    setIsFollowUpModalOpen(true);
-                                                }}
-                                                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 border-2 ${!feedback.trim() || isSubmitting
+                                                disabled={isSubmitting || isReportingNoShow}
+                                                onClick={handleReportNoShow}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-bold transition-all duration-300 border-2 ${isSubmitting || isReportingNoShow
                                                     ? 'border-slate-100 text-slate-300 cursor-not-allowed'
-                                                    : 'border-teal-600 text-teal-600 hover:bg-teal-50 shadow-sm active:scale-[0.98]'
+                                                    : 'border-rose-600 text-rose-600 hover:bg-rose-50 shadow-sm active:scale-[0.98]'
                                                     }`}
                                             >
-                                                FOLLOW-UP
+                                                {isReportingNoShow ? (
+                                                    <div className="w-4 h-4 border-2 border-rose-300 border-t-rose-600 rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <>
+                                                        <AlertCircle className="w-4 h-4" />
+                                                        NO-SHOW
+                                                    </>
+                                                )}
                                             </button>
-                                        )}
-                                        <button
-                                            disabled={!feedback.trim() || isSubmitting}
-                                            onClick={() => onConfirm(feedback)}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 shadow-lg ${!feedback.trim() || isSubmitting
-                                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
-                                                : 'bg-teal-600 text-white hover:bg-teal-700 shadow-teal-200 active:scale-[0.98]'
-                                                }`}
-                                        >
-                                            {isSubmitting ? (
-                                                <>
+
+                                            <button
+                                                disabled={!feedback.trim() || isSubmitting || isReportingNoShow}
+                                                onClick={() => onConfirm(feedback)}
+                                                className={`flex-[1.5] flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-bold transition-all duration-300 shadow-lg ${!feedback.trim() || isSubmitting || isReportingNoShow
+                                                    ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+                                                    : 'bg-teal-600 text-white hover:bg-teal-700 shadow-teal-200 active:scale-[0.98]'
+                                                    }`}
+                                            >
+                                                {isSubmitting ? (
                                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                    Processing...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <CheckCircle className="w-4 h-4" />
-                                                    COMPLETE & SUBMIT
-                                                </>
-                                            )}
-                                        </button>
-                                    </>
+                                                ) : (
+                                                    <>
+                                                        <CheckCircle className="w-4 h-4" />
+                                                        COMPLETE
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </motion.div >
@@ -486,7 +533,44 @@ const CompleteAppointmentModal: React.FC<CompleteAppointmentModalProps> = ({
                 />
             )}
 
+            {/* Custom Confirmation Modal */}
+            <AnimatePresence>
+                {showConfirmNoShow && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-slate-100"
+                        >
+                            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                                <AlertCircle className="w-8 h-8 text-rose-600" />
+                            </div>
 
+                            <h3 className="text-xl font-bold text-center text-slate-900 mb-2">Report User No-Show?</h3>
+                            <p className="text-slate-500 text-center text-sm leading-relaxed mb-8">
+                                This will mark the consultation as completed and process your payment.
+                                <span className="block mt-2 font-bold text-slate-700">Minimum 5-minute wait policy applies.</span>
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowConfirmNoShow(false)}
+                                    className="flex-1 py-3.5 px-4 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all border border-slate-100"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmNoShowAction}
+                                    className="flex-1 py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all active:scale-[0.98]"
+                                >
+                                    Confirm Report
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </>
     )
 }

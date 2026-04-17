@@ -62,25 +62,26 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }, [currentId]);
 
     // Fetch initial notifications
-    useEffect(() => {
-        const loadNotifications = async () => {
-            if (currentId) {
-                try {
-                    const response = isLawyerRole
-                        ? await fetchLawyerNotifications(currentId)
-                        : await fetchNotifications(currentId);
+    const loadNotifications = React.useCallback(async () => {
+        if (currentId) {
+            try {
+                const response = isLawyerRole
+                    ? await fetchLawyerNotifications(currentId)
+                    : await fetchNotifications(currentId);
 
-                    if (response.success && Array.isArray(response.data)) {
-                        setNotifications(response.data);
-                        setUnreadCount(response.data.filter(n => !n.isRead).length);
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch notifications:', error);
+                if (response.success && Array.isArray(response.data)) {
+                    setNotifications(response.data);
+                    setUnreadCount(response.data.filter(n => !n.isRead).length);
                 }
+            } catch (error) {
+                console.error('Failed to fetch notifications:', error);
             }
-        };
-        loadNotifications();
+        }
     }, [currentId, isLawyerRole]);
+
+    useEffect(() => {
+        loadNotifications();
+    }, [loadNotifications, isConnected]);
 
     useEffect(() => {
         console.log('SocketContext: currentId changed to:', currentId, 'Previous:', previousIdRef.current);
@@ -107,7 +108,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         previousIdRef.current = currentId;
 
-        const socketInstance = io(BASE_URL, {
+        const socketInstance = io(BASE_URL.trim(), {
             withCredentials: true,
             transports: ['websocket', 'polling'],
             reconnection: true,
