@@ -73,14 +73,14 @@ export default function VideoCallPage() {
         if (isCallAllowed !== true) return;
         const initLocalStream = async () => {
             try {
-    
+
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 setLocalStream(stream);
                 if (localVideoRef.current) {
                     localVideoRef.current.srcObject = stream;
                 }
             } catch (error) {
-                
+
                 showToast('error', 'Could not access camera/microphone');
                 router.back();
             }
@@ -111,11 +111,11 @@ export default function VideoCallPage() {
     // Socket Event Handlers
     const handleSignal = useCallback(async ({ signal, from, fromSocket }: { signal: any, from: string, fromSocket: string }) => {
         if (fromSocket === socket?.id) return;
-    
+
 
         try {
             if (signal.type === 'offer') {
-                
+
                 const pc = peerConnection.current;
                 if (!pc) return;
 
@@ -127,7 +127,7 @@ export default function VideoCallPage() {
                 await processQueuedCandidates();
                 setIsConnecting(false);
             } else if (signal.type === 'answer') {
-                
+
                 const pc = peerConnection.current;
                 if (!pc) return;
 
@@ -162,7 +162,7 @@ export default function VideoCallPage() {
         if (role === 'lawyer') {
             setIsLawyerJoined(true);
         }
-        
+
         setIsConnecting(false);
 
         setTimeout(() => {
@@ -171,9 +171,9 @@ export default function VideoCallPage() {
     }, [createOffer]);
 
     const setupPeerConnection = useCallback(() => {
-        
 
-        
+
+
         if (peerConnection.current) {
             peerConnection.current.close();
         }
@@ -181,14 +181,14 @@ export default function VideoCallPage() {
         const pc = new RTCPeerConnection(ICE_SERVERS);
 
         if (localStream) {
-          
+
             localStream.getTracks().forEach(track => {
                 pc.addTrack(track, localStream);
             });
         }
 
         pc.ontrack = (event) => {
-         
+
             if (event.streams && event.streams[0]) {
                 setRemoteStream(event.streams[0]);
             }
@@ -196,7 +196,7 @@ export default function VideoCallPage() {
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
-               
+
                 socket?.emit('video-call-signal', {
                     bookingId,
                     signal: { candidate: event.candidate }
@@ -205,18 +205,16 @@ export default function VideoCallPage() {
         };
 
         pc.onconnectionstatechange = () => {
-          
+
             if (pc.connectionState === 'connected') {
                 setIsConnecting(false);
                 showToast('success', 'Connected to secure legal tunnel');
             } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
-                console.warn("Connection lost or failed");
-               
+
             }
         };
 
         pc.onicegatheringstatechange = () => {
-            console.log("ICE gathering state:", pc.iceGatheringState);
         };
 
         peerConnection.current = pc;
@@ -229,10 +227,26 @@ export default function VideoCallPage() {
     }, [remoteStream]);
 
     useEffect(() => {
+        if (socket && isConnected && bookingId) {
+            console.log(`[VideoPulse] Starting pulse for booking: ${bookingId}`);
+
+            const pulseInterval = setInterval(() => {
+                socket.emit('video-call-pulse', { bookingId });
+                socket.emit('heartbeat', { bookingId, type: 'video' });
+            }, 10000);
+
+            return () => {
+                console.log(`[VideoPulse] Stopping pulse for booking: ${bookingId}`);
+                clearInterval(pulseInterval);
+            };
+        }
+    }, [socket, isConnected, bookingId]);
+
+    useEffect(() => {
         if (socket && isConnected && localStream) {
             socket.emit('video-call-join', { bookingId });
 
-         
+
             setIsConnecting(false);
 
             socket.on('video-call-signal', handleSignal);
@@ -379,17 +393,24 @@ export default function VideoCallPage() {
 
                     {userRole === 'lawyer' && (
                         <button
-                            onClick={endCall}
+                            onClick={() => cleanupAndExit(true)}
                             className="p-4 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-full transition-all shadow-xl shadow-rose-500/40 group"
                         >
                             <PhoneOff size={28} className="group-hover:rotate-[135deg] transition-transform" />
                         </button>
                     )}
                 </div>
+            </div>
 
-                <button className="p-4 bg-white/10 backdrop-blur-2xl text-white hover:bg-white/20 rounded-full ring-1 ring-white/20 transition-all opacity-50 cursor-not-allowed">
-                    <Settings size={24} />
-                </button>
+            {/* Visual Status Indicator */}
+            <div className="absolute top-6 left-6 z-30">
+                <div className={`px-4 py-2 rounded-full backdrop-blur-md border flex items-center gap-2 shadow-lg transition-all ${isConnected ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-rose-500/20 border-rose-500/50 text-rose-400'
+                    }`}>
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                        {isConnected ? 'Effort Tracking Active' : 'Effort Tracking Offline'}
+                    </span>
+                </div>
             </div>
         </div>
     );

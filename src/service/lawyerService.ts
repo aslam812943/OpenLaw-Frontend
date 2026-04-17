@@ -432,6 +432,10 @@ export const rescheduleAppointment = async (id: string, newSlotId: string): Prom
   return apiClient.patch<CommonResponse<void>>(API_ROUTES.LAWYER.APPOIMENTS_RESCHEDULE(id), { newSlotId });
 };
 
+export const reportNoShow = async (id: string): Promise<CommonResponse<void>> => {
+  return apiClient.patch<CommonResponse<void>>(API_ROUTES.LAWYER.APPOIMENTS_REPORT_NO_SHOW(id));
+};
+
 
 
 export const checksubscription = async (): Promise<CommonResponse<{ hasSubscription: boolean }>> => {
