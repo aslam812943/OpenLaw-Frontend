@@ -31,22 +31,7 @@ const IncomingVideoCallSidePopup: React.FC = () => {
   const isUserRole = !!(user.id && !isLawyerRole);
 
 
-  useEffect(() => {
-  if (!socket) return;
-
-  const handleCallEnded = ({ bookingId: endedBookingId }: { bookingId: string }) => {
-    if (bookingId === endedBookingId) {
-      setVisible(false);
-      setBookingId(null);
-    }
-  };
-
-  socket.on('video-call-ended', handleCallEnded);
-
-  return () => {
-    socket.off('video-call-ended', handleCallEnded);
-  };
-}, [socket, bookingId]);
+  
   
 
 
