@@ -236,45 +236,50 @@ export default function VideoCallPage() {
             }, 10000);
 
             return () => {
-                console.log(`[VideoPulse] Stopping pulse for booking: ${bookingId}`);
                 clearInterval(pulseInterval);
             };
         }
     }, [socket, isConnected, bookingId]);
 
-    useEffect(() => {
-        if (socket && isConnected && localStream) {
-            socket.emit('video-call-join', { bookingId });
+   useEffect(() => {
+    if (!socket || !isConnected || !localStream) return;
 
+    // 1. setup peer FIRST (critical)
+    setupPeerConnection();
 
-            setIsConnecting(false);
+    // 2. attach listeners BEFORE join
+    socket.on('video-call-signal', handleSignal);
+    socket.on('video-call-peer-joined', handlePeerJoined);
 
-            socket.on('video-call-signal', handleSignal);
-            socket.on('video-call-peer-joined', handlePeerJoined);
-            socket.on('lawyer-not-joined', () => {
-                setIsLawyerJoined(false);
-                setIsConnecting(false);
-            });
-            socket.on('video-call-ended', () => {
-                showToast('info', 'Legal consultation session ended');
-                cleanupAndExit(false);
-            });
+    socket.on('lawyer-not-joined', () => {
+        setIsLawyerJoined(false);
+        setIsConnecting(false);
+    });
 
-            setupPeerConnection();
+    socket.on('video-call-ended', () => {
+        showToast('info', 'Legal consultation session ended');
+        cleanupAndExit(false);
+    });
 
-            return () => {
-                socket.off('video-call-signal');
-                socket.off('video-call-peer-joined');
-                socket.off('video-call-ended');
+    // 3. THEN join
+    socket.emit('video-call-join', { bookingId });
 
-                if (peerConnection.current) {
-                    peerConnection.current.close();
-                    peerConnection.current = null;
-                }
-                iceCandidatesQueue.current = [];
-            };
+    setIsConnecting(false);
+
+    return () => {
+        socket.off('video-call-signal');
+        socket.off('video-call-peer-joined');
+        socket.off('video-call-ended');
+
+        if (peerConnection.current) {
+            peerConnection.current.close();
+            peerConnection.current = null;
         }
-    }, [socket, isConnected, localStream, handleSignal, handlePeerJoined, setupPeerConnection, bookingId]);
+
+        iceCandidatesQueue.current = [];
+    };
+}, [socket, isConnected, localStream]);
+
 
     const toggleMute = () => {
         if (localStream) {
