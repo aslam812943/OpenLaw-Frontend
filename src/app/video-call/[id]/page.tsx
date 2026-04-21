@@ -241,44 +241,51 @@ export default function VideoCallPage() {
         }
     }, [socket, isConnected, bookingId]);
 
-   useEffect(() => {
-    if (!socket || !isConnected || !localStream) return;
+    useEffect(() => {
+        if (!socket || !isConnected || !localStream) return;
 
-    // 1. setup peer FIRST (critical)
-    setupPeerConnection();
+        //  setup peer FIRST 
+        setupPeerConnection();
 
-    // 2. attach listeners BEFORE join
-    socket.on('video-call-signal', handleSignal);
-    socket.on('video-call-peer-joined', handlePeerJoined);
+        //  attach listeners BEFORE join
+        socket.on('video-call-signal', handleSignal);
+        socket.on('video-call-peer-joined', handlePeerJoined);
 
-    socket.on('lawyer-not-joined', () => {
-        setIsLawyerJoined(false);
+        socket.on('lawyer-not-joined', () => {
+            setIsLawyerJoined(false);
+            setIsConnecting(false);
+        });
+
+        socket.on('video-call-ended', () => {
+            showToast('info', 'Legal consultation session ended');
+            cleanupAndExit(false);
+        });
+
+        const handleUnload = () => {
+            socket.emit('video-call-end', { bookingId });
+        };
+
+        window.addEventListener('beforeunload', handleUnload);
+
+        //  THEN join
+        socket.emit('video-call-join', { bookingId });
+
         setIsConnecting(false);
-    });
 
-    socket.on('video-call-ended', () => {
-        showToast('info', 'Legal consultation session ended');
-        cleanupAndExit(false);
-    });
+        return () => {
+            window.removeEventListener('beforeunload', handleUnload);
+            socket.off('video-call-signal');
+            socket.off('video-call-peer-joined');
+            socket.off('video-call-ended');
 
-    // 3. THEN join
-    socket.emit('video-call-join', { bookingId });
+            if (peerConnection.current) {
+                peerConnection.current.close();
+                peerConnection.current = null;
+            }
 
-    setIsConnecting(false);
-
-    return () => {
-        socket.off('video-call-signal');
-        socket.off('video-call-peer-joined');
-        socket.off('video-call-ended');
-
-        if (peerConnection.current) {
-            peerConnection.current.close();
-            peerConnection.current = null;
-        }
-
-        iceCandidatesQueue.current = [];
-    };
-}, [socket, isConnected, localStream]);
+            iceCandidatesQueue.current = [];
+        };
+    }, [socket, isConnected, localStream, bookingId]);
 
 
     const toggleMute = () => {
@@ -296,7 +303,7 @@ export default function VideoCallPage() {
     };
 
     const cleanupAndExit = (emitEndEvent: boolean) => {
-        if (emitEndEvent ) {
+        if (emitEndEvent) {
             socket?.emit('video-call-end', { bookingId });
         }
         localStream?.getTracks().forEach(track => track.stop());
@@ -396,14 +403,14 @@ export default function VideoCallPage() {
                         {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
                     </button>
 
-                 
 
-                      <button
-                            onClick={() => cleanupAndExit(true)}
-                            className="p-4 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-full transition-all shadow-xl shadow-rose-500/40 group"
-                        >
-                            <PhoneOff size={28} className="group-hover:rotate-[135deg] transition-transform" />
-                        </button>
+
+                    <button
+                        onClick={() => cleanupAndExit(true)}
+                        className="p-4 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-full transition-all shadow-xl shadow-rose-500/40 group"
+                    >
+                        <PhoneOff size={28} className="group-hover:rotate-[135deg] transition-transform" />
+                    </button>
                 </div>
             </div>
 

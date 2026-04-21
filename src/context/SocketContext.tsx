@@ -116,6 +116,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             reconnectionDelay: 1000,
         });
 
+        
+        setIsConnected(socketInstance.connected);
+        if (socketInstance.connected) {
+            socketInitialized.current = true;
+        }
+
         socketInstance.on('connect', () => {
             setIsConnected(true);
             socketInitialized.current = true;

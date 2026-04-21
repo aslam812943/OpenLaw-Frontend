@@ -158,7 +158,8 @@ export default function UserChatPage() {
                             content: message.type === 'image' ? 'Sent an image' :
                                 message.type === 'video' ? 'Sent a video' :
                                     message.type === 'document' ? 'Sent a document' :
-                                        message.content,
+                                        message.type === 'call' ? message.content :
+                                            message.content,
                             createdAt: message.createdAt
                         },
                         updatedAt: message.createdAt
@@ -537,7 +538,7 @@ export default function UserChatPage() {
                                         className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${isGrouped && !showDateSeparator ? '-mt-4' : ''}`}
                                     >
                                         <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[70%]`}>
-                                            {(!isGrouped || showDateSeparator) && (
+                                            {(msg.type !== 'call' && (!isGrouped || showDateSeparator)) && (
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-2">
                                                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
@@ -546,8 +547,23 @@ export default function UserChatPage() {
                                             <div className={`group relative px-4 py-3 rounded-2xl shadow-sm transition-all hover:shadow-md ${isOwn
                                                 ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-tr-none'
                                                 : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none'
-                                                }`}>
-                                                {msg.type === 'image' || isImageUrl(msg.content) ? (
+                                                } ${msg.type === 'call' ? (isOwn ? '!bg-[#075e54] !text-white' : '!bg-[#dcf8c6] !text-slate-800') : ''}`}>
+                                                {msg.type === 'call' ? (
+                                                    <div className={`flex flex-col gap-1 pr-12 relative min-w-[180px] ${isOwn ? 'text-white' : 'text-slate-800'}`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`p-2.5 rounded-full ${msg.content.includes('Missed') ? 'bg-rose-500/20 text-rose-500' : 'bg-teal-500/20 text-teal-500'}`}>
+                                                                <Video size={18} fill="currentColor" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold leading-tight">Video call</p>
+                                                                <p className="text-[11px] opacity-80 font-medium">{msg.content}</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="absolute bottom-[-4px] right-[-4px] text-[9px] opacity-70 font-bold uppercase tracking-tighter">
+                                                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                ) : msg.type === 'image' || isImageUrl(msg.content) ? (
                                                     <img
                                                         src={msg.content}
                                                         alt="Shared content"
@@ -595,7 +611,7 @@ export default function UserChatPage() {
                                                 )}
                                             </div>
 
-                                            {isOwn && msg.readAt && (
+                                            {msg.type !== 'call' && isOwn && msg.readAt && (
                                                 <span className="text-[9px] font-bold text-teal-600 uppercase mt-1 mr-1">Read</span>
                                             )}
                                         </div>

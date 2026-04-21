@@ -16,7 +16,7 @@ export interface Message {
     senderId: string;
     content: string;
     senderRole?: 'user' | 'lawyer';
-    type: 'text' | 'image' | 'video' | 'document' | 'file';
+    type: 'text' | 'image' | 'video' | 'document' | 'file' | 'call';
     readAt?: string | null;
     fileName?: string;
     fileSize?: string | number;
