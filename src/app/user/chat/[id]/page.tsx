@@ -59,8 +59,9 @@ export default function UserChatPage() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [isAtBottom, setIsAtBottom] = useState(true); 
-    const [isInitialLoad, setIsInitialLoad] = useState(true); 
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [hasNewMessages, setHasNewMessages] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bookingStatus = roomInfo?.bookingDetails?.status;
@@ -134,10 +135,16 @@ export default function UserChatPage() {
                     return prev;
                 });
 
-             
+
             };
 
-            socket.on('new-message', handleNewMessage);
+            socket.on('new-message', (message: Message) => {
+                handleNewMessage(message);
+
+                if (!isAtBottom && message.senderId !== user.id) {
+                    setHasNewMessages(true);
+                }
+            });
             socket.on('chat-error', (error: { message?: string }) => showToast('error', error.message || 'An error occurred'));
 
             return () => {
@@ -147,29 +154,32 @@ export default function UserChatPage() {
         }
     }, [socket, roomId, user.id]);
 
-    // Handle scroll events to update isAtBottom state
     const handleScroll = () => {
         if (!scrollContainerRef.current) return;
         const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-        const atBottom = scrollHeight - scrollTop - clientHeight < 100; 
-        if (atBottom !== isAtBottom) {
-            setIsAtBottom(atBottom);
+        const atBottom = scrollHeight - scrollTop - clientHeight < 50;
+        setIsAtBottom(atBottom);
+        if (atBottom) {
+            setHasNewMessages(false);
         }
     };
 
-    // Initial scroll when messages are loaded
-    useEffect(() => {
-        if (messages.length > 0 && isInitialLoad) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-            setIsInitialLoad(false);
-        }
-    }, [messages, isInitialLoad]);
+    const scrollToBottom = (smooth = true) => {
+        messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+        setHasNewMessages(false);
+        setIsAtBottom(true);
+    };
 
     useEffect(() => {
-        if (!isInitialLoad && isAtBottom && messages.length > 0) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messages.length > 0) {
+            if (isInitialLoad) {
+                scrollToBottom(false);
+                setIsInitialLoad(false);
+            } else if (isAtBottom) {
+                scrollToBottom(true);
+            }
         }
-    }, [messages, isAtBottom, isInitialLoad]);
+    }, [messages]);
 
     useEffect(() => {
         if (socket && isConnected) {
@@ -239,9 +249,9 @@ export default function UserChatPage() {
 
         try {
             socket.emit('send-message', { roomId, content });
-      
+
             setTimeout(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                scrollToBottom(true);
             }, 100);
         } catch (error) {
             setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
@@ -659,6 +669,22 @@ export default function UserChatPage() {
                         })}
                     </AnimatePresence>
                     <div ref={messagesEndRef} />
+
+                    {/* New message indicator */}
+                    <AnimatePresence>
+                        {hasNewMessages && !isAtBottom && (
+                            <motion.button
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                onClick={() => scrollToBottom(true)}
+                                className="fixed bottom-32 right-8 bg-teal-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold z-20 hover:bg-teal-600 transition-all active:scale-95"
+                            >
+                                <ChevronDown size={16} />
+                                New messages
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {/* Footer Input Area */}

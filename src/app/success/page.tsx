@@ -11,6 +11,7 @@ export default function SuccessPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const sessionId = searchParams.get('session_id');
+    const bookingId = searchParams.get('booking_id');
 
     const calledRef = useRef(false);
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -18,30 +19,62 @@ export default function SuccessPage() {
     const [errorMessage, setErrorMessage] = useState<string>('Something went wrong');
 
     useEffect(() => {
-        if (!sessionId || calledRef.current) return;
+        if (calledRef.current) return;
 
-        calledRef.current = true;
-
-        confirmBooking(sessionId)
-            .then((response) => {
-                if (response.success && response.data) {
-                    setBookingDetails(response.data);
-                    setStatus('success');
-                    showToast('success', response.message || 'Payment successful! Booking confirmed.');
-                } else {
+        if (sessionId) {
+            calledRef.current = true;
+            confirmBooking(sessionId)
+                .then((response) => {
+                    if (response.success && response.data) {
+                        setBookingDetails(response.data);
+                        setStatus('success');
+                        showToast('success', response.message || 'Payment successful! Booking confirmed.');
+                    } else {
+                        setStatus('error');
+                        setErrorMessage('Failed to retrieve booking details');
+                    }
+                })
+                .catch((err: unknown) => {
+                    const error = err as { response?: { data?: { message?: string } }; message?: string };
+                    const message = error.response?.data?.message || error.message || 'Failed to confirm booking';
+                    setErrorMessage(message);
                     setStatus('error');
-                    setErrorMessage('Failed to retrieve booking details');
-                }
-            })
-            .catch((err: unknown) => {
-                const error = err as { response?: { data?: { message?: string } }; message?: string };
-                const message = error.response?.data?.message || error.message || 'Failed to confirm booking';
-                setErrorMessage(message);
-                setStatus('error');
-                showToast('error', message);
+                    showToast('error', message);
+                });
+        } else if (bookingId) {
+            calledRef.current = true;
+           
+            import('@/service/userService').then(({ getBookingById }) => {
+                getBookingById(bookingId)
+                    .then((response) => {
+                        if (response.success && response.data) {
+                            const detail = response.data;
+                            setBookingDetails({
+                                id: detail.id,
+                                date: detail.date,
+                                startTime: detail.startTime,
+                                endTime: detail.endTime,
+                                consultationFee: detail.consultationFee,
+                                lawyerName: detail.lawyerName || 'Lawyer',
+                                description: detail.description,
+                                lawyerImage: detail.lawyerImage,
+                                paymentId: detail.paymentId
+                            });
+                            setStatus('success');
+                        } else {
+                            setStatus('error');
+                            setErrorMessage('Failed to retrieve booking details');
+                        }
+                    })
+                    .catch((err: unknown) => {
+                        console.error("Failed to fetch booking", err);
+                        setStatus('error');
+                        setErrorMessage('Failed to fetch booking details');
+                    });
             });
+        }
 
-    }, [sessionId]);
+    }, [sessionId, bookingId]);
 
     const formatDate = (dateString: string) => {
         try {
