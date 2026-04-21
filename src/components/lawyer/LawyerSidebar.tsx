@@ -94,7 +94,7 @@ const Sidebar: React.FC = () => {
     { icon: <Zap size={20} />, label: 'Subscriptions', path: '/lawyer/subscriptions' },
     { icon: <ShieldCheck size={20} />, label: 'Visibility', path: '/lawyer/visibility' },
     { icon: <DollarSign size={20} />, label: 'Earnings', path: '/lawyer/earnings' },
-
+    { icon: <FileText size={20} />, label: 'Service Policy', path: '/lawyer/service-policy' },
   ];
 
   return (
