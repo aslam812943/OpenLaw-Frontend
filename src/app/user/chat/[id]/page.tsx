@@ -58,6 +58,10 @@ export default function UserChatPage() {
     const activeRoomId = Array.isArray(roomId) ? roomId[0] : roomId;
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isAtBottom, setIsAtBottom] = useState(true); 
+    const [isInitialLoad, setIsInitialLoad] = useState(true); 
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bookingStatus = roomInfo?.bookingDetails?.status;
     const isChatReadOnly = ['completed', 'cancelled', 'rejected'].includes((bookingStatus || '').toLowerCase());
@@ -129,6 +133,8 @@ export default function UserChatPage() {
                     if (!exists) return [...prev, message];
                     return prev;
                 });
+
+             
             };
 
             socket.on('new-message', handleNewMessage);
@@ -140,6 +146,30 @@ export default function UserChatPage() {
             };
         }
     }, [socket, roomId, user.id]);
+
+    // Handle scroll events to update isAtBottom state
+    const handleScroll = () => {
+        if (!scrollContainerRef.current) return;
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        const atBottom = scrollHeight - scrollTop - clientHeight < 100; 
+        if (atBottom !== isAtBottom) {
+            setIsAtBottom(atBottom);
+        }
+    };
+
+    // Initial scroll when messages are loaded
+    useEffect(() => {
+        if (messages.length > 0 && isInitialLoad) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+            setIsInitialLoad(false);
+        }
+    }, [messages, isInitialLoad]);
+
+    useEffect(() => {
+        if (!isInitialLoad && isAtBottom && messages.length > 0) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, isAtBottom, isInitialLoad]);
 
     useEffect(() => {
         if (socket && isConnected) {
@@ -185,9 +215,9 @@ export default function UserChatPage() {
         }
     }, [messages, socket, roomId, user?.id]);
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    // useEffect(() => {
+    //     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // }, [messages]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -209,6 +239,10 @@ export default function UserChatPage() {
 
         try {
             socket.emit('send-message', { roomId, content });
+      
+            setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
         } catch (error) {
             setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
             showToast('error', 'Failed to send message');
@@ -510,7 +544,11 @@ export default function UserChatPage() {
                 </header>
 
                 {/* Messages Container */}
-                <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 scroll-smooth bg-slate-50/30">
+                <div
+                    ref={scrollContainerRef}
+                    onScroll={handleScroll}
+                    className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 scroll-smooth bg-slate-50/30"
+                >
                     <AnimatePresence initial={false}>
                         {messages.map((msg, idx) => {
                             const isOwn = msg.senderId === user.id;

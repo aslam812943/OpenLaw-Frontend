@@ -17,7 +17,9 @@ interface VideoCallButtonProps {
 const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawyerName }) => {
     const [loading, setLoading] = useState(false);
     const [incomingVisible, setIncomingVisible] = useState(false);
+    const [showIncomingModal, setShowIncomingModal] = useState(false); 
     const [declined, setDeclined] = useState(false);
+    const [joined, setJoined] = useState(false); 
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -32,10 +34,12 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
         if (role !== 'user') return;
         try {
             setDeclined(sessionStorage.getItem(declinedKey) === '1');
+            setJoined(sessionStorage.getItem(`videoCallJoined:${bookingId}`) === '1');
         } catch {
             setDeclined(false);
+            setJoined(false);
         }
-    }, [role, declinedKey]);
+    }, [role, declinedKey, bookingId]);
 
     useEffect(() => {
         if (socket && role === 'user') {
@@ -43,11 +47,14 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
                 if (data.bookingId === bookingId) {
                     try {
                         sessionStorage.removeItem(declinedKey);
+                        sessionStorage.removeItem(`videoCallJoined:${bookingId}`);
                     } catch {
 
                     }
                     setDeclined(false);
+                    setJoined(false);
                     setIncomingVisible(true);
+                    setShowIncomingModal(true);
                 }
             };
 
@@ -69,30 +76,36 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
         let intervalId: ReturnType<typeof setInterval> | undefined;
 
         const check = async () => {
-            if (cancelled || incomingVisible || loading) return;
+            if (cancelled || loading) return;
             try {
-
-                const shouldSuppress = sessionStorage.getItem(declinedKey) === '1';
-                if (shouldSuppress) return;
-
                 const res = await canJoinCall(bookingId);
-                if (!cancelled && res.success && res.data?.canJoin) {
-                    setIncomingVisible(true);
+                const canJoin = res.success && res.data?.canJoin;
+
+                if (!cancelled) {
+                    setIncomingVisible(!!canJoin);
+
+               
+                    const shouldSuppressModal =
+                        sessionStorage.getItem(declinedKey) === '1' ||
+                        sessionStorage.getItem(`videoCallJoined:${bookingId}`) === '1';
+
+                    if (canJoin && !shouldSuppressModal && !showIncomingModal) {
+                        setShowIncomingModal(true);
+                    }
                 }
             } catch {
 
             }
         };
 
-
         check();
-        intervalId = setInterval(check, 2000);
+        intervalId = setInterval(check, 3000);
 
         return () => {
             cancelled = true;
             if (intervalId) clearInterval(intervalId);
         };
-    }, [role, bookingId, incomingVisible, loading]);
+    }, [role, bookingId, showIncomingModal, loading]);
 
     const proceedToVideoCall = async () => {
         if (loading) return;
@@ -140,7 +153,8 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
 
     const handleDecline = () => {
         setDeclined(true);
-        setIncomingVisible(false);
+        setIncomingVisible(true); 
+        setShowIncomingModal(false);
         try {
             sessionStorage.setItem(declinedKey, '1');
         } catch {
@@ -151,7 +165,13 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
     };
 
     const handleAccept = async () => {
-        setIncomingVisible(false);
+        setShowIncomingModal(false);
+        setJoined(true);
+        try {
+            sessionStorage.setItem(`videoCallJoined:${bookingId}`, '1');
+        } catch {
+
+        }
         await proceedToVideoCall();
     };
 
@@ -171,8 +191,8 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
                 </button>
             )}
 
-            {role === 'user' && incomingVisible && mounted && createPortal(
-                <div className="fixed inset-0 z-[60] flex items-end justify-end p-4 sm:p-8 bg-black/40 backdrop-blur-[2px]">
+            {role === 'user' && showIncomingModal && mounted && createPortal(
+                <div className="fixed inset-0 z-[60] flex items-end justify-end p-4 sm:p-8 bg-black/20 backdrop-blur-[1px]">
                     <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden border border-slate-100">
                         <div className="p-5 bg-slate-900 text-white flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
