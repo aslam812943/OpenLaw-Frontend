@@ -58,10 +58,19 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
                 }
             };
 
+            const handleCallEnded = (data: { bookingId: string }) => {
+                if (data.bookingId === bookingId) {
+                    setIncomingVisible(false);
+                    setShowIncomingModal(false);
+                }
+            };
+
             socket.on('video-call-lawyer-joined', handleLawyerJoined);
+            socket.on('video-call-ended', handleCallEnded);
 
             return () => {
                 socket.off('video-call-lawyer-joined', handleLawyerJoined);
+                socket.off('video-call-ended', handleCallEnded);
             };
         }
     }, [socket, bookingId, role]);

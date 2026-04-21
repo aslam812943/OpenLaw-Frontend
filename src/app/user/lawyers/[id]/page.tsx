@@ -337,7 +337,7 @@ export default function LawyersSinglePage() {
         showToast("success", "Appointment booked successfully using wallet!");
         setBookingSlot(false);
         setBookingMode(false);
-        router.push("/user/appointments");
+        router.push(`/success?booking_id=${response.data.id}`);
       } else {
         showToast("error", response.message || "Failed to book with wallet.");
       }

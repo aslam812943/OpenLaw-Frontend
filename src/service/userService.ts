@@ -72,6 +72,8 @@ export interface Appointment {
   followUpStatus?: 'none' | 'pending' | 'booked';
   parentBookingId?: string;
   rescheduleCount?: number;
+  lawyerImage?: string;
+  paymentId?: string;
 }
 
 

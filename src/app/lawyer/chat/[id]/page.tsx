@@ -56,6 +56,10 @@ export default function LawyerChatRoomPage() {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [hasNewMessages, setHasNewMessages] = useState(false);
 
     const [roomInfo, setRoomInfo] = useState<ChatRoomDetails | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -131,7 +135,12 @@ export default function LawyerChatRoomPage() {
                 );
             };
 
-            socket.on('new-message', handleNewMessage);
+            socket.on('new-message', (message: Message) => {
+                handleNewMessage(message);
+                if (!isAtBottom && message.senderId !== lawyer.id) {
+                    setHasNewMessages(true);
+                }
+            });
             socket.on('messages-read', handleMessagesRead);
             socket.on('chat-error', (error: { message?: string }) => showToast('error', error.message || 'An error occurred'));
 
@@ -188,8 +197,31 @@ export default function LawyerChatRoomPage() {
         }
     }, [messages, socket, roomId, lawyer?.id]);
 
+    const handleScroll = () => {
+        if (!scrollContainerRef.current) return;
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        const atBottom = scrollHeight - scrollTop - clientHeight < 50;
+        setIsAtBottom(atBottom);
+        if (atBottom) {
+            setHasNewMessages(false);
+        }
+    };
+
+    const scrollToBottom = (smooth = true) => {
+        messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+        setHasNewMessages(false);
+        setIsAtBottom(true);
+    };
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messages.length > 0) {
+            if (isInitialLoad) {
+                scrollToBottom(false);
+                setIsInitialLoad(false);
+            } else if (isAtBottom) {
+                scrollToBottom(true);
+            }
+        }
     }, [messages]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -212,6 +244,9 @@ export default function LawyerChatRoomPage() {
 
         try {
             socket.emit('send-message', { roomId, content });
+            setTimeout(() => {
+                scrollToBottom(true);
+            }, 100);
         } catch (error) {
             setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
             showToast('error', 'Failed to send message');
@@ -553,7 +588,11 @@ export default function LawyerChatRoomPage() {
                 </header>
 
                 {/* Messages Container */}
-                <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 scroll-smooth bg-slate-50/30">
+                <div
+                    ref={scrollContainerRef}
+                    onScroll={handleScroll}
+                    className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 scroll-smooth bg-slate-50/30"
+                >
                     <AnimatePresence initial={false}>
                         {messages.map((msg, idx) => {
                             const isOwn = msg.senderId === lawyer.id;
@@ -664,6 +703,22 @@ export default function LawyerChatRoomPage() {
                         })}
                     </AnimatePresence>
                     <div ref={messagesEndRef} />
+
+                    {/* New message indicator */}
+                    <AnimatePresence>
+                        {hasNewMessages && !isAtBottom && (
+                            <motion.button
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                onClick={() => scrollToBottom(true)}
+                                className="fixed bottom-32 right-8 bg-teal-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold z-20 hover:bg-teal-600 transition-all active:scale-95"
+                            >
+                                <ChevronDown size={16} />
+                                New messages
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {/* Footer Input Area */}
