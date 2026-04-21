@@ -22,7 +22,7 @@ const IncomingVideoCallSidePopup: React.FC = () => {
   const [checking, setChecking] = useState(false);
   const handledNotificationIdsRef = useRef<Set<string>>(new Set());
 
-  
+
   const hideOnChat = pathname?.startsWith('/user/chat');
   const hideOnVideoCall = pathname?.startsWith('/video-call');
   const shouldShow = !hideOnChat && !hideOnVideoCall;
@@ -31,8 +31,8 @@ const IncomingVideoCallSidePopup: React.FC = () => {
   const isUserRole = !!(user.id && !isLawyerRole);
 
 
-  
-  
+
+
 
 
   useEffect(() => {
@@ -45,11 +45,9 @@ const IncomingVideoCallSidePopup: React.FC = () => {
       const lName = data.lawyerName;
       setLawyerName(typeof lName === 'string' ? lName : null);
 
-      
       try {
         sessionStorage.removeItem(`videoCallDeclined:${data.bookingId}`);
       } catch {
-      
       }
 
       setBookingId(data.bookingId);
@@ -61,6 +59,23 @@ const IncomingVideoCallSidePopup: React.FC = () => {
       socket.off('video-call-lawyer-joined', handleLawyerJoined);
     };
   }, [socket, shouldShow]);
+
+  
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCallEnded = (data: { bookingId: string }) => {
+      if (!bookingId || data?.bookingId === bookingId) {
+        setVisible(false);
+        setBookingId(null);
+      }
+    };
+
+    socket.on('video-call-ended', handleCallEnded);
+    return () => {
+      socket.off('video-call-ended', handleCallEnded);
+    };
+  }, [socket, bookingId]);
 
   useEffect(() => {
     if (!shouldShow || !isUserRole) return;
@@ -82,7 +97,7 @@ const IncomingVideoCallSidePopup: React.FC = () => {
     try {
       sessionStorage.removeItem(`videoCallDeclined:${resolvedBookingId}`);
     } catch {
-    
+
     }
 
     setBookingId(resolvedBookingId);
@@ -92,12 +107,12 @@ const IncomingVideoCallSidePopup: React.FC = () => {
   }, [notifications, shouldShow, isUserRole]);
 
   const handleDecline = () => {
-   
+
     if (socket && bookingId) {
       try {
         sessionStorage.setItem(`videoCallDeclined:${bookingId}`, '1');
       } catch {
-        
+
       }
       socket.emit('video-call-end', { bookingId });
     }
