@@ -17,9 +17,9 @@ interface VideoCallButtonProps {
 const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawyerName }) => {
     const [loading, setLoading] = useState(false);
     const [incomingVisible, setIncomingVisible] = useState(false);
-    const [showIncomingModal, setShowIncomingModal] = useState(false); 
+    const [showIncomingModal, setShowIncomingModal] = useState(false);
     const [declined, setDeclined] = useState(false);
-    const [joined, setJoined] = useState(false); 
+    const [joined, setJoined] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -84,7 +84,7 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
                 if (!cancelled) {
                     setIncomingVisible(!!canJoin);
 
-               
+
                     const shouldSuppressModal =
                         sessionStorage.getItem(declinedKey) === '1' ||
                         sessionStorage.getItem(`videoCallJoined:${bookingId}`) === '1';
@@ -153,7 +153,7 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
 
     const handleDecline = () => {
         setDeclined(true);
-        setIncomingVisible(true); 
+        setIncomingVisible(true);
         setShowIncomingModal(false);
         try {
             sessionStorage.setItem(declinedKey, '1');
@@ -177,7 +177,7 @@ const VideoCallButton: React.FC<VideoCallButtonProps> = ({ bookingId, role, lawy
 
     return (
         <>
-            {(role === 'lawyer' || (role === 'user' && incomingVisible)) && (
+            {role === 'lawyer' && (
                 <button
                     onClick={handleCallClick}
                     disabled={loading}
