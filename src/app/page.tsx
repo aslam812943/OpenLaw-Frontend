@@ -1,7 +1,7 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, CheckCircle, Scale, Users, FileText, Briefcase, Globe, Home, ArrowRight, Star, Menu, X, Facebook, Twitter, Linkedin, Instagram, Phone, Mail, MapPin, ChevronRight } from 'lucide-react';
+import { Search, CheckCircle, Scale, Users, FileText, Briefcase, Globe, Home, ArrowRight, Star, Menu, X, Facebook, Twitter, Linkedin, Instagram, Phone, Mail, MapPin, ChevronRight, ChevronDown, Compass, ArrowUp } from 'lucide-react';
 import MyGlobe from "../components/Globe";
 import UserFooter from '../components/user/userFooter'
 import UserHeader from '../components/user/userHeader'
@@ -10,7 +10,184 @@ const LawyerLandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState('/homemiddle1.png');
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [isGlobeReduced, setIsGlobeReduced] = useState(false);
+  const [scrollStageText, setScrollStageText] = useState("Viewing: OpenLaw Platform");
+  const [showFloatingTrigger, setShowFloatingTrigger] = useState(false);
+  const animFrameRef = useRef<number | null>(null);
+  const isCancelledRef = useRef<boolean>(false);
   const router = useRouter();
+
+  // Track scroll position to show persistent button when scrolled past hero
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowFloatingTrigger(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const stopAutoScroll = useCallback(() => {
+    isCancelledRef.current = true;
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    setIsAutoScrolling(false);
+    setIsGlobeReduced(false);
+    try {
+      window.dispatchEvent(new CustomEvent('openlaw:reset-globe'));
+    } catch {
+      // fallback
+    }
+  }, []);
+
+  // Stop auto-scroll if user manually scrolls or presses keys
+  useEffect(() => {
+    if (!isAutoScrolling) return;
+
+    const handleUserInterrupt = () => {
+      stopAutoScroll();
+    };
+
+    window.addEventListener('wheel', handleUserInterrupt, { passive: true });
+    window.addEventListener('touchmove', handleUserInterrupt, { passive: true });
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Space', 'Home', 'End'].includes(e.code)) {
+        handleUserInterrupt();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('wheel', handleUserInterrupt);
+      window.removeEventListener('touchmove', handleUserInterrupt);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAutoScrolling, stopAutoScroll]);
+
+  const startSlowScrollToBottom = useCallback((fromTop = false) => {
+    if (typeof window === 'undefined') return;
+
+    if (isAutoScrolling) {
+      stopAutoScroll();
+      return;
+    }
+
+    const documentHeight = document.documentElement.scrollHeight;
+    const windowHeight = window.innerHeight;
+    const maxScrollY = Math.max(0, documentHeight - windowHeight);
+
+    // If already at or very close to bottom, smooth scroll back to top
+    if (window.scrollY >= maxScrollY - 60) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const runJourney = (startY: number) => {
+      // Locate the globe section
+      const globeEl = document.getElementById('globe-section');
+      let globeEntryY = maxScrollY * 0.65;
+      let globeExitY = maxScrollY * 0.82;
+
+      if (globeEl) {
+        const rect = globeEl.getBoundingClientRect();
+        const globeAbsoluteTop = rect.top + window.scrollY;
+        globeEntryY = Math.max(0, Math.min(maxScrollY, globeAbsoluteTop - windowHeight * 0.2));
+        globeExitY = Math.max(globeEntryY + 60, Math.min(maxScrollY, globeAbsoluteTop + rect.height * 0.35));
+      }
+
+      isCancelledRef.current = false;
+      setIsAutoScrolling(true);
+      setIsGlobeReduced(false);
+      setScrollStageText("Viewing: OpenLaw Platform");
+
+      // Truly relaxed, very slow pace (28 seconds total) so every section is clearly visible
+      const remainingRatio = Math.max(0.35, (maxScrollY - startY) / maxScrollY);
+      const totalDuration = Math.round(28000 * remainingRatio);
+      const tGlobeStart = 0.50;  // 50% time leisurely gliding past Hero, Clock, Support & Pricing
+      const tGlobeEnd = 0.80;    // 30% of time (over 8 seconds!) ultra-slow glide at Globe section
+      const startTime = performance.now();
+
+      const easeInOutCubic = (t: number) =>
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+      const easeInOutQuad = (t: number) =>
+        t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+      let hasTriggeredGlobe = false;
+
+      const step = (currentTime: number) => {
+        if (isCancelledRef.current) return;
+
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(1, Math.max(0, elapsed / totalDuration));
+
+        let currentTargetY = startY;
+
+        if (progress <= tGlobeStart) {
+          // Stage 1: Hero, Stats & Features down to Globe
+          const u = progress / tGlobeStart;
+          currentTargetY = startY + (globeEntryY - startY) * easeInOutCubic(u);
+
+          if (u < 0.33) {
+            setScrollStageText("Viewing: OpenLaw Overview");
+          } else if (u < 0.66) {
+            setScrollStageText("Viewing: Consultations Every 10 Minutes");
+          } else {
+            setScrollStageText("Viewing: Expert Guidance & Transparent Pricing");
+          }
+        } else if (progress <= tGlobeEnd) {
+          // Stage 2: Globe portion (scroll speed reduces significantly, camera zooms into globe)
+          const u = (progress - tGlobeStart) / (tGlobeEnd - tGlobeStart);
+          currentTargetY = globeEntryY + (globeExitY - globeEntryY) * easeInOutQuad(u);
+
+          if (!hasTriggeredGlobe) {
+            hasTriggeredGlobe = true;
+            setIsGlobeReduced(true);
+            try {
+              window.dispatchEvent(new CustomEvent('openlaw:reduce-globe'));
+            } catch {
+              // fallback
+            }
+          }
+          setScrollStageText("Viewing: Global Legal Network 🌍");
+        } else {
+          // Stage 3: Smoothly continue from Globe to bottom (Footer)
+          const u = (progress - tGlobeEnd) / (1 - tGlobeEnd);
+          currentTargetY = globeExitY + (maxScrollY - globeExitY) * easeInOutCubic(u);
+          setScrollStageText("Viewing: Practice Areas & Client Support");
+        }
+
+        window.scrollTo(0, currentTargetY);
+
+        if (progress < 1) {
+          animFrameRef.current = requestAnimationFrame(step);
+        } else {
+          window.scrollTo(0, maxScrollY);
+          setIsAutoScrolling(false);
+          setIsGlobeReduced(false);
+          try {
+            window.dispatchEvent(new CustomEvent('openlaw:reset-globe'));
+          } catch {
+            // fallback
+          }
+        }
+      };
+
+      animFrameRef.current = requestAnimationFrame(step);
+    };
+
+    if (fromTop && window.scrollY > 250) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        runJourney(0);
+      }, 650);
+    } else {
+      runJourney(window.scrollY);
+    }
+  }, [isAutoScrolling, stopAutoScroll]);
+
   const imageOptions = [
     '/homemiddle1.png',
     '/homemiddle2.png',
@@ -105,6 +282,34 @@ const LawyerLandingPage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Scroll to Bottom Trigger Button */}
+        <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+          <motion.button
+            onClick={() => startSlowScrollToBottom(false)}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            id="hero-scroll-bottom-btn"
+            className="group flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-teal-700 border border-teal-200/90 shadow-[0_4px_20px_rgba(13,148,136,0.18)] hover:shadow-[0_6px_25px_rgba(13,148,136,0.3)] backdrop-blur-md transition-all cursor-pointer select-none"
+            title={isAutoScrolling ? "Click to stop tour" : "Slowly scroll down to bottom & explore global network"}
+            aria-label="Scroll down slowly to bottom"
+          >
+            <span className="text-xs sm:text-[13px] font-semibold text-slate-700 group-hover:text-teal-700 transition-colors">
+              {isAutoScrolling ? "Pause Tour" : "Explore Tour"}
+            </span>
+            <motion.div
+              animate={
+                isAutoScrolling
+                  ? { y: [0, 4, 0], scale: [1, 1.15, 1] }
+                  : { y: [0, 4, 0] }
+              }
+              transition={{ repeat: Infinity, duration: isAutoScrolling ? 0.9 : 1.8, ease: "easeInOut" }}
+              className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-teal-50 group-hover:bg-teal-100 flex items-center justify-center text-teal-600 transition-colors"
+            >
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+            </motion.div>
+          </motion.button>
         </div>
       </section>
 
@@ -449,13 +654,58 @@ const LawyerLandingPage = () => {
         </div>
       </section> */}
 
-      <MyGlobe />
+      <MyGlobe isReduced={isGlobeReduced} />
 
       {/* Footer */}
-      <footer >
+      <footer>
         <UserFooter />
       </footer>
-    </div >
+
+      {/* Floating Status Indicator during Auto-Scroll */}
+      <AnimatePresence>
+        {isAutoScrolling && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full bg-slate-900/90 text-white text-xs sm:text-sm font-medium shadow-2xl backdrop-blur-md border border-slate-700/60 select-none"
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500"></span>
+            </span>
+            <span>{scrollStageText}</span>
+            <button
+              onClick={stopAutoScroll}
+              className="ml-1 text-xs px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer font-semibold"
+            >
+              Stop
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Persistent Floating Tour Trigger: visible when scrolled past hero */}
+      <AnimatePresence>
+        {showFloatingTrigger && !isAutoScrolling && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.85, y: 15 }}
+            className="fixed bottom-6 right-6 z-40"
+          >
+            <button
+              onClick={() => startSlowScrollToBottom(true)}
+              className="group flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-xl hover:shadow-2xl border border-teal-400/40 backdrop-blur-md transition-all cursor-pointer font-medium text-xs sm:text-sm select-none"
+              title="Click to take slow tour from top"
+            >
+              <Compass className="w-4 h-4 text-teal-200 group-hover:rotate-45 transition-transform" />
+              <span>Slow Tour</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

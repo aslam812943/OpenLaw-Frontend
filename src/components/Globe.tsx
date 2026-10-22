@@ -53,12 +53,80 @@ const arcsData: ArcData[] = [
 ];
 
 
-export default function MyGlobe() {
+interface MyGlobeProps {
+  isReduced?: boolean;
+}
+
+export default function MyGlobe({ isReduced: externalIsReduced = false }: MyGlobeProps = {}) {
   const router = useRouter()
 
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [isInternalReduced, setIsInternalReduced] = useState(false);
+
+  const isReduced = externalIsReduced || isInternalReduced;
+
+  useEffect(() => {
+    const handleReduce = () => {
+      setIsInternalReduced(true);
+      if (globeRef.current) {
+        globeRef.current.pointOfView({ altitude: 1.85 }, 3000);
+      }
+    };
+
+    const handleReset = () => {
+      setIsInternalReduced(false);
+      if (globeRef.current) {
+        globeRef.current.pointOfView({ altitude: 2.5 }, 2000);
+      }
+    };
+
+    window.addEventListener('openlaw:reduce-globe', handleReduce);
+    window.addEventListener('openlaw:reset-globe', handleReset);
+    return () => {
+      window.removeEventListener('openlaw:reduce-globe', handleReduce);
+      window.removeEventListener('openlaw:reset-globe', handleReset);
+    };
+  }, []);
+
+  // Ensure globe reduces when scrolled into view every time
+  useEffect(() => {
+    const section = document.getElementById('globe-section');
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInternalReduced(true);
+          if (globeRef.current) {
+            globeRef.current.pointOfView({ altitude: 1.85 }, 3000);
+          }
+        } else {
+          setIsInternalReduced(false);
+          if (globeRef.current) {
+            globeRef.current.pointOfView({ altitude: 2.5 }, 2000);
+          }
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (externalIsReduced) {
+      if (globeRef.current) {
+        globeRef.current.pointOfView({ altitude: 1.85 }, 3000);
+      }
+    } else if (!isInternalReduced) {
+      if (globeRef.current) {
+        globeRef.current.pointOfView({ altitude: 2.5 }, 2000);
+      }
+    }
+  }, [externalIsReduced, isInternalReduced]);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -75,12 +143,8 @@ export default function MyGlobe() {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-
-
-
-
   return (
-    <section className="relative w-full py-20 overflow-hidden">
+    <section id="globe-section" className="relative w-full py-20 overflow-hidden">
 
       <motion.div
         className="absolute inset-0 bg-gradient-to-br from-[#021b1a] via-[#041f2a] to-[#020815] z-0"
@@ -93,7 +157,7 @@ export default function MyGlobe() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-12 z-10">
 
         <motion.div
-          className="relative w-full lg:w-1/2 aspect-square max-w-xl"
+          className={`relative w-full lg:w-1/2 aspect-square max-w-xl transition-all duration-1000 ease-out ${isReduced ? 'scale-105 filter drop-shadow-[0_0_35px_rgba(45,212,191,0.35)]' : 'scale-100'}`}
           initial={{ y: 200, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true, margin: "-10%" }}
