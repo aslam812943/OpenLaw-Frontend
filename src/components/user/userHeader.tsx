@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Scale, User, FileText, MessageSquare, LogOut, ChevronDown, Menu, X, Bell, Calendar, AlertTriangle, CheckCircle, CheckCheck } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/utils/alerts";
 import { logoutUser, Notification as UserNotification } from "@/service/userService";
@@ -18,6 +18,7 @@ const UserHeader: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const user = useSelector((state: RootState) => state.user);
   const { notifications, unreadCount, clearNotifications, markAsRead } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -99,15 +100,21 @@ const UserHeader: React.FC = () => {
             {[
               { label: "Find Lawyers", href: "/user/lawyers" },
               { label: "About", href: "/about" },
-            ].map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="text-sm font-bold text-slate-600 hover:text-teal-600 transition-all hover:-translate-y-0.5"
-              >
-                {link.label}
-              </Link>
-            ))}
+              { label: "Contact", href: "/contact" },
+            ].map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`text-sm font-bold transition-all hover:-translate-y-0.5 ${
+                    isActive ? "text-teal-600" : "text-slate-600 hover:text-teal-600"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Desktop CTA Buttons */}

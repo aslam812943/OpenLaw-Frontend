@@ -30,57 +30,78 @@ const LawyerLandingPage = () => {
           <img
             src="/bgimage.png"
             alt="Lawyer Consultation"
-            className="w-full h-full object-cover object-[50%_70%]"
+            className="w-full h-full object-cover object-[65%_30%] sm:object-[60%_35%] lg:object-[55%_35%] contrast-[1.02]"
           />
-
+          {/* Confined soft gradient strictly behind text on the left, keeping the lawyer and client on the right 100% sharp, bright, and clear */}
+          <div className="absolute inset-y-0 left-0 w-full sm:w-2/3 lg:w-1/2 bg-gradient-to-r from-white/80 via-white/35 to-transparent pointer-events-none" />
         </div>
 
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-7 lg:px-8 lg:ml-[10%] w-full py-12 sm:py-16 lg:py-20">
           <div className="max-w-2xl">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black leading-[1.1] mb-6 sm:mb-8 tracking-tight">
-              Justice without barriers<br className="hidden sm:block" />
-              for everyone
+            {/* Tagline Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-5 rounded-full bg-teal-50/90 border border-teal-200/80 text-teal-800 text-xs sm:text-sm font-semibold shadow-xs backdrop-blur-xs">
+              <Scale className="w-4 h-4 text-teal-600" />
+              <span>Accessible Legal Support & Advice</span>
+            </div>
+
+            {/* Main Heading */}
+            <h1 className="text-3xl sm:text-4xl lg:text-[54px] font-extrabold text-slate-900 leading-[1.14] mb-4 sm:mb-5 tracking-tight">
+              Justice without barriers,<br className="hidden sm:block" />
+              <span className="bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
+                for everyone.
+              </span>
             </h1>
 
-
+            {/* Matching Subtitle Text */}
+            <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6 sm:mb-8 max-w-xl font-normal">
+              Connect with top-rated, verified attorneys across all specializations. Get clear legal guidance, transparent fees, and consultations tailored to you.
+            </p>
 
             {/* Search Box */}
-            <div className="relative max-w-lg lg:max-w-[750px] w-full mb-8 sm:mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-lg bg-white">
+            <div className="relative max-w-lg lg:max-w-[700px] w-full mb-8 sm:mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_12px_35px_rgb(0,0,0,0.16)] transition-shadow rounded-xl bg-white border border-slate-100 p-1.5">
               <div className="flex items-center">
-                <div className="pl-4 text-slate-400">
-                  <Search className="h-5 w-10" />
+                <div className="pl-3.5 text-teal-600">
+                  <Search className="h-5 w-5" />
                 </div>
                 <input
                   onClick={() => router.push("/user/lawyers")}
                   type="text"
-                  className="block w-full px-4 py-3 sm:py-4 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 text-sm sm:text-base rounded-lg"
-                  placeholder="What legal help do you need?"
+                  readOnly
+                  className="block w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 text-sm sm:text-base cursor-pointer"
+                  placeholder="What legal help do you need? (e.g. Property, Family, Contract)"
                 />
-                {/* <button className="mr-2 bg-teal-600 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-teal-700 transition-all">
-                  Find
-                </button> */}
+                <button
+                  type="button"
+                  onClick={() => router.push("/user/lawyers")}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <span>Find Lawyers</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
             {/* Social Proof */}
-            <div className="flex items-center gap-4">
-              <div className="flex -space-x-3 sm:-space-x-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex -space-x-3 sm:-space-x-3.5">
                 {[{ img: '/lawboy7.jpg' }, { img: '/lawboy8.jpg' }, { img: '/laweyrGirl20.jpg' }, { img: '/profile.jpg' }].map((item, index) => (
                   <img
                     key={index}
-                    className="h-10 w-10 sm:h-12 sm:w-13 rounded-full border-2 border-white object-cover"
+                    className="h-10 w-10 sm:h-11 sm:w-11 rounded-full border-2 border-white object-cover shadow-xs"
                     src={item.img}
-                    alt="User"
+                    alt="Verified Lawyer"
                     onError={(e) => e.currentTarget.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=U'}
                   />
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 rounded-full">
-                <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-teal-600 fill-teal-600 text-white" />
-                <span className="text-xs sm:text-sm font-bold text-teal-700">Verified</span>
-
-
+              <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full border border-slate-200/70 shadow-xs">
+                <CheckCircle className="h-4 w-4 text-teal-600 fill-teal-50" />
+                <span className="text-xs sm:text-sm font-bold text-teal-700">500+ Verified Attorneys</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-600 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-slate-200/50">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>4.9/5 Rating</span>
               </div>
             </div>
           </div>
